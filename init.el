@@ -12,6 +12,10 @@
 ;; I prefer to explicitly define functions when I could use lambdas instead.
 ;; Defining functions makes them more discoverable in many situations
 
+;;; TODO:
+
+;; * Some code snippets are in the wrong section
+
 ;;; Code:
 
 ;;; Initialize initialization
