@@ -12,9 +12,7 @@
 ;; I prefer to explicitly define functions when I could use lambdas instead.
 ;; Defining functions makes them more discoverable in many situations
 
-;;; TODO:
-
-;; * Some code snippets are in the wrong section
+;; TODO:
 
 ;;; Code:
 
@@ -154,10 +152,10 @@
 (global-set-key (kbd "C-:") 'helm-multi-swoop-all)
 
 ;; Move up and down like isearch
-(define-key helm-swoop-map (kbd "C-r") 'helm-previous-line)
-(define-key helm-swoop-map (kbd "C-s") 'helm-next-line)
-(define-key helm-multi-swoop-map (kbd "C-r") 'helm-previous-line)
-(define-key helm-multi-swoop-map (kbd "C-s") 'helm-next-line)
+(define-key helm-swoop-map        (kbd "C-r") 'helm-previous-line)
+(define-key helm-swoop-map        (kbd "C-s") 'helm-next-line)
+(define-key helm-multi-swoop-map  (kbd "C-r") 'helm-previous-line)
+(define-key helm-multi-swoop-map  (kbd "C-s") 'helm-next-line)
 
 ;; When doing isearch, hand the word over to helm-swoop
 (define-key isearch-mode-map (kbd "C-;") 'helm-swoop-from-isearch)
@@ -198,28 +196,7 @@
 (when (fboundp 'horizontal-scroll-bar-mode)
   (horizontal-scroll-bar-mode 0))
 ;; Enable tooltips in the echo area
-(tooltip-mode nil)
-
-(autoload 'zap-up-to-char "misc"
-  "Kill up to, but not including ARGth occurrence of CHAR." t)
-
-;; Use a sensible mechanism for making buffer names unique
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'forward)
-
-;; Automatically save place in each file
-(use-package saveplace)
-(setq-default save-place t)
-
-;; (global-set-key (kbd "M-/") 'hippie-expand)
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-(global-set-key (kbd "M-z") 'zap-up-to-char)
-
-(setq isearch-allow-scroll t)
-;; (global-set-key (kbd "C-s") 'isearch-forward-regexp)
-;; (global-set-key (kbd "C-r") 'isearch-backward-regexp)
-;; (global-set-key (kbd "C-M-s") 'isearch-forward)
-;; (global-set-key (kbd "C-M-r") 'isearch-backward)
+(tooltip-mode -1)
 
 (fset 'yes-or-no-p 'y-or-n-p)        ;; Replace yes/no prompts with y/n
 (put 'downcase-region 'disabled nil) ;; Enable downcase-region
@@ -238,43 +215,80 @@
       save-interprogram-paste-before-kill t
       apropos-do-all t
       mouse-yank-at-point t
-      require-final-newline nil
+      kill-ring-max 1000
+      require-final-newline nil       ;; Who cares whether a file ends with newline?
+      ;; (setq next-line-add-newlines t) ;; C-n at the end of the buffer inserts newlines
       visible-bell t
       load-prefer-newer t
       ediff-window-setup-function 'ediff-setup-windows-plain
       window-combination-resize t
       save-place-file (concat user-emacs-directory "places")
-      echo-keystrokes 0.01  ;; Display keystrokes immediately
-      inhibit-startup-message t ;; Disable startup screen
-      initial-scratch-message "Welcome to Emacs!\n" ;; Change the initial *scratch* buffer
-      help-window-select t ;; Focus new help windows when opened
+      echo-keystrokes 0.01            ;; Display keystrokes immediately
+      inhibit-startup-message t       ;; Disable startup screen
+      initial-scratch-message ""      ;; Change the initial *scratch* buffer
+      help-window-select t            ;; Focus new help windows when opened
       confirm-kill-emacs 'yes-or-no-p ;; Always confirm before closing Emacs
-      delete-by-moving-to-trash t ;; Send deleted files to trash
+      delete-by-moving-to-trash t     ;; Send deleted files to trash
       backup-directory-alist `(("." .
                                 ,(concat user-emacs-directory "backups")))
       version-control t      ;; Always make numeric backup versions
       vc-make-backup-files t ;; Make backups of all files
-      delete-old-versions t) ;; Silently delete old backup versions)
+      delete-old-versions t  ;; Silently delete old backup versions
+      isearch-allow-scroll t
+      ;; search-whitespace-regexp ".*?"  ;; Isearch convenience, space matches anything
 
-(global-subword-mode t) ;; Recognize camelCase
+      pop-up-frames nil      ;; Open files in existing frames
+      pop-up-windows t
+      tab-always-indent 'complete    ;; Tab will first try to indent, then complete
+      resize-mini-windows t          ;; Resize the minibuffer when needed.
+      enable-recursive-minibuffers t ;; Enable recursive editing of minibuffer
+      ;; (setq max-mini-window-height 0.33)
+
+      ;; Change window name to be more descriptive
+      frame-title-format
+      '("Emacs - " (buffer-file-name "%f"
+                                     (dired-directory dired-directory "%b")))
+      )
+
+;; Set some builtin modes
+(global-subword-mode t)                 ;; Recognize camelCase
 (diminish 'subword-mode)
-(global-hl-line-mode t) ;; Highlight current line
-(setq global-hl-line-sticky-flag t) ;; Keep highlight across windows
-(auto-compression-mode 1) ;; Use compressed files like normal files
+(setq global-hl-line-sticky-flag t)     ;; Keep highlight across windows
+(global-hl-line-mode t)                 ;; Highlight current line
+(auto-compression-mode 1)               ;; Use compressed files like normal files
+;; (desktop-save-mode 1)                ;; Keep open files open across sessions
+(column-number-mode 1)                  ;; Display the column number
+;; (display-time-mode 1)                ;; Display the current time
+;; (setq display-time-format "%l:%M%p")
+(delete-selection-mode 1)               ;; Replace selected text when typing or pasting
+(add-hook 'prog-mode-hook 'linum-mode)  ;; Turn on line numbers only in programming modes
 
 ;; Turn on utf-8 by default
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
 
+;; Setup selected file endings to open in certain modes
+(add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
+
+;; Clean up whitespace when saving
+(add-hook 'before-save-hook 'whitespace-cleanup)
+
+;; Automatically save on loss of focus
+(defun save-all ()
+  "Automatically save all file-visiting buffers when Emacs loses focus."
+  (interactive)
+  (save-some-buffers t))
+(add-hook 'focus-out-hook 'save-all)
+
 ;;; User-Defined Variables
 
 (defvar user-todo-location "~/Text/org/todo.org")
 (defvar user-notes-location "~/Text/org/notes.org")
 
-;;; Load visual settings
+;;; Visual settings
 
-;; Load Theme
+;; Load Themes
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 ;; (load-theme 'paganini t)
 ;; (use-package afternoon-theme)
@@ -283,12 +297,15 @@
 (load-theme 'ample)
 ;; (use-package cyberpunk-theme)
 ;; (load-theme 'cyberpunk)
+;; (use-package kaolin-theme)
+;; (load-theme 'kaolin)
 
-;; Set font
+;; Function for checking font existence
 (defun font-exists-p (font)
   "Check if FONT exists."
   (if (null (x-list-fonts font)) nil t))
 
+;; Set font
 (cond
  ;; ((font-exists-p "Iosevka Slab")
  ;;  (set-face-attribute 'default nil :font "Iosevka Slab"))
@@ -331,7 +348,7 @@
 ;; Notes: WDired can be enabled with C-x C-q and compiled with C-c C-c
 (setq wdired-allow-to-change-permissions t)
 
-;;; Eshell options
+;;; Eshell settings
 
 ;; Open a new eshell buffer
 (defun eshell-new ()
@@ -355,8 +372,33 @@
 
 ;;; Load packages
 
-;; setup selected file endings to open in certain modes
-(add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
+;; Jump to the end of a line using avy's decision tree
+(defun avy-goto-line-end ()
+  "Jump to a line using avy and go to the end of the line."
+  (interactive)
+  (avy-goto-line)
+  (end-of-line))
+
+;; Avy mode (jump to a char/word using a decision tree)
+(use-package avy
+  :bind (("C-," . avy-goto-line-end)
+         ("C-<" . avy-goto-char-in-line)
+         ("C-." . avy-goto-char)
+         ("C->" . avy-goto-word-1))
+  :config
+  ;; Use more characters (and better ones) in the decision tree
+  (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
+                      ?w ?e ?r ?u ?i ?o))
+  (setq avy-background t) ;; Set the background to gray to highlight the decision tree
+  )
+
+;; Use a sensible mechanism for making buffer names unique
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'forward)
+
+;; Automatically save place in each file
+(use-package saveplace
+  :config (setq-default save-place t))
 
 ;; Improved mode line
 (use-package powerline
@@ -369,10 +411,6 @@
 ;; Midnight mode - clean up buffers older than 3 days
 (require 'midnight)
 (midnight-delay-set 'midnight-delay "4:30am")
-
-;; Open files in existing frames
-(setq pop-up-frames nil
-      pop-up-windows t)
 
 ;; Persistent scratch
 (use-package persistent-scratch
@@ -389,6 +427,16 @@
 (use-package anzu
   :diminish anzu-mode
   :config (global-anzu-mode))
+
+;; Enable more powerful replace, plus Python regexps
+;; Notes: Enable expressions with C-c C-c
+;;        You can use variables (like i, the match counter) in expressions
+(use-package visual-regexp-steroids
+  :bind (("C-`"   . vr/query-replace)
+         ("C-M-s" . vr/isearch-forward)
+         ("C-M-r" . vr/isearch-backward)
+         ("C-s"   . isearch-forward)
+         ("C-r"   . isearch-backward)))
 
 ;; Make marks visible
 (use-package visible-mark
@@ -430,50 +478,17 @@
   :bind (("C-h C-m" . discover-my-major)
          ("C-h M-m" . discover-my-mode)))
 
-;; Isearch convenience, space matches anything (non-greedy)
-;; (setq search-whitespace-regexp ".*?")
-
-;; ;; Keep open files open across sessions
-;; (desktop-save-mode 1)
-
-;; Display the column number
-(column-number-mode 1)
-
-;; ;; Display the current time
-;; (display-time-mode 1)
-;; (setq display-time-format "%l:%M%p")
-
-;; Replace any selected text with what you are typing or pasting
-(delete-selection-mode 1)
-
-;; Turn on line numbers only in programming modes
-;; (global-linum-mode t)
-(add-hook 'prog-mode-hook 'linum-mode)
-
-;; Resize the minibuffer when needed. Enable recursive editing of minibuffer
-(setq resize-mini-windows t
-      enable-recursive-minibuffers t)
-;; (setq max-mini-window-height 0.33)
-
-;; Change window name to be more descriptive
-(setq frame-title-format
-      '("Emacs - " (buffer-file-name "%f"
-                                     (dired-directory dired-directory "%b"))))
-
 ;; Undo/redo window configurations
 ;; Default keys are C-c left and C-c right
 (use-package winner
   :defer 1
   :config (winner-mode 1))
 
-;; Smooth scrolling (always a line at a time)
-(setq scroll-step 1)
-;;scroll-conservatively  10000)
-
 ;; Start scrolling near the edge of the screen
 (use-package smooth-scrolling
   :config
   (smooth-scrolling-mode 1)
+  (setq scroll-step 1)            ;; Always scroll one line at a time
   (setq smooth-scroll-margin 10))
 
 ;; Enable undo tree mode (C-x u)
@@ -507,86 +522,9 @@
 (use-package highlight-numbers
   :init (add-hook 'prog-mode-hook 'highlight-numbers-mode))
 
-;; ;; C-n at the end of the buffer inserts newlines
-;; (setq next-line-add-newlines t)
-
-;; Clean up whitespace when saving
-(add-hook 'before-save-hook 'whitespace-cleanup)
-
-;; Tab will first try to indent, then always complete
-(setq tab-always-indent 'complete)
-
-;; Automatically save on loss of focus
-(defun save-all ()
-  "Automatically save all file-visiting buffers when Emacs loses focus."
-  (interactive)
-  (save-some-buffers t))
-(add-hook 'focus-out-hook 'save-all)
-
 ;; Auto-focus help buffers and allow exiting with C-g
 (use-package popwin
   :config (popwin-mode 1))
-
-;; ;; Aggressive indent mode
-;; (use-package aggressive-indent
-;;   :init (add-hook 'prog-mode-hook #'aggressive-indent-mode))
-
-;;; Misc Bindings
-
-;; Select the current line
-(defun select-current-line ()
-  "Select the current line."
-  (interactive)
-  (end-of-line)
-  (push-mark (line-beginning-position) nil t))
-;; Replace default C-l, it's useless
-(global-set-key (kbd "C-l") 'select-current-line)
-
-;; Improved kill-whole-line which doesn't change cursor position
-;; TODO: this currently saves the lines in the kill ring in reverse order
-(defun annihilate-line ()
-  "Annihilate the current line by killing it, deleting the empty line, and restoring cursor position. If called on a region, will annihilate every line included in the region."
-  (interactive)
-  (let ((col (current-column)))
-    (cond
-     ;; No region selected
-     ((not (region-active-p))
-      (kill-whole-line))
-
-     ;; There is an active region
-     (t
-      (let ((beg (region-beginning))
-            (end (region-end))
-            (done nil))
-        (goto-char end)
-        (while (not done)
-          (kill-whole-line)
-          (forward-line -1)
-          (if (< (line-end-position) beg)
-              (setq done t)))
-        (forward-line))))
-
-    ;; Restore column position
-    (move-to-column col)))
-
-(global-set-key (kbd "C-S-k") 'annihilate-line)
-
-;; Reload the current buffer from disk
-(global-set-key [f5] 'revert-buffer)
-
-;; Previous/next buffers
-(global-set-key (kbd "C-c b") 'previous-buffer)
-(global-set-key (kbd "C-c f") 'next-buffer)
-
-;; Increase/decrease text size
-(global-set-key (kbd "M-+") 'text-scale-increase)
-(global-set-key (kbd "M--") 'text-scale-decrease)
-
-;; Go to line
-(global-set-key (kbd "M-g") 'goto-line)
-
-;; Rebind query-replace
-(global-set-key (kbd "C-`") 'query-replace)
 
 ;; Make switching windows better
 (use-package switch-window
@@ -598,8 +536,24 @@
 (use-package expand-region
   :bind ("C-=" . er/expand-region))
 
-;; Easily open info-display-manual
-(global-set-key (kbd "C-h I") 'info-display-manual)
+;; Wrap parentheses or quotes around word
+(use-package corral
+  :bind (("M-9" . corral-parentheses-backward)
+         ("M-0" . corral-parentheses-forward)
+         ("M-[" . corral-brackets-backward)
+         ("M-]" . corral-brackets-forward)
+         ("M-{" . corral-braces-backward)
+         ("M-}" . corral-braces-forward)
+         ("M-\"" . corral-double-quotes-backward))
+  :config (setq corral-preserve-point t))
+
+;; More powerful (way better) comment command
+(use-package evil-nerd-commenter
+  :bind ("M-;" . evilnc-comment-or-uncomment-lines))
+
+;; ;; Aggressive indent mode
+;; (use-package aggressive-indent
+;;   :init (add-hook 'prog-mode-hook #'aggressive-indent-mode))
 
 ;; On-the-fly syntax checker
 (use-package flycheck
@@ -696,9 +650,84 @@
 ;; (use-package lispy
 ;;  :init (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1))))
 
+;;; My Functions and Shortcut Bindings
+
+(autoload 'zap-up-to-char "misc"
+  "Kill up to, but not including ARGth occurrence of CHAR." t)
+
+;; (global-set-key (kbd "M-/") 'hippie-expand)
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(global-set-key (kbd "M-z") 'zap-up-to-char)
+
+;; Select the current line
+(defun select-current-line ()
+  "Select the current line."
+  (interactive)
+  (end-of-line)
+  (push-mark (line-beginning-position) nil t))
+;; Replace default C-l, it's useless
+(global-set-key (kbd "C-l") 'select-current-line)
+
+;; Improved kill-whole-line which doesn't change cursor position
+;; Can be called on multiple lines.
+;; Will entirely kill any line that's even partially within the region
+(defun annihilate-line-dwim ()
+  "Annihilate the current line or region by killing it, deleting the empty line, and restoring cursor position. If called on a region, will annihilate every line included in the region."
+  (interactive)
+  (cond
+   ;; No region selected
+   ((not (region-active-p))
+    (annihilate-line))
+   ;; There is an active region
+   (t
+    (annihilate-line-region (region-beginning) (region-end)))))
+
+(defun annihilate-line ()
+  "Annihilate the current line."
+  (interactive)
+  (let ((col (current-column)))
+    (kill-region (line-beginning-position) (line-end-position))
+    (kill-append "\n" t)
+    (if (/= (line-end-position) (point-max)) ;; Are there more lines after this?
+        (delete-char 1))
+    (move-to-column col))
+  )
+
+(defun annihilate-line-region (beg end)
+  "Annihilate the region from BEG to END."
+  (interactive "r")
+  (let ((col (current-column)))
+    (goto-char beg)
+    (setq beg (line-beginning-position))
+    (goto-char end)
+    (setq end (line-end-position))
+    (kill-region beg end)
+    (kill-append "\n" t)
+    (if (/= (line-end-position) (point-max)) ;; Are there more lines after this?
+        (delete-char 1))
+    (move-to-column col))) ;; Restore column position
+
+(global-set-key (kbd "C-S-k") 'annihilate-line-dwim)
+
+;; Reload the current buffer from disk
+(global-set-key [f5] 'revert-buffer)
+
+;; Previous/next buffers
+(global-set-key (kbd "C-c b") 'previous-buffer)
+(global-set-key (kbd "C-c f") 'next-buffer)
+
+;; Zoom in/out
+(global-set-key (kbd "M-+") 'text-scale-increase)
+(global-set-key (kbd "M--") 'text-scale-decrease)
+
+;; Go to line
+(global-set-key (kbd "M-g") 'goto-line)
+
+;; Easily open info-display-manual
+(global-set-key (kbd "C-h I") 'info-display-manual)
+
 (defun cleanup-buffer ()
-  "Perform a bunch of operations on the whitespace content of a buffer.
-Including indent-buffer, which should not be called automatically on save."
+  "Clean up all whitespace in the buffer and indent the whole buffer."
   (interactive)
   (whitespace-cleanup)
   (indent-region (point-min) (point-max)))
@@ -819,23 +848,8 @@ Including indent-buffer, which should not be called automatically on save."
   (forward-line -1)
   (indent-for-tab-command))
 
-(global-set-key (kbd "<C-return>") 'open-line-below)
+(global-set-key (kbd "<C-return>")   'open-line-below)
 (global-set-key (kbd "<C-S-return>") 'open-line-above)
-
-;; Wrap parentheses or quotes around word
-(use-package corral
-  :bind (("M-9" . corral-parentheses-backward)
-         ("M-0" . corral-parentheses-forward)
-         ("M-[" . corral-brackets-backward)
-         ("M-]" . corral-brackets-forward)
-         ("M-{" . corral-braces-backward)
-         ("M-}" . corral-braces-forward)
-         ("M-\"" . corral-double-quotes-backward))
-  :config (setq corral-preserve-point t))
-
-;; More powerful (way better) comment command
-(use-package evil-nerd-commenter
-  :bind ("M-;" . evilnc-comment-or-uncomment-lines))
 
 ;; Align region by character.
 ;; TODO: Enable history in read-string to allow for default values (i.e. last input)
@@ -845,25 +859,6 @@ Including indent-buffer, which should not be called automatically on save."
   (let ((char (read-string "string: ")))
     (align-regexp beg end (concat "\\(\\s-*\\)" char))))
 (global-set-key (kbd "M-=") 'align-to-string)
-
-;; Avy mode (jump to a char/word using a decision tree)
-(defun avy-goto-line-end ()
-  "Jump to a line using avy and go to the end of the line."
-  (interactive)
-  (avy-goto-line)
-  (end-of-line))
-
-(use-package avy
-  :bind (("C-," . avy-goto-line-end)
-         ("C-<" . avy-goto-char-in-line)
-         ("C-." . avy-goto-char)
-         ("C->" . avy-goto-word-1))
-  :config
-  ;; Use more characters (and better ones) in the decision tree
-  (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
-                      ?w ?e ?r ?u ?i ?o))
-  (setq avy-background t) ;; Set the background to gray to highlight the decision tree
-  )
 
 ;; Commands to split window and move focus to other window
 (defun split-window-right-focus ()
@@ -884,7 +879,7 @@ Including indent-buffer, which should not be called automatically on save."
 ;; Show ascii table
 ;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html
 (defun ascii-table ()
-  "Print the ascii table.  Based on a defun by Alex Schroeder <asc@bsiag.com>."
+  "Print the ascii table. Based on a defun by Alex Schroeder <asc@bsiag.com>."
   (interactive)
   (switch-to-buffer "*ASCII*")
   (erase-buffer)
@@ -896,6 +891,8 @@ Including indent-buffer, which should not be called automatically on save."
   (beginning-of-buffer))
 
 ;;; Org Mode
+
+;; TODO: organize this section
 
 (use-package org)
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode)) ; Open .org files in org-mode
@@ -931,9 +928,9 @@ Including indent-buffer, which should not be called automatically on save."
 (setq org-agenda-files '("~/Text/org/todo.org"))
 
 ;; Org-refile settings
-(setq org-reverse-note-order t) ; org-refile notes to the top of the list
-(setq org-refile-use-outline-path t) ; Use headline paths (level1/level2/level3...)
-(setq org-outline-path-complete-in-steps nil) ; Go down in steps when completing a path
+(setq org-reverse-note-order t)               ;; org-refile notes to the top of the list
+(setq org-refile-use-outline-path t)          ;; Use headline paths (level1/level2/...)
+(setq org-outline-path-complete-in-steps nil) ;; Go down in steps when completing a path
 
 (setq org-refile-targets '((org-agenda-files . (:maxlevel . 9))
                            ("~/Text/org/notes.org" . (:maxlevel . 9))))
@@ -947,19 +944,15 @@ Including indent-buffer, which should not be called automatically on save."
      (file "notes.org")
      "* %?")))
 
-;;; Shortcuts
-
+;; Shortcuts
 (global-set-key (kbd "C-c <up>") 'outline-up-heading)
 (global-set-key (kbd "C-c <left>") 'outline-previous-visible-heading)
 (global-set-key (kbd "C-c <right>") 'outline-next-visible-heading)
-
 ;; (global-set-key (kbd "C-c t") 'org-show-todo-tree) ; Show all todo tasks
-
 (global-set-key (kbd "C-c o")
                 (lambda () (interactive) (find-file user-notes-location)))
 (global-set-key (kbd "C-c p")
                 (lambda () (interactive) (find-file user-todo-location)))
-
 (global-set-key (kbd "C-c a") 'org-agenda-list) ; Switch to org-agenda
 
 ;; org-capture with template as default behavior
@@ -973,17 +966,19 @@ Including indent-buffer, which should not be called automatically on save."
   (interactive)
   (org-capture nil "n"))
 
-(global-set-key (kbd "C-c c") 'org-task-capture) ; org-capture
+(global-set-key (kbd "C-c c") 'org-task-capture)            ;; org-capture
 (global-set-key (kbd "C-c v") 'org-note-capture)
 
-(global-set-key (kbd "C-c j") 'org-refile-goto-last-stored) ; jump to last capture
+(global-set-key (kbd "C-c j") 'org-refile-goto-last-stored) ;; jump to last capture
 
 ;;; Final
-(setq default-directory "~/") ; Default directory
-(setq org-directory "~/Text/org") ; Default org directory
 
-;;(find-file user-todo-list-location) ; Start with notes.org
-;;(org-agenda nil "a") ; Open org-agenda
+(setq default-directory "~/")         ;; Default directory
+(setq org-directory "~/Text/org")     ;; Default org directory
+
+;;(find-file user-todo-list-location) ;; Start with notes.org
+;;(org-agenda nil "a")                ;; Open org-agenda
 
 (provide 'init)
 ;;; init.el ends here
+(put 'dired-find-alternate-file 'disabled nil)
