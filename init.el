@@ -173,6 +173,35 @@
 ;; Silver Searcher interface with helm
 (use-package helm-ag)
 
+;; ggtags with helm
+(use-package helm-gtags
+  :diminish helm-gtags-mode
+  :init
+  ;; Enable helm-gtags-mode
+  (add-hook 'dired-mode-hook 'helm-gtags-mode)
+  (add-hook 'eshell-mode-hook 'helm-gtags-mode)
+  (add-hook 'c-mode-hook 'helm-gtags-mode)
+  (add-hook 'c++-mode-hook 'helm-gtags-mode)
+  (add-hook 'asm-mode-hook 'helm-gtags-mode)
+
+  :config
+  (setq
+   helm-gtags-ignore-case t
+   helm-gtags-auto-update t
+   helm-gtags-use-input-at-cursor t
+   helm-gtags-pulse-at-cursor t
+   helm-gtags-prefix-key "\C-cg"
+   helm-gtags-suggested-key-mapping t
+   )
+
+  (define-key helm-gtags-mode-map (kbd "C-c g a") 'helm-gtags-tags-in-this-function)
+  (define-key helm-gtags-mode-map (kbd "C-j") 'helm-gtags-select)
+  (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-dwim)
+  (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
+  (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
+  (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+  )
+
 ;;; Load customizations
 
 (setq custom-file (concat user-emacs-directory "customize.el"))
@@ -198,6 +227,7 @@
 (when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
 (when (fboundp 'horizontal-scroll-bar-mode) (horizontal-scroll-bar-mode 0))
+
 ;; Enable tooltips in the echo area
 (tooltip-mode -1)
 
@@ -220,7 +250,7 @@
       apropos-do-all t
       mouse-yank-at-point t
       kill-ring-max 1000
-      require-final-newline nil       ;; Who cares whether a file ends with newline?
+      require-final-newline t            ;; Ensure that files end with a newline
       ;; (setq next-line-add-newlines t) ;; C-n at the end of the buffer inserts newlines
       visible-bell t
       load-prefer-newer t
@@ -233,13 +263,13 @@
       help-window-select t            ;; Focus new help windows when opened
       confirm-kill-emacs 'yes-or-no-p ;; Always confirm before closing Emacs
       delete-by-moving-to-trash t     ;; Send deleted files to trash
-      backup-directory-alist `(("." .
-                                ,(concat user-emacs-directory "backups")))
+      backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
       version-control t      ;; Always make numeric backup versions
       vc-make-backup-files t ;; Make backups of all files
       delete-old-versions t  ;; Silently delete old backup versions
       isearch-allow-scroll t
       ;; search-whitespace-regexp ".*?"  ;; Isearch convenience, space matches anything
+      show-trailing-whitespace 1         ;; Display trailing whitespace
 
       pop-up-frames nil      ;; Open files in existing frames
       pop-up-windows t
@@ -247,11 +277,16 @@
       resize-mini-windows t          ;; Resize the minibuffer when needed.
       enable-recursive-minibuffers t ;; Enable recursive editing of minibuffer
       ;; (setq max-mini-window-height 0.33)
+      ;; Move point to beginning or end of buffer when scrolling
+      scroll-error-top-bottom t
 
       ;; Change window name to be more descriptive
       frame-title-format
       '("Emacs - " (buffer-file-name "%f"
                                      (dired-directory dired-directory "%b")))
+
+      ;; Language-specific settings?
+      c-default-style "linux"
       )
 
 ;; Set some builtin modes
@@ -265,7 +300,14 @@
 ;; (display-time-mode 1)                ;; Display the current time
 ;; (setq display-time-format "%l:%M%p")
 (delete-selection-mode 1)               ;; Replace selected text when typing or pasting
+
 (add-hook 'prog-mode-hook 'linum-mode)  ;; Turn on line numbers only in programming modes
+;; Set c-style comments to be "//" by default (these are just better, sorry)
+(add-hook 'c-mode-common-hook
+  (lambda ()
+    ;; Preferred comment style
+    (setq comment-start "// "
+          comment-end "")))
 
 ;; Turn on utf-8 by default
 (set-terminal-coding-system 'utf-8)
@@ -275,8 +317,8 @@
 ;; Setup selected file endings to open in certain modes
 (add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
 
-;; Clean up whitespace when saving
-(add-hook 'before-save-hook 'whitespace-cleanup)
+;; ;; Clean up whitespace when saving
+;; (add-hook 'before-save-hook 'whitespace-cleanup)
 
 ;; Automatically save on loss of focus
 (defun save-all ()
@@ -291,13 +333,6 @@
 (defvar user-notes-location "~/Text/org/notes.org")
 
 ;;; My Functions and Shortcut Bindings
-
-;; More consistent with shells and avoids backspace
-(global-set-key (kbd "C-w") 'backward-kill-word)
-;; Replace kill-region
-(global-set-key (kbd "C-x C-k") 'kill-region)
-;; Rebind M-backspace
-(global-set-key (kbd "<M-backspace>") 'backward-kill-sentence)
 
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
@@ -576,7 +611,8 @@
 (setq-default dired-listing-switches "-alhv" ;; Make sizes human-readable by default and put dotfiles and capital-letters first.
               dired-recursive-copies 'always ;; Always do recursive copies
               dired-dwim-target t            ;; Try suggesting dired targets
-              dired-auto-revert-buffer t     ;; Update buffer when revisiting
+              dired-auto-revert-buffer t     ;; Update buffer when visiting
+              indicate-empty-lines t         ;; Highlight end of buffer
               )
 
 ;; Hide file details in Dired
@@ -621,6 +657,17 @@
 (add-hook 'eshell-load-hook #'(add-to-list 'eshell-visual-commands "ghci"))
 
 ;;; Load packages
+
+(use-package ws-butler
+  :diminish ws-butler-mode
+  :init (add-hook 'prog-mode-hook #'ws-butler-mode))
+
+;; (use-package dtrt-indent
+;;   :diminish dtrt-indent-mode
+;;   :config
+;;   (dtrt-indent-mode t)
+;;   ;; (setq dtrt-indent-verbosity 0)
+;;   )
 
 ;; Save open files across Emacs sessions.
 ;; I use this instead of Desktop.el which saves the entire session.
@@ -715,7 +762,11 @@
 ;; Highlight color strings with the corresponding color
 (use-package rainbow-mode
   :diminish rainbow-mode
-  :init (add-hook 'prog-mode-hook #'rainbow-mode))
+  :init
+  (add-hook 'prog-mode-hook #'rainbow-mode)
+  ;; Turn off for C-modes by default, since this gets triggered for each "#DEFINE"
+  (add-hook 'c-mode-common-hook #'rainbow-turn-off)
+  )
 
 ;; Highlight delimiters with colors depending on depth
 (use-package rainbow-delimiters
@@ -823,6 +874,26 @@
 ;; (use-package aggressive-indent
 ;;   :init (add-hook 'prog-mode-hook #'aggressive-indent-mode))
 
+;; Git client in Emacs
+(use-package magit
+  :diminish auto-revert-mode
+  :bind ("C-x g" . magit-status))
+
+;; Project manager
+(use-package projectile
+  :bind ("<f6>" . projectile-compile-project)
+  :init
+  ;; (add-hook 'c-mode-hook #'(setq compilation-read-command "make"))
+  :config
+  (projectile-mode)
+  (setq projectile-completion-system 'helm))
+(use-package helm-projectile
+  :bind ("C-'" . helm-projectile) ;; All projectile commands in a single key
+  :config
+  (helm-projectile-on))
+
+;;; Language packages
+
 ;; On-the-fly syntax checker
 (use-package flycheck
   :defer t
@@ -838,13 +909,21 @@
   (eval-after-load 'flycheck
     '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)))
 
+(use-package flycheck-rust
+  :init
+  (eval-after-load 'flycheck
+    '(add-hook 'flycheck-mode-hook #'flycheck-rust-setup)))
+
 ;; Company mode for auto-completion
 (use-package company
   :diminish company-mode
   :bind ("M-/" . company-complete)
   :config
   (global-company-mode)
-  (setq company-idle-delay nil))
+  (setq company-idle-delay nil)
+  (setq company-tooltip-align-annotations t) ;; align tooltips to right border
+  (add-to-list 'company-backends 'company-racer)
+  )
 
 ;; ;; Display tooltips for company completion candidates
 ;; (use-package company-quickhelp
@@ -871,6 +950,20 @@
         haskell-indentation-ifte-offset   4
         haskell-hoogle-command "hoogle"))
 
+(use-package rust-mode
+  :init
+  (add-hook 'rust-mode-hook #'racer-mode)
+  :mode "\\.rs\\'"
+  )
+
+(use-package racer
+  :init
+  (add-hook 'racer-mode-hook #'eldoc-mode)
+  (add-hook 'racer-mode-hook #'company-mode)
+  :config
+  (define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common)
+  )
+
 ;; ;; Completions for Haskell
 ;; ;; TODO: doesn't get loaded...
 ;; (use-package company-ghc
@@ -893,10 +986,6 @@
 ;; Haskell snippets
 (use-package haskell-snippets
   :after yasnippet)
-
-;; Git client in Emacs
-(use-package magit
-  :bind ("C-x g" . magit-status))
 
 ;; (use-package parinfer
 ;;   :ensure t
