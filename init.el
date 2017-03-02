@@ -26,6 +26,7 @@
 
 ;; First things first, define the init file location and make it easy to reload
 (defvar init-file-location (concat user-emacs-directory "init.el"))
+(defvar packages-location  (concat user-emacs-directory "packages"))
 
 ;; Reload init file
 (defun reload-init-file ()
@@ -42,6 +43,9 @@
 (global-set-key (kbd "C-c i") 'open-init-file)
 
 ;;; Package settings
+
+;; Add "packages" folder to load-path
+(add-to-list 'load-path packages-location)
 
 (require 'package)
 ;; Explicitly enable packages
@@ -108,11 +112,6 @@
       helm-imenu-fuzzy-match    t)
 (global-set-key (kbd "M-i") 'helm-semantic-or-imenu)
 ;;(global-set-key (kbd "M-i") #'imenu-anywhere)
-
-;; use helm to list eshell history
-(add-hook 'eshell-mode-hook
-          #'(lambda ()
-              (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)))
 
 (when (executable-find "curl")
   (setq helm-google-suggest-use-curl-p t))
@@ -256,7 +255,6 @@
       load-prefer-newer t
       ediff-window-setup-function 'ediff-setup-windows-plain
       window-combination-resize t
-      save-place-file (concat user-emacs-directory "places")
       echo-keystrokes 0.01            ;; Display keystrokes immediately
       inhibit-startup-message t       ;; Disable startup screen
       initial-scratch-message ""      ;; Change the initial *scratch* buffer
@@ -304,10 +302,10 @@
 (add-hook 'prog-mode-hook 'linum-mode)  ;; Turn on line numbers only in programming modes
 ;; Set c-style comments to be "//" by default (these are just better, sorry)
 (add-hook 'c-mode-common-hook
-  (lambda ()
-    ;; Preferred comment style
-    (setq comment-start "// "
-          comment-end "")))
+          (lambda ()
+            ;; Preferred comment style
+            (setq comment-start "// "
+                  comment-end "")))
 
 ;; Turn on utf-8 by default
 (set-terminal-coding-system 'utf-8)
@@ -569,7 +567,7 @@
     (while (< i 254)
       (setq i (+ i 1))
       (insert (format "%4d %c\n" i i))))
-  (beginning-of-buffer))
+  (goto-char (point-min)))
 
 ;;; Visual settings
 
@@ -578,12 +576,15 @@
 ;; (load-theme 'paganini t)
 ;; (use-package afternoon-theme)
 ;; (load-theme 'afternoon t)
-(use-package ample-theme)
-(load-theme 'ample)
+;; (use-package ample-theme)
+;; (load-theme 'ample)
 ;; (use-package cyberpunk-theme)
 ;; (load-theme 'cyberpunk)
-;; (use-package kaolin-theme)
-;; (load-theme 'kaolin)
+
+;; Nimbus is my personal theme based on Ample.
+;; You can comment this out as it's not available yet.
+(require 'nimbus-theme)
+(load-theme 'nimbus)
 
 ;; Function for checking font existence
 (defun font-exists-p (font)
@@ -612,7 +613,7 @@
               dired-recursive-copies 'always ;; Always do recursive copies
               dired-dwim-target t            ;; Try suggesting dired targets
               dired-auto-revert-buffer t     ;; Update buffer when visiting
-              indicate-empty-lines t         ;; Highlight end of buffer
+              indicate-empty-lines nil       ;; highlight end of buffer?
               )
 
 ;; Hide file details in Dired
@@ -636,6 +637,12 @@
 
 ;;; Eshell settings
 
+;; use helm to list eshell history
+(add-hook 'eshell-mode-hook
+          #'(lambda ()
+              (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)
+              ))
+
 ;; Open a new eshell buffer
 (defun eshell-new ()
   "Open a new eshell buffer."
@@ -658,6 +665,13 @@
 
 ;;; Load packages
 
+(use-package indent-guide
+  :diminish indent-guide-mode
+  :init
+  (add-hook 'python-mode-hook #'indent-guide-mode)
+  (add-hook 'nim-mode-hook    #'indent-guide-mode)
+  )
+
 (use-package ws-butler
   :diminish ws-butler-mode
   :init (add-hook 'prog-mode-hook #'ws-butler-mode))
@@ -672,7 +686,7 @@
 ;; Save open files across Emacs sessions.
 ;; I use this instead of Desktop.el which saves the entire session.
 (use-package save-visited-files
-  :init (add-hook 'after-init-hook #'turn-on-save-visited-files-mode))
+  :config (turn-on-save-visited-files-mode))
 
 ;; Jump to the end of a line using avy's decision tree
 (defun avy-goto-line-end ()
@@ -700,28 +714,23 @@
 
 ;; Automatically save place in each file
 (use-package saveplace
-  :config (setq-default save-place t))
+  :config
+  (setq-default save-place t)
+  (setq save-place-file (concat user-emacs-directory "places"))
+  )
 
 ;; Improved mode line
-(use-package powerline
-  ;; :disabled
-  :config (powerline-default-theme))
-(use-package spaceline-config
-  :disabled
-  :config (spaceline-emacs-theme))
+;; (use-package powerline
+;;   :config (powerline-default-theme))
+;; (use-package spaceline-config
+;;   :config (spaceline-emacs-theme))
 
 ;; Midnight mode - clean up buffers older than 3 days
 (require 'midnight)
 (midnight-delay-set 'midnight-delay "4:30am")
 
-;; Persistent scratch
-(use-package persistent-scratch
-  :disabled
-  :config (persistent-scratch-setup-default))
-
 ;; Neotree directory tree
 (use-package neotree
-  ;; :disabled
   :bind ("C-x C-d" . neotree-toggle)
   :config (setq neo-smart-open t))
 
@@ -792,17 +801,12 @@
   :defer 1
   :config (winner-mode 1))
 
-;; Start scrolling near the edge of the screen
-(use-package smooth-scrolling
-  :config
-  (smooth-scrolling-mode 1)
-  (setq scroll-step 1)            ;; Always scroll one line at a time
-  (setq smooth-scroll-margin 10))
-
-;; ;; Highlight line when scrolling
-;; (use-package golden-ratio-scroll-screen
-;;   :bind (("C-v" . golden-ratio-scroll-screen-up)
-;;          ("M-v" . golden-ratio-scroll-screen-down)))
+;; ;; Start scrolling near the edge of the screen
+;; (use-package smooth-scrolling
+;;   :config
+;;   (smooth-scrolling-mode 1)
+;;   (setq scroll-step 1)            ;; Always scroll one line at a time
+;;   (setq smooth-scroll-margin 10))
 
 ;; Enable undo tree mode (C-x u)
 (use-package undo-tree
@@ -870,10 +874,6 @@
 (use-package evil-nerd-commenter
   :bind ("M-;" . evilnc-comment-or-uncomment-lines))
 
-;; ;; Aggressive indent mode
-;; (use-package aggressive-indent
-;;   :init (add-hook 'prog-mode-hook #'aggressive-indent-mode))
-
 ;; Git client in Emacs
 (use-package magit
   :diminish auto-revert-mode
@@ -896,6 +896,7 @@
 
 ;; On-the-fly syntax checker
 (use-package flycheck
+  :diminish flycheck-mode
   :defer t
   :init
   ;; (global-flycheck-mode)
@@ -924,11 +925,6 @@
   (setq company-tooltip-align-annotations t) ;; align tooltips to right border
   (add-to-list 'company-backends 'company-racer)
   )
-
-;; ;; Display tooltips for company completion candidates
-;; (use-package company-quickhelp
-;;   :bind ("C-c h" . company-quickhelp-manual-begin)
-;;   :config (company-quickhelp-mode 1))
 
 ;; Haskell mode
 (use-package haskell-mode
@@ -959,9 +955,15 @@
 (use-package racer
   :init
   (add-hook 'racer-mode-hook #'eldoc-mode)
-  (add-hook 'racer-mode-hook #'company-mode)
   :config
   (define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common)
+  )
+
+(use-package nim-mode
+  :init
+  (setq nim-nimsuggest-path "~/.nim/bin/nimsuggest")
+  ;; Currently nimsuggest doesn't support nimscript files, so only nim-mode...
+  (add-hook 'nim-mode-hook 'nimsuggest-mode)
   )
 
 ;; ;; Completions for Haskell
@@ -1067,7 +1069,7 @@
 ;; (global-set-key (kbd "C-c t") 'org-show-todo-tree) ; Show all todo tasks
 (global-set-key (kbd "C-c o")
                 (lambda () (interactive) (find-file user-notes-location)))
-(global-set-key (kbd "C-c p")
+(global-set-key (kbd "C-c l")
                 (lambda () (interactive) (find-file user-todo-location)))
 (global-set-key (kbd "C-c a") 'org-agenda-list) ; Switch to org-agenda
 
