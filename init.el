@@ -4,10 +4,12 @@
 
 ;;; Commentary:
 
-;; Making changes:
+;; Making changes / testing:
+
 ;; Use bug-hunter-init-file to locate errors
 ;; Use esup to profile startup time
 ;; Use C-c r to reload or restart-emacs to restart after making changes
+;; To stop execution of this file at some point, put in (error "Done")
 
 ;; I prefer to explicitly define functions when I could use lambdas instead.
 ;; Defining functions makes them more discoverable in many situations
@@ -227,6 +229,9 @@
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
 (when (fboundp 'horizontal-scroll-bar-mode) (horizontal-scroll-bar-mode 0))
 
+(toggle-frame-maximized) ;; Maximize!
+;; (toggle-frame-fullscreen) ;; Maximize MORE
+
 ;; Enable tooltips in the echo area
 (tooltip-mode -1)
 
@@ -299,7 +304,6 @@
 ;; (setq display-time-format "%l:%M%p")
 (delete-selection-mode 1)               ;; Replace selected text when typing or pasting
 
-(add-hook 'prog-mode-hook 'linum-mode)  ;; Turn on line numbers only in programming modes
 ;; Set c-style comments to be "//" by default (these are just better, sorry)
 (add-hook 'c-mode-common-hook
           (lambda ()
@@ -665,6 +669,13 @@
 
 ;;; Load packages
 
+(add-hook 'prog-mode-hook 'linum-mode)  ;; Turn on line numbers in programming modes
+(setq linum-format "%3d")
+
+;; (use-package which-func
+;;   :config
+;;   (which-func-mode 1))
+
 (use-package indent-guide
   :diminish indent-guide-mode
   :init
@@ -719,11 +730,10 @@
   (setq save-place-file (concat user-emacs-directory "places"))
   )
 
-;; Improved mode line
+;; Nicer-looking modeline
+;; Looks nice, but causes lag.
 ;; (use-package powerline
 ;;   :config (powerline-default-theme))
-;; (use-package spaceline-config
-;;   :config (spaceline-emacs-theme))
 
 ;; Midnight mode - clean up buffers older than 3 days
 (require 'midnight)
@@ -883,14 +893,18 @@
 (use-package projectile
   :bind ("<f6>" . projectile-compile-project)
   :init
-  ;; (add-hook 'c-mode-hook #'(setq compilation-read-command "make"))
+  (add-hook 'prog-mode-hook #'projectile-mode)
   :config
-  (projectile-mode)
   (setq projectile-completion-system 'helm))
+
 (use-package helm-projectile
   :bind ("C-'" . helm-projectile) ;; All projectile commands in a single key
   :config
   (helm-projectile-on))
+
+(use-package vim-empty-lines-mode
+  :diminish vim-empty-lines-mode
+  :init (add-hook 'prog-mode-hook 'vim-empty-lines-mode))
 
 ;;; Language packages
 
@@ -907,13 +921,12 @@
 
 (use-package flycheck-haskell
   :init
-  (eval-after-load 'flycheck
-    '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)))
+  '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
 
-(use-package flycheck-rust
-  :init
-  (eval-after-load 'flycheck
-    '(add-hook 'flycheck-mode-hook #'flycheck-rust-setup)))
+;; ;; Doesn't work, json-read-error
+;; (use-package flycheck-rust
+;;   :init
+;;   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
 ;; Company mode for auto-completion
 (use-package company
@@ -964,6 +977,8 @@
   (setq nim-nimsuggest-path "~/.nim/bin/nimsuggest")
   ;; Currently nimsuggest doesn't support nimscript files, so only nim-mode...
   (add-hook 'nim-mode-hook 'nimsuggest-mode)
+  :config
+  (define-key nim-mode-map (kbd "RET") #'newline-and-indent)
   )
 
 ;; ;; Completions for Haskell
