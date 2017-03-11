@@ -90,7 +90,8 @@
 
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
 (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB work in terminal
-(define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+(define-key helm-map (kbd "C-z") 'helm-select-action) ; list actions using C-z
+(define-key helm-map (kbd "M-x") 'helm-select-action)
 
 (global-set-key (kbd "M-x")     'helm-M-x)
 (global-set-key (kbd "C-x C-m") 'helm-M-x)
@@ -173,6 +174,10 @@
 
 ;; Silver Searcher interface with helm
 (use-package helm-ag)
+
+;; Search current bindings with helm (C-h b)
+(use-package helm-descbinds
+  :config (helm-descbinds-mode))
 
 ;; ggtags with helm
 (use-package helm-gtags
@@ -289,7 +294,7 @@
                                      (dired-directory dired-directory "%b")))
 
       ;; Language-specific settings?
-      c-default-style "linux"
+      ;; c-default-style "gnu"
       )
 
 ;; Set some builtin modes
@@ -529,10 +534,10 @@
   (beginning-of-line)
   (newline-and-indent)
   (forward-line -1)
-  (indent-for-tab-command))
+  (indent-according-to-mode))
 
-(global-set-key (kbd "<C-return>")   'open-line-below)
-(global-set-key (kbd "<C-S-return>") 'open-line-above)
+(global-set-key (kbd "<C-return>") 'open-line-below)
+(global-set-key (kbd "<S-return>") 'open-line-above)
 
 ;; Align region by character.
 ;; TODO: Enable history in read-string to allow for default values (i.e. last input)
@@ -670,8 +675,13 @@
 ;;; Load packages
 
 (add-hook 'prog-mode-hook 'linum-mode)  ;; Turn on line numbers in programming modes
-(setq linum-format "%3d")
+(setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
 
+;; show info about the current region
+(use-package region-state
+  :config (region-state-mode))
+
+;; display current function in mode line
 ;; (use-package which-func
 ;;   :config
 ;;   (which-func-mode 1))
@@ -679,8 +689,7 @@
 (use-package indent-guide
   :diminish indent-guide-mode
   :init
-  (add-hook 'python-mode-hook #'indent-guide-mode)
-  (add-hook 'nim-mode-hook    #'indent-guide-mode)
+  (add-hook 'prog-mode-hook #'indent-guide-mode)
   )
 
 (use-package ws-butler
@@ -781,15 +790,29 @@
 ;; Highlight color strings with the corresponding color
 (use-package rainbow-mode
   :diminish rainbow-mode
-  :init
-  (add-hook 'prog-mode-hook #'rainbow-mode)
-  ;; Turn off for C-modes by default, since this gets triggered for each "#DEFINE"
-  (add-hook 'c-mode-common-hook #'rainbow-turn-off)
+  ;; :init
+  ;; (add-hook 'prog-mode-hook #'rainbow-mode)
+  ;; ;; Turn off for C-modes by default, since this gets triggered for each "#DEFINE"
+  ;; (add-hook 'c-mode-common-hook #'rainbow-turn-off)
   )
 
 ;; Highlight delimiters with colors depending on depth
 (use-package rainbow-delimiters
   :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+
+;; ;; Highlight matching parentheses around point
+;; (use-package highlight-parentheses
+;;   :diminish highlight-parentheses-mode
+;;   :init (add-hook 'prog-mode-hook #'highlight-parentheses-mode))
+
+;; Highlight numbers in code
+(use-package highlight-numbers
+  :init (add-hook 'prog-mode-hook 'highlight-numbers-mode))
+
+;; Highlight some recent changes such as undos
+(use-package volatile-highlights
+  :diminish volatile-highlights-mode
+  :config (volatile-highlights-mode))
 
 ;; ;; Always keep the cursor centered
 ;; (use-package centered-cursor-mode)
@@ -834,20 +857,6 @@
   (which-key-mode)
   (setq which-key-sort-order 'which-key-key-order-alpha)
   (setq which-key-sort-uppercase-first nil))
-
-;; Highlight some recent changes such as undos
-(use-package volatile-highlights
-  :diminish volatile-highlights-mode
-  :config (volatile-highlights-mode))
-
-;; Highlight matching parentheses around point
-(use-package highlight-parentheses
-  :diminish highlight-parentheses-mode
-  :init (add-hook 'prog-mode-hook #'highlight-parentheses-mode))
-
-;; Highlight numbers in code
-(use-package highlight-numbers
-  :init (add-hook 'prog-mode-hook 'highlight-numbers-mode))
 
 ;; Auto-focus help buffers and allow exiting with C-g
 (use-package popwin
@@ -895,16 +904,26 @@
   :init
   (add-hook 'prog-mode-hook #'projectile-mode)
   :config
-  (setq projectile-completion-system 'helm))
+  (setq projectile-completion-system 'helm)
+  ;; Change mode line indicator
+  (setq projectile-mode-line '(:eval
+                               (if
+                                   (file-remote-p default-directory)
+                                   " Projectile"
+                                 (format " [%s]"
+                                         (projectile-project-name)))))
+  )
 
 (use-package helm-projectile
   :bind ("C-'" . helm-projectile) ;; All projectile commands in a single key
   :config
   (helm-projectile-on))
 
-(use-package vim-empty-lines-mode
-  :diminish vim-empty-lines-mode
-  :init (add-hook 'prog-mode-hook 'vim-empty-lines-mode))
+;; ;; Mark empty lines at the ends of buffers
+;; ;; Does this break avy mode?
+;; (use-package vim-empty-lines-mode
+;;   :diminish vim-empty-lines-mode
+;;   :init (add-hook 'prog-mode-hook 'vim-empty-lines-mode))
 
 ;;; Language packages
 
@@ -913,9 +932,11 @@
   :diminish flycheck-mode
   :defer t
   :init
-  ;; (global-flycheck-mode)
   (add-hook 'prog-mode-hook #'flycheck-mode)
   (setq sentence-end-double-space nil)
+  ;; Add linting for elisp packages
+  (eval-after-load 'flycheck
+    '(flycheck-package-setup))
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors))
 
