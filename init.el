@@ -28,7 +28,7 @@
 
 ;; First things first, define the init file location and make it easy to reload
 (defvar init-file-location (concat user-emacs-directory "init.el"))
-(defvar packages-location  (concat user-emacs-directory "packages"))
+(defvar packages-location  (concat user-emacs-directory "packages/nimbus"))
 
 ;; Reload init file
 (defun reload-init-file ()
@@ -341,6 +341,9 @@
 
 ;;; My Functions and Shortcut Bindings
 
+;; artist mode
+(global-set-key (kbd "C-$") 'artist-mode)
+
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
 
@@ -484,8 +487,6 @@
 
 (global-set-key (kbd "C-S-n") 'move-line-down)
 (global-set-key (kbd "C-S-p") 'move-line-up)
-(global-set-key (kbd "<C-S-down>") 'move-line-down)
-(global-set-key (kbd "<C-S-up>") 'move-line-up)
 
 ;; Join the following line onto the current line
 ;; Use this to quickly consolidate multiple lines into one
@@ -540,7 +541,8 @@
 (global-set-key (kbd "<S-return>") 'open-line-above)
 
 ;; Align region by character.
-;; TODO: Enable history in read-string to allow for default values (i.e. last input)
+;; TODO: Enable history in read-string to allow for default values
+;; (i.e. last input)
 (defun align-to-string (beg end)
   "Align region along character CHAR from BEG to END."
   (interactive "r")
@@ -674,7 +676,7 @@
 
 ;;; Load packages
 
-(add-hook 'prog-mode-hook 'linum-mode)  ;; Turn on line numbers in programming modes
+(add-hook 'prog-mode-hook 'linum-mode)  ;; Turn on line numbers in prog modes
 (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
 
 ;; show info about the current region
@@ -686,27 +688,23 @@
 ;;   :config
 ;;   (which-func-mode 1))
 
-(use-package indent-guide
-  :diminish indent-guide-mode
+;; Highlight indentation using dashes (looks really nice)
+(use-package highlight-indent-guides
   :init
-  (add-hook 'prog-mode-hook #'indent-guide-mode)
+  (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'character
+        highlight-indent-guides-character ?\-)
   )
 
 (use-package ws-butler
   :diminish ws-butler-mode
   :init (add-hook 'prog-mode-hook #'ws-butler-mode))
 
-;; (use-package dtrt-indent
-;;   :diminish dtrt-indent-mode
-;;   :config
-;;   (dtrt-indent-mode t)
-;;   ;; (setq dtrt-indent-verbosity 0)
-;;   )
-
-;; Save open files across Emacs sessions.
-;; I use this instead of Desktop.el which saves the entire session.
-(use-package save-visited-files
-  :config (turn-on-save-visited-files-mode))
+;; ;; Save open files across Emacs sessions.
+;; ;; I use this instead of Desktop.el which saves the entire session.
+;; (use-package save-visited-files
+;;   :config (turn-on-save-visited-files-mode))
 
 ;; Jump to the end of a line using avy's decision tree
 (defun avy-goto-line-end ()
@@ -723,9 +721,14 @@
          ("C->" . avy-goto-word-1))
   :config
   ;; Use more characters (and better ones) in the decision tree
-  (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
-                      ?w ?e ?r ?u ?i ?o))
-  (setq avy-background t) ;; Set the background to gray to highlight the decision tree
+  ;; QWERTY keys
+  ;; (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
+  ;;                     ?w ?e ?r ?u ?i ?o))
+  ;; DVORAK keys
+  (setq avy-keys '(?p ?g ?c ?r
+                      ?a ?o ?e ?u ?h ?t ?n ?s))
+  ;; Set the background to gray to highlight the decision tree
+  (setq avy-background t)
   )
 
 ;; Use a sensible mechanism for making buffer names unique
@@ -748,10 +751,32 @@
 (require 'midnight)
 (midnight-delay-set 'midnight-delay "4:30am")
 
-;; Neotree directory tree
-(use-package neotree
-  :bind ("C-x C-d" . neotree-toggle)
-  :config (setq neo-smart-open t))
+;; ;; DISABLED - broken!
+;; (use-package fill-column-indicator
+;;   :init
+;;   (add-hook 'prog-mode-hook 'fci-mode)
+;;   :config
+;;   (setq fci-rule-column 80)
+;;   (setq fci-rule-use-dashes t)
+;;   ;; (setq fci-rule-width 1)
+;;   (setq fci-rule-color "#757575")
+;;   )
+
+;; highlight the parts of lines that exceed column 80
+(require 'whitespace)
+(setq whitespace-style '(face empty tabs lines-tail trailing)
+      whitespace-line-column 80)
+(add-hook 'prog-mode-hook 'whitespace-mode)
+(diminish 'whitespace-mode)
+(diminish 'global-whitespace-mode)
+
+;; multiple cursors, use C-M-j for newline
+(use-package multiple-cursors
+  :config
+  (global-set-key (kbd "C-{") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "C-}") 'mc/mark-next-like-this)
+  (setq mc/always-run-for-all t)
+  )
 
 ;; Display number of matches when searching
 (use-package anzu
@@ -792,7 +817,7 @@
   :diminish rainbow-mode
   ;; :init
   ;; (add-hook 'prog-mode-hook #'rainbow-mode)
-  ;; ;; Turn off for C-modes by default, since this gets triggered for each "#DEFINE"
+  ;; ;; Turn off in C-modes by default, since this gets triggered each "#DEFINE"
   ;; (add-hook 'c-mode-common-hook #'rainbow-turn-off)
   )
 
@@ -944,10 +969,10 @@
   :init
   '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
 
-;; ;; Doesn't work, json-read-error
-;; (use-package flycheck-rust
-;;   :init
-;;   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+;; Doesn't work, json-read-error
+(use-package flycheck-rust
+  :init
+  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
 ;; Company mode for auto-completion
 (use-package company
@@ -991,6 +1016,7 @@
   (add-hook 'racer-mode-hook #'eldoc-mode)
   :config
   (define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common)
+  (setq racer-rust-src-path "/usr/local/src/rust/src")
   )
 
 (use-package nim-mode
@@ -1024,25 +1050,6 @@
 ;; Haskell snippets
 (use-package haskell-snippets
   :after yasnippet)
-
-;; (use-package parinfer
-;;   :ensure t
-;;   :bind ("C-'" . parinfer-toggle-mode)
-;;   :init
-;;   (progn
-;;     ;; (setq parinfer-extensions
-;;     ;;       '( defaults       ; should be included.
-;;     ;;          ;; pretty-parens  ; different paren styles for different modes.
-;;     ;;          ;; lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
-;;     ;;          ;; paredit        ; Introduce some paredit commands.
-;;     ;;          ;; smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
-;;     ;;          ;; smart-yank   ; Yank behavior depend on mode.
-;;     ;;          ))
-;;     (add-hook 'clojure-mode-hook #'parinfer-mode)
-;;     (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
-;;     (add-hook 'common-lisp-mode-hook #'parinfer-mode)
-;;     (add-hook 'scheme-mode-hook #'parinfer-mode)
-;;     (add-hook 'lisp-mode-hook #'parinfer-mode)))
 
 ;;; Org Mode
 
