@@ -88,9 +88,12 @@
 (global-set-key (kbd "C-c h") 'helm-command-prefix)
 (global-unset-key (kbd "C-x c"))
 
-(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
-(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB work in terminal
-(define-key helm-map (kbd "C-z") 'helm-select-action) ; list actions using C-z
+;; rebind tab to run persistent action
+(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) 
+;; make TAB work in terminal
+(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) 
+;; list actions using C-z
+(define-key helm-map (kbd "C-z") 'helm-select-action) 
 (define-key helm-map (kbd "M-x") 'helm-select-action)
 
 (global-set-key (kbd "M-x")     'helm-M-x)
@@ -119,10 +122,13 @@
 (when (executable-find "curl")
   (setq helm-google-suggest-use-curl-p t))
 
-(setq helm-split-window-in-side-p            t ;; open helm buffer inside current window, not occupy whole other window
-      helm-move-to-line-cycle-in-source      t ;; move to end or beginning of source when reaching top or bottom of source.
-      helm-ff-search-library-in-sexp         t ;; search for library in `use-package' and `declare-function' sexp.
-      helm-scroll-amount                     8 ;; scroll 8 lines other window using M-<next>/M-<prior>
+(setq helm-split-window-in-side-p t ;; open helm buffer inside current window
+      ;; move to end or beginning of source when reaching top/bottom of source.
+      helm-move-to-line-cycle-in-source t 
+      ;; search for library in `use-package' and `declare-function' sexp.
+      helm-ff-search-library-in-sexp t 
+      ;; scroll 8 lines other window using M-<next>/M-<prior>
+      helm-scroll-amount 8
       helm-ff-file-name-history-use-recentf  t
       helm-echo-input-in-header-line         t
       )
@@ -200,7 +206,8 @@
    helm-gtags-suggested-key-mapping t
    )
 
-  (define-key helm-gtags-mode-map (kbd "C-c g a") 'helm-gtags-tags-in-this-function)
+  (define-key helm-gtags-mode-map (kbd "C-c g a")
+    'helm-gtags-tags-in-this-function)
   (define-key helm-gtags-mode-map (kbd "C-j") 'helm-gtags-select)
   (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-dwim)
   (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
@@ -259,8 +266,8 @@
       apropos-do-all t
       mouse-yank-at-point t
       kill-ring-max 1000
-      require-final-newline t            ;; Ensure that files end with a newline
-      ;; (setq next-line-add-newlines t) ;; C-n at the end of the buffer inserts newlines
+      require-final-newline t  ;; Ensure that files end with a newline
+      next-line-add-newlines t ;; C-n at the end of the buffer inserts newlines
       visible-bell t
       load-prefer-newer t
       ediff-window-setup-function 'ediff-setup-windows-plain
@@ -276,12 +283,15 @@
       vc-make-backup-files t ;; Make backups of all files
       delete-old-versions t  ;; Silently delete old backup versions
       isearch-allow-scroll t
-      ;; search-whitespace-regexp ".*?"  ;; Isearch convenience, space matches anything
-      show-trailing-whitespace 1         ;; Display trailing whitespace
+      ;; Isearch convenience, space matches anything
+      ;; search-whitespace-regexp ".*?"
+      ;; Display trailing whitespace
+      show-trailing-whitespace 1
 
       pop-up-frames nil      ;; Open files in existing frames
       pop-up-windows t
-      tab-always-indent 'complete    ;; Tab will first try to indent, then complete
+      ;; Tab will first try to indent, then complete
+      tab-always-indent 'complete
       resize-mini-windows t          ;; Resize the minibuffer when needed.
       enable-recursive-minibuffers t ;; Enable recursive editing of minibuffer
       ;; (setq max-mini-window-height 0.33)
@@ -302,12 +312,14 @@
 (diminish 'subword-mode)
 (setq global-hl-line-sticky-flag t)     ;; Keep highlight across windows
 (global-hl-line-mode t)                 ;; Highlight current line
-(auto-compression-mode 1)               ;; Use compressed files like normal files
+;; Use compressed files like normal files
+(auto-compression-mode 1)
 ;; (desktop-save-mode 1)                ;; Keep open files open across sessions
 (column-number-mode 1)                  ;; Display the column number
 ;; (display-time-mode 1)                ;; Display the current time
 ;; (setq display-time-format "%l:%M%p")
-(delete-selection-mode 1)               ;; Replace selected text when typing or pasting
+;; Replace selected text when typing or pasting
+(delete-selection-mode 1)
 
 ;; Set c-style comments to be "//" by default (these are just better, sorry)
 (add-hook 'c-mode-common-hook
@@ -620,8 +632,10 @@
   '(add-to-list 'dired-compress-file-suffixes
                 '("\\.zip\\'" ".zip" "unzip")))
 
-(setq-default dired-listing-switches "-alhv" ;; Make sizes human-readable by default and put dotfiles and capital-letters first.
-              dired-recursive-copies 'always ;; Always do recursive copies
+(setq-default dired-recursive-copies 'always ;; Always do recursive copies
+              ;; Make sizes human-readable by default and put dotfiles and
+              ;; capital-letters first.
+              dired-listing-switches "-alhv"
               dired-dwim-target t            ;; Try suggesting dired targets
               dired-auto-revert-buffer t     ;; Update buffer when visiting
               indicate-empty-lines nil       ;; highlight end of buffer?
@@ -887,9 +901,14 @@
 (use-package popwin
   :config (popwin-mode 1))
 
-;; Make switching windows better
-(use-package switch-window
-  :bind ("M-o" . switch-window))
+;; Make switching windows better. Other functions:
+;; x - delete a window
+;; m - swap two windows
+(use-package ace-window
+  :bind ("M-o" . ace-window)
+  )
+
+;; Make switching windows faster
 (use-package window-numbering
   :init
   ;; Free up M-9 and M-0 for corral. I never have this many windows.
@@ -1056,15 +1075,17 @@
 ;; TODO: organize this section
 
 (use-package org)
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode)) ; Open .org files in org-mode
+;; Open .org files in org-mode
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
 ;; The ellipsis to use in the org-mode outline
 (setq org-ellipsis " (...)")
 
-(setq org-enforce-todo-dependencies t) ; All subtasks must be DONE before marking a task as DONE
-(setq org-log-done (quote time)) ; Log the time a task was set to DONE
-(setq org-log-redeadline (quote time)) ; Log the time a task's deadline changed
-(setq org-log-reschedule (quote time)) ; Log the time a task was rescheduled
+;; All subtasks must be DONE before marking a task as DONE
+(setq org-enforce-todo-dependencies t)
+(setq org-log-done (quote time))       ;; Log the time a task was set to DONE
+(setq org-log-redeadline (quote time)) ;; Log the time a task's deadline changed
+(setq org-log-reschedule (quote time)) ;; Log the time a task was rescheduled
 
 (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
 
@@ -1089,9 +1110,12 @@
 (setq org-agenda-files '("~/Text/org/todo.org"))
 
 ;; Org-refile settings
-(setq org-reverse-note-order t)               ;; org-refile notes to the top of the list
-(setq org-refile-use-outline-path t)          ;; Use headline paths (level1/level2/...)
-(setq org-outline-path-complete-in-steps nil) ;; Go down in steps when completing a path
+;; org-refile notes to the top of the list
+(setq org-reverse-note-order t)
+;; Use headline paths (level1/level2/...)
+(setq org-refile-use-outline-path t)
+;; Go down in steps when completing a path
+(setq org-outline-path-complete-in-steps nil)
 
 (setq org-refile-targets '((org-agenda-files . (:maxlevel . 9))
                            ("~/Text/org/notes.org" . (:maxlevel . 9))))
