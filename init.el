@@ -72,6 +72,7 @@
 
 ;; Diminish modeline clutter
 (use-package diminish)
+(diminish 'abbrev-mode)
 
 ;;; Initialize Helm
 
@@ -89,16 +90,15 @@
 (global-unset-key (kbd "C-x c"))
 
 ;; rebind tab to run persistent action
-(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) 
+(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
 ;; make TAB work in terminal
-(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) 
+(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
 ;; list actions using C-z
-(define-key helm-map (kbd "C-z") 'helm-select-action) 
+(define-key helm-map (kbd "C-z") 'helm-select-action)
 (define-key helm-map (kbd "M-x") 'helm-select-action)
 
 (global-set-key (kbd "M-x")     'helm-M-x)
-(global-set-key (kbd "C-x C-m") 'helm-M-x)
-(global-set-key (kbd "C-c C-m") 'helm-M-x)
+(global-set-key (kbd "C-x C-m") 'execute-extended-command)
 (global-set-key (kbd "M-y")     'helm-show-kill-ring)
 
 (global-set-key (kbd "C-x b") 'helm-mini)
@@ -124,9 +124,9 @@
 
 (setq helm-split-window-in-side-p t ;; open helm buffer inside current window
       ;; move to end or beginning of source when reaching top/bottom of source.
-      helm-move-to-line-cycle-in-source t 
+      helm-move-to-line-cycle-in-source t
       ;; search for library in `use-package' and `declare-function' sexp.
-      helm-ff-search-library-in-sexp t 
+      helm-ff-search-library-in-sexp t
       ;; scroll 8 lines other window using M-<next>/M-<prior>
       helm-scroll-amount 8
       helm-ff-file-name-history-use-recentf  t
@@ -208,7 +208,6 @@
 
   (define-key helm-gtags-mode-map (kbd "C-c g a")
     'helm-gtags-tags-in-this-function)
-  (define-key helm-gtags-mode-map (kbd "C-j") 'helm-gtags-select)
   (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-dwim)
   (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
   (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
@@ -352,6 +351,8 @@
 (defvar user-notes-location "~/Text/org/notes.org")
 
 ;;; My Functions and Shortcut Bindings
+
+(global-set-key (kbd "C-j") 'indent-new-comment-line)
 
 ;; artist mode
 (global-set-key (kbd "C-$") 'artist-mode)
@@ -594,6 +595,9 @@
 
 ;;; Visual settings
 
+;; set transparency (cool but distracting)
+;; (set-frame-parameter (selected-frame) 'alpha '(99))
+
 ;; Load Themes
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 ;; (load-theme 'paganini t)
@@ -604,8 +608,7 @@
 ;; (use-package cyberpunk-theme)
 ;; (load-theme 'cyberpunk)
 
-;; Nimbus is my personal theme based on Ample.
-;; You can comment this out as it's not available yet.
+;; Nimbus is my personal theme, now available on Melpa
 (require 'nimbus-theme)
 (load-theme 'nimbus)
 
@@ -640,6 +643,9 @@
               dired-auto-revert-buffer t     ;; Update buffer when visiting
               indicate-empty-lines nil       ;; highlight end of buffer?
               )
+
+;; Extensions to Dired
+(use-package dired+)
 
 ;; Hide file details in Dired
 (use-package dired-details+
@@ -697,18 +703,27 @@
 (use-package region-state
   :config (region-state-mode))
 
+;; elfeed - web feed reader
+(use-package elfeed
+  :bind ("C-x w" . elfeed)
+  :config
+  (setq elfeed-feeds
+        '("https://news.ycombinator.com/rss"
+          ))
+  )
+
 ;; display current function in mode line
 ;; (use-package which-func
 ;;   :config
 ;;   (which-func-mode 1))
 
-;; Highlight indentation using dashes (looks really nice)
+;; Highlight indentation using periods
 (use-package highlight-indent-guides
   :init
   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
   :config
   (setq highlight-indent-guides-method 'character
-        highlight-indent-guides-character ?\-)
+        highlight-indent-guides-character ?\.)
   )
 
 (use-package ws-butler
@@ -861,7 +876,12 @@
 (use-package recentf
   :config
   (setq recentf-max-saved-items 10000) ;; Go ahead and save everything
-  (recentf-mode t))
+  ;; Don't turn on recentf on my windows system
+  (cond
+   ((string-equal system-type "gnu/linux")
+    (progn
+      (recentf-mode t))))
+  )
 
 (use-package discover-my-major
   :bind (("C-h C-m" . discover-my-major)
@@ -969,6 +989,9 @@
 ;;   :diminish vim-empty-lines-mode
 ;;   :init (add-hook 'prog-mode-hook 'vim-empty-lines-mode))
 
+(use-package diff-hl
+  :init (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode))
+
 ;;; Language packages
 
 ;; On-the-fly syntax checker
@@ -977,12 +1000,15 @@
   :defer t
   :init
   (add-hook 'prog-mode-hook #'flycheck-mode)
-  (setq sentence-end-double-space nil)
   ;; Add linting for elisp packages
   (eval-after-load 'flycheck
     '(flycheck-package-setup))
   :commands flycheck-mode
-  :bind ("C-!" . flycheck-list-errors))
+  :bind ("C-!" . flycheck-list-errors)
+  :config
+  (setq flycheck-check-syntax-automatically '(mode-enabled save))
+  (setq sentence-end-double-space nil)
+  )
 
 (use-package flycheck-haskell
   :init
