@@ -6,13 +6,14 @@
 
 ;; Making changes / testing:
 
-;; Use bug-hunter-init-file to locate errors
-;; Use esup to profile startup time
-;; Use C-c r to reload or restart-emacs to restart after making changes
-;; To stop execution of this file at some point, put in (error "Done")
+;; Use M-x bug-hunter-init-file to locate errors.
+;; Use M-x esup to profile startup time,
+;; M-x profiler-start and profiler-report to profile runtime.
+;; Use C-c r to reload or restart-emacs to restart after making changes.
+;; To stop execution of this file at some point, put in (error "Done").
 
 ;; I prefer to explicitly define functions when I could use lambdas instead.
-;; Defining functions makes them more discoverable in many situations
+;; Defining functions makes them more discoverable in many situations.
 
 ;; TODO:
 
@@ -76,9 +77,9 @@
 
 ;;; Initialize Helm
 
+(require 'helm-config)
 (use-package helm
   :diminish helm-mode
-  :init (require 'helm-config)
   :config
   (helm-mode 1)
   )
@@ -334,6 +335,7 @@
 
 ;; Setup selected file endings to open in certain modes
 (add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
+(add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 
 ;; ;; Clean up whitespace when saving
 ;; (add-hook 'before-save-hook 'whitespace-cleanup)
@@ -353,6 +355,15 @@
 ;;; My Functions and Shortcut Bindings
 
 (global-set-key (kbd "C-j") 'indent-new-comment-line)
+
+;; narrow/widen easily
+(defun narrow-dwim ()
+  "Widen if currently narrowed, else narrow to function."
+  (interactive)
+  (cond
+   ((buffer-narrowed-p) (widen))
+   (t (narrow-to-defun))))
+(global-set-key (kbd "C-(") 'narrow-dwim)
 
 ;; artist mode
 (global-set-key (kbd "C-$") 'artist-mode)
@@ -430,12 +441,12 @@
 ;; Easily open info-display-manual
 (global-set-key (kbd "C-h I") 'info-display-manual)
 
-(defun cleanup-buffer ()
+(defun indent-buffer ()
   "Clean up all whitespace in the buffer and indent the whole buffer."
   (interactive)
-  (whitespace-cleanup)
   (indent-region (point-min) (point-max)))
-(global-set-key (kbd "C-c n") 'cleanup-buffer)
+(global-set-key (kbd "C-c n") 'indent-buffer)
+(add-hook 'before-save-hook 'indent-buffer)
 
 ;; TODO: This seems to be buggy in org-mode
 (defun cleanup-empty-lines ()
@@ -696,8 +707,12 @@
 
 ;;; Load packages
 
-(add-hook 'prog-mode-hook 'linum-mode)  ;; Turn on line numbers in prog modes
-(setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
+;; line numbers - disabled due to performance problems
+;; (use-package nlinum
+;;   :init (add-hook 'prog-mode-hook 'nlinum-mode)
+;;   :config
+;;   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
+;;   )
 
 ;; show info about the current region
 (use-package region-state
@@ -990,7 +1005,10 @@
 ;;   :init (add-hook 'prog-mode-hook 'vim-empty-lines-mode))
 
 (use-package diff-hl
-  :init (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode))
+  :init (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+  :config
+  (diff-hl-margin-mode)
+  )
 
 ;;; Language packages
 
