@@ -346,6 +346,7 @@
   (interactive)
   (save-some-buffers t))
 (add-hook 'focus-out-hook 'save-all)
+(add-hook 'focus-out-hook 'balance-windows)
 
 ;;; User-Defined Variables
 
@@ -355,6 +356,8 @@
 ;;; My Functions and Shortcut Bindings
 
 (global-set-key (kbd "C-j") 'indent-new-comment-line)
+
+(define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
 
 ;; narrow/widen easily
 (defun narrow-dwim ()
@@ -367,6 +370,11 @@
 
 ;; artist mode
 (global-set-key (kbd "C-$") 'artist-mode)
+
+;; code folding
+(require 'hideshow)
+(add-hook 'prog-mode-hook 'hs-minor-mode)
+(define-key hs-minor-mode-map (kbd "C-)") 'hs-toggle-hiding)
 
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
@@ -442,11 +450,11 @@
 (global-set-key (kbd "C-h I") 'info-display-manual)
 
 (defun indent-buffer ()
-  "Clean up all whitespace in the buffer and indent the whole buffer."
+  "Indent the whole buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
 (global-set-key (kbd "C-c n") 'indent-buffer)
-(add-hook 'before-save-hook 'indent-buffer)
+;; (add-hook 'before-save-hook 'indent-buffer)
 
 ;; TODO: This seems to be buggy in org-mode
 (defun cleanup-empty-lines ()
@@ -715,8 +723,8 @@
 ;;   )
 
 ;; show info about the current region
-(use-package region-state
-  :config (region-state-mode))
+;; (use-package region-state
+;;   :config (region-state-mode))
 
 ;; elfeed - web feed reader
 (use-package elfeed
@@ -728,9 +736,9 @@
   )
 
 ;; display current function in mode line
-;; (use-package which-func
-;;   :config
-;;   (which-func-mode 1))
+(use-package which-func
+  :config
+  (which-func-mode 1))
 
 ;; Highlight indentation using periods
 (use-package highlight-indent-guides
@@ -794,17 +802,6 @@
 ;; Midnight mode - clean up buffers older than 3 days
 (require 'midnight)
 (midnight-delay-set 'midnight-delay "4:30am")
-
-;; ;; DISABLED - broken!
-;; (use-package fill-column-indicator
-;;   :init
-;;   (add-hook 'prog-mode-hook 'fci-mode)
-;;   :config
-;;   (setq fci-rule-column 80)
-;;   (setq fci-rule-use-dashes t)
-;;   ;; (setq fci-rule-width 1)
-;;   (setq fci-rule-color "#757575")
-;;   )
 
 ;; highlight the parts of lines that exceed column 80
 (require 'whitespace)
@@ -955,7 +952,11 @@
 
 ;; Expand-region
 (use-package expand-region
-  :bind ("C-=" . er/expand-region))
+  :bind ("C-=" . er/expand-region)
+  ;; workaround for mark breaking
+  ;; https://github.com/magnars/expand-region.el/issues/220
+  :config (setq shift-select-mode nil)
+  )
 
 ;; Wrap parentheses or quotes around word
 (use-package corral
@@ -997,12 +998,6 @@
   :bind ("C-'" . helm-projectile) ;; All projectile commands in a single key
   :config
   (helm-projectile-on))
-
-;; ;; Mark empty lines at the ends of buffers
-;; ;; Does this break avy mode?
-;; (use-package vim-empty-lines-mode
-;;   :diminish vim-empty-lines-mode
-;;   :init (add-hook 'prog-mode-hook 'vim-empty-lines-mode))
 
 (use-package diff-hl
   :init (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
