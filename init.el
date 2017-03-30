@@ -15,8 +15,6 @@
 ;; I prefer to explicitly define functions when I could use lambdas instead.
 ;; Defining functions makes them more discoverable in many situations.
 
-;; TODO:
-
 ;;; Code:
 
 ;;; Initialize initialization
@@ -77,8 +75,8 @@
 
 ;;; Initialize Helm
 
-(require 'helm-config)
 (use-package helm
+  :init (require 'helm-config)
   :diminish helm-mode
   :config
   (helm-mode 1)
@@ -179,9 +177,6 @@
   (setq helm-swoop-speed-or-color t) ;; Show syntax highlighting in results
   )
 
-;; Silver Searcher interface with helm
-(use-package helm-ag)
-
 ;; Search current bindings with helm (C-h b)
 (use-package helm-descbinds
   :config (helm-descbinds-mode))
@@ -191,12 +186,11 @@
   :diminish helm-gtags-mode
   :init
   ;; Enable helm-gtags-mode
-  (add-hook 'dired-mode-hook 'helm-gtags-mode)
+  (add-hook 'dired-mode-hook  'helm-gtags-mode)
   (add-hook 'eshell-mode-hook 'helm-gtags-mode)
-  (add-hook 'c-mode-hook 'helm-gtags-mode)
-  (add-hook 'c++-mode-hook 'helm-gtags-mode)
-  (add-hook 'asm-mode-hook 'helm-gtags-mode)
-
+  (add-hook 'c-mode-hook      'helm-gtags-mode)
+  (add-hook 'c++-mode-hook    'helm-gtags-mode)
+  (add-hook 'asm-mode-hook    'helm-gtags-mode)
   :config
   (setq
    helm-gtags-ignore-case t
@@ -206,7 +200,6 @@
    helm-gtags-prefix-key "\C-cg"
    helm-gtags-suggested-key-mapping t
    )
-
   (define-key helm-gtags-mode-map (kbd "C-c g a")
     'helm-gtags-tags-in-this-function)
   (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-dwim)
@@ -244,8 +237,9 @@
 (toggle-frame-maximized) ;; Maximize!
 ;; (toggle-frame-fullscreen) ;; Maximize MORE
 
-;; Enable tooltips in the echo area
-(tooltip-mode -1)
+;; Enable popup tooltips, use emacs tooltip implementation
+(tooltip-mode nil)
+(setq x-gtk-use-system-tooltips nil)
 
 (fset 'yes-or-no-p 'y-or-n-p)        ;; Replace yes/no prompts with y/n
 (put 'downcase-region 'disabled nil) ;; Enable downcase-region
@@ -308,8 +302,6 @@
       )
 
 ;; Set some builtin modes
-(global-subword-mode t)                 ;; Recognize camelCase
-(diminish 'subword-mode)
 (setq global-hl-line-sticky-flag t)     ;; Keep highlight across windows
 (global-hl-line-mode t)                 ;; Highlight current line
 ;; Use compressed files like normal files
@@ -368,13 +360,14 @@
    (t (narrow-to-defun))))
 (global-set-key (kbd "C-(") 'narrow-dwim)
 
-;; artist mode
-(global-set-key (kbd "C-$") 'artist-mode)
-
 ;; code folding
 (require 'hideshow)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 (define-key hs-minor-mode-map (kbd "C-)") 'hs-toggle-hiding)
+(diminish 'hs-minor-mode)
+
+;; artist mode
+(global-set-key (kbd "C-$") 'artist-mode)
 
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
@@ -443,16 +436,15 @@
 (global-set-key (kbd "M-+") 'text-scale-increase)
 (global-set-key (kbd "M--") 'text-scale-decrease)
 
-;; Go to line
-(global-set-key (kbd "M-g") 'goto-line)
-
 ;; Easily open info-display-manual
 (global-set-key (kbd "C-h I") 'info-display-manual)
 
 (defun indent-buffer ()
   "Indent the whole buffer."
   (interactive)
-  (indent-region (point-min) (point-max)))
+  (indent-region (point-min) (point-max))
+  (balance-windows) ;; might as well stick this in here
+  )
 (global-set-key (kbd "C-c n") 'indent-buffer)
 ;; (add-hook 'before-save-hook 'indent-buffer)
 
@@ -587,11 +579,13 @@
   "Split window vertically and move focus to other window."
   (interactive)
   (split-window-right)
+  (balance-windows)
   (other-window 1))
 (defun split-window-below-focus ()
   "Split window horizontally and move focus to other window."
   (interactive)
   (split-window-below)
+  (balance-windows)
   (other-window 1))
 
 ;; Remap the default window-splitting commands to the ones above
@@ -626,6 +620,8 @@
 ;; (load-theme 'ample)
 ;; (use-package cyberpunk-theme)
 ;; (load-theme 'cyberpunk)
+;; (use-package gotham-theme)
+;; (use-package darcula-theme)
 
 ;; Nimbus is my personal theme, now available on Melpa
 (require 'nimbus-theme)
@@ -715,6 +711,23 @@
 
 ;;; Load packages
 
+;; Improved package management
+(use-package paradox)
+
+;; Jump to tag definitions using ripgrep
+(use-package dumb-jump
+  :bind (("M-g o" . dumb-jump-go-other-window)
+         ("M-g j" . dumb-jump-go)
+         ("M-g q" . dumb-jump-quick-look)
+         ;; ("M-g x" . dumb-jump-go-prefer-external)
+         ;; ("M-g z" . dumb-jump-go-prefer-external-other-window)
+         )
+  :config
+  (setq dumb-jump-selector 'helm)
+  (setq dumb-jump-prefer-searcher 'rg)
+  :ensure
+  )
+
 ;; line numbers - disabled due to performance problems
 ;; (use-package nlinum
 ;;   :init (add-hook 'prog-mode-hook 'nlinum-mode)
@@ -738,6 +751,7 @@
 ;; display current function in mode line
 (use-package which-func
   :config
+
   (which-func-mode 1))
 
 ;; Highlight indentation using periods
@@ -763,7 +777,8 @@
   "Jump to a line using avy and go to the end of the line."
   (interactive)
   (avy-goto-line)
-  (end-of-line))
+  (end-of-line)
+  )
 
 ;; Avy mode (jump to a char/word using a decision tree)
 (use-package avy
@@ -1010,7 +1025,6 @@
 ;; On-the-fly syntax checker
 (use-package flycheck
   :diminish flycheck-mode
-  :defer t
   :init
   (add-hook 'prog-mode-hook #'flycheck-mode)
   ;; Add linting for elisp packages
@@ -1023,15 +1037,6 @@
   (setq sentence-end-double-space nil)
   )
 
-(use-package flycheck-haskell
-  :init
-  '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
-
-;; Doesn't work, json-read-error
-(use-package flycheck-rust
-  :init
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
-
 ;; Company mode for auto-completion
 (use-package company
   :diminish company-mode
@@ -1042,6 +1047,15 @@
   (setq company-tooltip-align-annotations t) ;; align tooltips to right border
   (add-to-list 'company-backends 'company-racer)
   )
+
+;; Yasnippet
+(use-package yasnippet
+  :defer t
+  :diminish yas-minor-mode
+  :init
+  (add-hook 'prog-mode-hook #'yas-minor-mode)
+  :config
+  (yas-reload-all))
 
 ;; Haskell mode
 (use-package haskell-mode
@@ -1061,21 +1075,39 @@
   (setq haskell-indentation-layout-offset 4
         haskell-indentation-left-offset   4
         haskell-indentation-ifte-offset   4
-        haskell-hoogle-command "hoogle"))
+        haskell-hoogle-command "hoogle")
+  )
+
+(use-package flycheck-haskell
+  :init
+  '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
 
 (use-package rust-mode
-  :init
-  (add-hook 'rust-mode-hook #'racer-mode)
+  :defer t
   :mode "\\.rs\\'"
+  :config (setq rust-format-on-save t)
+  )
+
+;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
+(use-package cargo
+  :init
+  (add-hook 'rust-mode-hook 'cargo-minor-mode)
+  (add-hook 'toml-mode-hook 'cargo-minor-mode)
   )
 
 (use-package racer
   :init
+  (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hook #'eldoc-mode)
   :config
   (define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common)
   (setq racer-rust-src-path "/usr/local/src/rust/src")
   )
+
+;; Doesn't work, json-read-error
+(use-package flycheck-rust
+  :init
+  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
 (use-package nim-mode
   :init
@@ -1095,15 +1127,6 @@
 ;;   (autoload 'ghc-debug "ghc" nil t)
 ;;   :config
 ;;   (add-to-list 'company-backends 'company-ghc))
-
-;; Yasnippet
-(use-package yasnippet
-  :defer t
-  :diminish yas-minor-mode
-  :init
-  (add-hook 'prog-mode-hook #'yas-minor-mode)
-  :config
-  (yas-reload-all))
 
 ;; Haskell snippets
 (use-package haskell-snippets
