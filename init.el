@@ -178,8 +178,9 @@
   )
 
 ;; Search current bindings with helm (C-h b)
+;; TODO: broken in emacs 24
 (use-package helm-descbinds
-  :config (helm-descbinds-mode))
+ :config (helm-descbinds-mode))
 
 ;; ggtags with helm
 (use-package helm-gtags
@@ -712,6 +713,7 @@
 ;;; Load packages
 
 ;; Improved package management
+;; TODO: broken in emacs 24
 (use-package paradox)
 
 ;; Jump to tag definitions using ripgrep
@@ -822,7 +824,8 @@
 (require 'whitespace)
 (setq whitespace-style '(face empty tabs lines-tail trailing)
       whitespace-line-column 80)
-(add-hook 'prog-mode-hook 'whitespace-mode)
+(add-hook 'c-mode-common-hook 'whitespace-mode)
+(add-hook 'emacs-lisp-mode-hook 'whitespace-mode)
 (diminish 'whitespace-mode)
 (diminish 'global-whitespace-mode)
 
@@ -914,18 +917,24 @@
   :bind (("C-h C-m" . discover-my-major)
          ("C-h M-m" . discover-my-mode)))
 
-;; Undo/redo window configurations
-;; Default keys are C-c left and C-c right
-(use-package winner
-  :defer 1
-  :config (winner-mode 1))
-
 ;; ;; Start scrolling near the edge of the screen
 ;; (use-package smooth-scrolling
 ;;   :config
 ;;   (smooth-scrolling-mode 1)
 ;;   (setq scroll-step 1)            ;; Always scroll one line at a time
 ;;   (setq smooth-scroll-margin 10))
+
+(use-package zygospore
+  :bind (("C-x 1" . zygospore-toggle-delete-other-windows)
+         ("M-o"   . zygospore-toggle-delete-other-windows)))
+
+;; Undo/redo window configurations
+;; Default keys are C-c left and C-c right
+(use-package winner
+  :defer 1
+  :bind (("C-c C-/" . winner-undo)
+         ("C-c C-?" . winner-redo))
+  :config (winner-mode 1))
 
 ;; Enable undo tree mode (C-x u)
 (use-package undo-tree
@@ -951,9 +960,9 @@
 ;; Make switching windows better. Other functions:
 ;; x - delete a window
 ;; m - swap two windows
-(use-package ace-window
-  :bind ("M-o" . ace-window)
-  )
+;; (use-package ace-window
+;;   :bind ("M-o" . ace-window)
+;;   )
 
 ;; Make switching windows faster
 (use-package window-numbering
@@ -964,6 +973,14 @@
        (define-key window-numbering-keymap (kbd "M-9") nil)
        (define-key window-numbering-keymap (kbd "M-0") nil)))
   :config (window-numbering-mode))
+
+;; Doesn't work with window-numbering.el
+;; (use-package golden-ratio
+;;   :diminish golden-ratio-mode
+;;   :config
+;;   (golden-ratio-mode)
+;;   (setq golden-ratio-auto-scale t)
+;;   )
 
 ;; Expand-region
 (use-package expand-region
@@ -1027,15 +1044,19 @@
   :diminish flycheck-mode
   :init
   (add-hook 'prog-mode-hook #'flycheck-mode)
-  ;; Add linting for elisp packages
-  (eval-after-load 'flycheck
-    '(flycheck-package-setup))
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors)
   :config
   (setq flycheck-check-syntax-automatically '(mode-enabled save))
   (setq sentence-end-double-space nil)
+  ;; Disable checkers that don't work correctly
+  (setq-default flycheck-disabled-checkers '(rust-cargo rust))
   )
+
+;; Add linting for elisp packages
+(use-package flycheck-package
+  :init
+  '(add-hook 'flycheck-mode-hook #'flycheck-package-setup))
 
 ;; Company mode for auto-completion
 (use-package company
@@ -1088,13 +1109,6 @@
   :config (setq rust-format-on-save t)
   )
 
-;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
-(use-package cargo
-  :init
-  (add-hook 'rust-mode-hook 'cargo-minor-mode)
-  (add-hook 'toml-mode-hook 'cargo-minor-mode)
-  )
-
 (use-package racer
   :init
   (add-hook 'rust-mode-hook #'racer-mode)
@@ -1102,6 +1116,13 @@
   :config
   (define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common)
   (setq racer-rust-src-path "/usr/local/src/rust/src")
+  )
+
+;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
+(use-package cargo
+  :init
+  (add-hook 'rust-mode-hook 'cargo-minor-mode)
+  (add-hook 'toml-mode-hook 'cargo-minor-mode)
   )
 
 ;; Doesn't work, json-read-error
