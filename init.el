@@ -180,7 +180,7 @@
 ;; Search current bindings with helm (C-h b)
 ;; TODO: broken in emacs 24
 (use-package helm-descbinds
- :config (helm-descbinds-mode))
+  :config (helm-descbinds-mode))
 
 ;; ggtags with helm
 (use-package helm-gtags
@@ -1044,6 +1044,7 @@
   :diminish flycheck-mode
   :init
   (add-hook 'prog-mode-hook #'flycheck-mode)
+  (add-hook 'text-mode-hook #'flycheck-mode)
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors)
   :config
@@ -1051,12 +1052,25 @@
   (setq sentence-end-double-space nil)
   ;; Disable checkers that don't work correctly
   (setq-default flycheck-disabled-checkers '(rust-cargo rust))
+
+  ;; proselint
+  (flycheck-define-checker proselint
+    "A linter for prose."
+    :command ("proselint" source-inplace)
+    :error-patterns
+    ((warning line-start (file-name) ":" line ":" column ": "
+              (id (one-or-more (not (any " "))))
+              (message (one-or-more not-newline)
+                       (zero-or-more "\n" (any " ") (one-or-more not-newline)))
+              line-end))
+    :modes (text-mode markdown-mode gfm-mode))
+  (add-to-list 'flycheck-checkers 'proselint)
   )
 
 ;; Add linting for elisp packages
 (use-package flycheck-package
   :init
-  '(add-hook 'flycheck-mode-hook #'flycheck-package-setup))
+  (add-hook 'flycheck-mode-hook #'flycheck-package-setup))
 
 ;; Company mode for auto-completion
 (use-package company
@@ -1101,7 +1115,7 @@
 
 (use-package flycheck-haskell
   :init
-  '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
+  (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
 
 (use-package rust-mode
   :defer t
