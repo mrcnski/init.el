@@ -313,6 +313,7 @@
 ;; (setq display-time-format "%l:%M%p")
 ;; Replace selected text when typing or pasting
 (delete-selection-mode 1)
+(global-auto-revert-mode 1)
 
 ;; Set c-style comments to be "//" by default (these are just better, sorry)
 (add-hook 'c-mode-common-hook
@@ -641,8 +642,9 @@
   (set-face-attribute 'default nil :font "Iosevka Medium"))
  ((font-exists-p "Hack")
   (set-face-attribute 'default nil :font "Hack"))
- ((font-exists-p "DejaVu Sans Mono")
-  (set-face-attribute 'default nil :font "DejaVu Sans Mono")))
+ )
+
+(set-face-attribute 'default nil :height 80)
 
 ;;; Dired settings
 
@@ -713,8 +715,7 @@
 ;;; Load packages
 
 ;; Improved package management
-;; TODO: broken in emacs 24
-(use-package paradox)
+;; (use-package paradox)
 
 ;; Jump to tag definitions using ripgrep
 (use-package dumb-jump
@@ -893,10 +894,32 @@
 (use-package highlight-numbers
   :init (add-hook 'prog-mode-hook 'highlight-numbers-mode))
 
+;; Highlight more elisp syntax
+(use-package highlight-quoted
+  :init (add-hook 'emacs-lisp-mode-hook 'highlight-quoted-mode))
+
+;; Highlight operators
+(use-package highlight-operators
+  :init
+  (add-hook 'c-mode-common-hook 'highlight-operators-mode)
+  (add-hook 'rust-mode-hook     'highlight-operators-mode)
+)
+
 ;; Highlight some recent changes such as undos
 (use-package volatile-highlights
   :diminish volatile-highlights-mode
   :config (volatile-highlights-mode))
+
+;; "semantic" highlighting, unique colors for identifiers (variables)
+(use-package color-identifiers-mode
+  :diminish color-identifiers-mode
+  :config
+  (global-color-identifiers-mode)
+  (add-to-list 'color-identifiers:modes-alist
+               `(rust-mode . (""
+                              "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+                              (nil font-lock-variable-name-face))))
+  )
 
 ;; ;; Always keep the cursor centered
 ;; (use-package centered-cursor-mode)
@@ -936,14 +959,14 @@
          ("C-c C-?" . winner-redo))
   :config (winner-mode 1))
 
-;; Enable undo tree mode (C-x u)
-(use-package undo-tree
-  :diminish undo-tree-mode
-  :config
-  (progn
-    (global-undo-tree-mode)
-    (setq undo-tree-visualizer-timestamps t)
-    (setq undo-tree-visualizer-diff t)))
+;; ;; Enable undo tree mode (C-x u)
+;; (use-package undo-tree
+;;   :diminish undo-tree-mode
+;;   :config
+;;   (progn
+;;     (global-undo-tree-mode)
+;;     (setq undo-tree-visualizer-timestamps t)
+;;     (setq undo-tree-visualizer-diff t)))
 
 ;; Display available keys
 (use-package which-key
@@ -1008,7 +1031,9 @@
 ;; Git client in Emacs
 (use-package magit
   :diminish auto-revert-mode
-  :bind ("C-x g" . magit-status))
+  :bind ("C-x g" . magit-status)
+  :config (setq magit-diff-refine-hunk `all)
+  )
 
 ;; Project manager
 (use-package projectile
@@ -1051,7 +1076,7 @@
   (setq flycheck-check-syntax-automatically '(mode-enabled save))
   (setq sentence-end-double-space nil)
   ;; Disable checkers that don't work correctly
-  (setq-default flycheck-disabled-checkers '(rust-cargo rust))
+  (setq-default flycheck-disabled-checkers '());'(rust-cargo rust))
 
   ;; proselint
   (flycheck-define-checker proselint
@@ -1120,15 +1145,13 @@
 (use-package rust-mode
   :defer t
   :mode "\\.rs\\'"
-  :config (setq rust-format-on-save t)
+  :config (setq rust-format-on-save nil)
   )
 
 (use-package racer
   :init
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hook #'eldoc-mode)
-  :config
-  (define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common)
   (setq racer-rust-src-path "/usr/local/src/rust/src")
   )
 
@@ -1261,6 +1284,8 @@
 
 ;;(find-file user-todo-list-location) ;; Start with notes.org
 ;;(org-agenda nil "a")                ;; Open org-agenda
+
+(message "init.el finished loading!")
 
 (provide 'init)
 ;;; init.el ends here
