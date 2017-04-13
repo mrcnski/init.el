@@ -225,7 +225,7 @@
 ;; Turn off blinking cursor
 (blink-cursor-mode 0)
 (when (display-graphic-p)
-  (setq-default cursor-type 'box))
+  (setq-default cursor-type 'bar))
 ;; Stretch cursor to be as wide as the character at point
 (setq x-stretch-cursor 1)
 
@@ -261,8 +261,8 @@
       apropos-do-all t
       mouse-yank-at-point t
       kill-ring-max 1000
-      require-final-newline t  ;; Ensure that files end with a newline
-      next-line-add-newlines t ;; C-n at the end of the buffer inserts newlines
+      require-final-newline t    ;; Ensure that files end with a newline
+      next-line-add-newlines nil ;; don't add newline at end of buffer with C-n
       visible-bell t
       load-prefer-newer t
       ediff-window-setup-function 'ediff-setup-windows-plain
@@ -594,7 +594,7 @@
 (global-set-key (kbd "C-x 3") 'split-window-right-focus)
 (global-set-key (kbd "C-x 2") 'split-window-below-focus)
 
-;; Show ascii table
+;; Show ASCII table
 ;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html
 (defun ascii-table ()
   "Print the ascii table. Based on a defun by Alex Schroeder <asc@bsiag.com>."
@@ -751,11 +751,10 @@
           ))
   )
 
-;; display current function in mode line
-(use-package which-func
-  :config
-
-  (which-func-mode 1))
+;; ;; display current function in mode line
+;; (use-package which-func
+;;   :config
+;;   (which-function-mode 1))
 
 ;; Highlight indentation using periods
 (use-package highlight-indent-guides
@@ -910,16 +909,16 @@
   :diminish volatile-highlights-mode
   :config (volatile-highlights-mode))
 
-;; "semantic" highlighting, unique colors for identifiers (variables)
-(use-package color-identifiers-mode
-  :diminish color-identifiers-mode
-  :config
-  (global-color-identifiers-mode)
-  (add-to-list 'color-identifiers:modes-alist
-               `(rust-mode . (""
-                              "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
-                              (nil font-lock-variable-name-face))))
-  )
+;; ;; "semantic" highlighting, unique colors for identifiers (variables)
+;; (use-package color-identifiers-mode
+;;   :diminish color-identifiers-mode
+;;   :config
+;;   (global-color-identifiers-mode)
+;;   (add-to-list 'color-identifiers:modes-alist
+;;                `(rust-mode . (""
+;;                               "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+;;                               (nil font-lock-variable-name-face))))
+;;   )
 
 ;; ;; Always keep the cursor centered
 ;; (use-package centered-cursor-mode)
@@ -1143,7 +1142,6 @@
   (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
 
 (use-package rust-mode
-  :defer t
   :mode "\\.rs\\'"
   :config (setq rust-format-on-save nil)
   )
@@ -1198,6 +1196,9 @@
 ;; Open .org files in org-mode
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
+;; This binding conflicts with projectile so get rid of it
+(define-key org-mode-map (kbd "C-'") nil)
+
 ;; The ellipsis to use in the org-mode outline
 (setq org-ellipsis " (...)")
 
@@ -1250,15 +1251,8 @@
      "* %?")))
 
 ;; Shortcuts
-(global-set-key (kbd "C-c <up>") 'outline-up-heading)
-(global-set-key (kbd "C-c <left>") 'outline-previous-visible-heading)
-(global-set-key (kbd "C-c <right>") 'outline-next-visible-heading)
-;; (global-set-key (kbd "C-c t") 'org-show-todo-tree) ; Show all todo tasks
-(global-set-key (kbd "C-c o")
-                (lambda () (interactive) (find-file user-notes-location)))
-(global-set-key (kbd "C-c l")
-                (lambda () (interactive) (find-file user-todo-location)))
-(global-set-key (kbd "C-c a") 'org-agenda-list) ; Switch to org-agenda
+(global-set-key (kbd "C-c l") 'org-store-link)
+(global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda
 
 ;; org-capture with template as default behavior
 (defun org-task-capture ()
