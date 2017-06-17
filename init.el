@@ -742,28 +742,19 @@
 ;; (use-package region-state
 ;;   :config (region-state-mode))
 
-;; elfeed - web feed reader
-(use-package elfeed
-  :bind ("C-x w" . elfeed)
-  :config
-  (setq elfeed-feeds
-        '("https://news.ycombinator.com/rss"
-          ))
-  )
-
 ;; ;; display current function in mode line
 ;; (use-package which-func
 ;;   :config
 ;;   (which-function-mode 1))
 
 ;; Highlight indentation using periods
-(use-package highlight-indent-guides
-  :init
-  (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
-  :config
-  (setq highlight-indent-guides-method 'character
-        highlight-indent-guides-character ?\.)
-  )
+;; (use-package highlight-indent-guides
+;;   :init
+;;   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+;;   :config
+;;   (setq highlight-indent-guides-method 'character
+;;         highlight-indent-guides-character ?\.)
+;;   )
 
 (use-package ws-butler
   :diminish ws-butler-mode
@@ -824,7 +815,8 @@
 (require 'whitespace)
 (setq whitespace-style '(face empty tabs lines-tail trailing)
       whitespace-line-column 80)
-(add-hook 'c-mode-common-hook 'whitespace-mode)
+(add-hook 'c-mode-hook 'whitespace-mode)
+(add-hook 'c++-mode-hook 'whitespace-mode)
 (add-hook 'emacs-lisp-mode-hook 'whitespace-mode)
 (diminish 'whitespace-mode)
 (diminish 'global-whitespace-mode)
@@ -857,19 +849,6 @@
 ;; Make marks visible
 (use-package visible-mark
   :config (global-visible-mark-mode t))
-
-;; ;; Make it easier to find the cursor
-;; (use-package beacon
-;;   :diminish beacon-mode)
-;; (setq beacon-size 20
-;;       beacon-color "#006666"
-;;       beacon-blink-delay .15
-;;       beacon-blink-duration .3)
-;; (beacon-mode t)
-
-;; Nyan mode
-;; (use-package nyan-mode)
-;; (nyan-mode)
 
 ;; Highlight color strings with the corresponding color
 (use-package rainbow-mode
@@ -909,17 +888,6 @@
   :diminish volatile-highlights-mode
   :config (volatile-highlights-mode))
 
-;; ;; "semantic" highlighting, unique colors for identifiers (variables)
-;; (use-package color-identifiers-mode
-;;   :diminish color-identifiers-mode
-;;   :config
-;;   (global-color-identifiers-mode)
-;;   (add-to-list 'color-identifiers:modes-alist
-;;                `(rust-mode . (""
-;;                               "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
-;;                               (nil font-lock-variable-name-face))))
-;;   )
-
 ;; ;; Always keep the cursor centered
 ;; (use-package centered-cursor-mode)
 ;; (global-centered-cursor-mode)
@@ -946,6 +914,7 @@
 ;;   (setq scroll-step 1)            ;; Always scroll one line at a time
 ;;   (setq smooth-scroll-margin 10))
 
+;; Maximize/unmaximize current window.
 (use-package zygospore
   :bind (("C-x 1" . zygospore-toggle-delete-other-windows)
          ("M-o"   . zygospore-toggle-delete-other-windows)))
@@ -1055,6 +1024,7 @@
   :config
   (helm-projectile-on))
 
+;; Show markers in margin indicating changes
 (use-package diff-hl
   :init (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
   :config
