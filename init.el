@@ -1086,6 +1086,21 @@
   :config
   (yas-reload-all))
 
+;; Javascript mode
+(use-package js2-mode
+  :mode "\\.js\\'")
+
+;; Javascript REPL
+(use-package nodejs-repl
+  :init
+  (add-hook 'js2-mode-hook
+          (lambda ()
+            (define-key js-mode-map (kbd "C-M-x")   'nodejs-repl-send-buffer)
+            (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
+            (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
+            (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
+            )))
+
 ;; Haskell mode
 (use-package haskell-mode
   :defer t
