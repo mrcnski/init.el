@@ -636,15 +636,13 @@
 
 ;; Set font
 (cond
- ;; ((font-exists-p "Iosevka Slab")
- ;;  (set-face-attribute 'default nil :font "Iosevka Slab"))
  ((font-exists-p "Iosevka Medium")
   (set-face-attribute 'default nil :font "Iosevka Medium"))
  ((font-exists-p "Hack")
   (set-face-attribute 'default nil :font "Hack"))
  )
 
-(set-face-attribute 'default nil :height 80)
+(set-face-attribute 'default nil :height 90)
 
 ;;; Dired settings
 
