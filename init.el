@@ -9,7 +9,7 @@
 ;; Use M-x bug-hunter-init-file to locate errors.
 ;; Use M-x esup to profile startup time,
 ;; M-x profiler-start and profiler-report to profile runtime.
-;; Use C-c r to reload or restart-emacs to restart after making changes.
+;; Use restart-emacs to restart after making changes.
 ;; To stop execution of this file at some point, put in (error "Done").
 
 ;; I prefer to explicitly define functions when I could use lambdas instead.
@@ -29,12 +29,12 @@
 (defvar init-file-location (concat user-emacs-directory "init.el"))
 (defvar packages-location  (concat user-emacs-directory "packages/nimbus"))
 
-;; Reload init file
-(defun reload-init-file ()
-  "Reload the init file."
-  (interactive)
-  (load-file init-file-location))
-(global-set-key (kbd "C-c r") 'reload-init-file)
+;; ;; Reload init file
+;; (defun reload-init-file ()
+;;   "Reload the init file."
+;;   (interactive)
+;;   (load-file init-file-location))
+;; (global-set-key (kbd "C-c r") 'reload-init-file)
 
 ;; Open .emacs init
 (defun open-init-file ()
@@ -262,7 +262,7 @@
       mouse-yank-at-point t
       kill-ring-max 1000
       require-final-newline t    ;; Ensure that files end with a newline
-      next-line-add-newlines nil ;; don't add newline at end of buffer with C-n
+      next-line-add-newlines t   ;; add newline at end of buffer with C-n
       visible-bell t
       load-prefer-newer t
       ediff-window-setup-function 'ediff-setup-windows-plain
@@ -742,10 +742,10 @@
 ;; (use-package region-state
 ;;   :config (region-state-mode))
 
-;; ;; display current function in mode line
-;; (use-package which-func
-;;   :config
-;;   (which-function-mode 1))
+;; display current function in mode line
+(use-package which-func
+  :config
+  (which-function-mode 1))
 
 ;; Highlight indentation using periods
 ;; (use-package highlight-indent-guides
@@ -1086,6 +1086,10 @@
   :config
   (yas-reload-all))
 
+;; YAML mode
+(use-package yaml-mode
+  :mode "\\.yml\\'")
+
 ;; Javascript mode
 (use-package js2-mode
   :mode "\\.js\\'")
@@ -1128,10 +1132,13 @@
 
 (use-package rust-mode
   :mode "\\.rs\\'"
-  :config (setq rust-format-on-save nil)
+  :diminish eldoc-mode
+  :config
+  (setq rust-format-on-save nil)
   )
 
 (use-package racer
+  :diminish racer-mode
   :init
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hook #'eldoc-mode)
@@ -1140,6 +1147,7 @@
 
 ;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
 (use-package cargo
+  :diminish cargo-minor-mode
   :init
   (add-hook 'rust-mode-hook 'cargo-minor-mode)
   (add-hook 'toml-mode-hook 'cargo-minor-mode)
@@ -1180,6 +1188,10 @@
 (use-package org)
 ;; Open .org files in org-mode
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+
+;; Enables exporting to markdown
+(eval-after-load "org"
+  '(require 'ox-md nil t))
 
 ;; This binding conflicts with projectile so get rid of it
 (define-key org-mode-map (kbd "C-'") nil)
