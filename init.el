@@ -715,6 +715,26 @@
 ;; Improved package management
 ;; (use-package paradox)
 
+;; Add indicators for position in buffer and end of buffer
+(use-package indicators
+  :init (add-hook 'prog-mode-hook 'new-indicators)
+  )
+(defun new-indicators ()
+  "Create new indicators in the current buffer."
+  (interactive)
+
+  ;; show a little arrow at the end of buffer using the default fringe face
+  (ind-create-indicator 'point-max
+                        :managed t
+                        :relative nil
+                        :fringe 'left-fringe
+                        :bitmap 'right-arrow
+                        :face 'fringe)
+
+  ;; show relative position in the file (a.k.a. scroll bar)
+  (ind-create-indicator 'point :managed t)
+  )
+
 ;; Jump to tag definitions using ripgrep
 (use-package dumb-jump
   :bind (("M-g o" . dumb-jump-go-other-window)
@@ -879,7 +899,7 @@
   :init
   (add-hook 'c-mode-common-hook 'highlight-operators-mode)
   (add-hook 'rust-mode-hook     'highlight-operators-mode)
-)
+  )
 
 ;; Highlight some recent changes such as undos
 (use-package volatile-highlights
@@ -1096,12 +1116,12 @@
 (use-package nodejs-repl
   :init
   (add-hook 'js2-mode-hook
-          (lambda ()
-            (define-key js-mode-map (kbd "C-M-x")   'nodejs-repl-send-buffer)
-            (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
-            (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
-            (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
-            )))
+            (lambda ()
+              (define-key js-mode-map (kbd "C-M-x")   'nodejs-repl-send-buffer)
+              (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
+              (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
+              (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
+              )))
 
 ;; Haskell mode
 (use-package haskell-mode
