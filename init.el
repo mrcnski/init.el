@@ -6,6 +6,7 @@
 
 ;; Making changes / testing:
 
+;; Use M-x free-keys to find unused keybindings.
 ;; Use M-x bug-hunter-init-file to locate errors.
 ;; Use M-x esup to profile startup time,
 ;; M-x profiler-start and profiler-report to profile runtime.
@@ -102,7 +103,9 @@
 
 (global-set-key (kbd "C-x b") 'helm-mini)
 (setq helm-buffers-fuzzy-matching t
-      helm-recentf-fuzzy-match    t)
+      helm-recentf-fuzzy-match    t
+      helm-follow-mode-persistent t
+      )
 
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 
@@ -179,8 +182,6 @@
 
 ;; Search current bindings with helm (C-h b)
 ;; TODO: broken in emacs 24
-(use-package helm-descbinds
-  :config (helm-descbinds-mode))
 
 ;; ggtags with helm
 (use-package helm-gtags
@@ -207,6 +208,14 @@
   (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
   (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
   (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+  )
+
+;; ag with helm
+(use-package helm-ag
+  :init
+  (custom-set-variables
+   '(helm-ag-insert-at-point 'symbol)
+   )
   )
 
 ;;; Load customizations
@@ -347,9 +356,10 @@
 (defvar user-todo-location "~/Text/org/todo.org")
 (defvar user-notes-location "~/Text/org/notes.org")
 
-;;; My Functions and Shortcut Bindings
+;;; My Functions and Shortcuts/Keybindings
 
 (global-set-key (kbd "C-j") 'indent-new-comment-line)
+(global-set-key (kbd "M-$") 'ispell-buffer)
 
 (define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
 
@@ -618,12 +628,9 @@
 ;; (load-theme 'paganini t)
 ;; (use-package afternoon-theme)
 ;; (load-theme 'afternoon t)
-;; (use-package ample-theme)
-;; (load-theme 'ample)
 ;; (use-package cyberpunk-theme)
 ;; (load-theme 'cyberpunk)
 ;; (use-package gotham-theme)
-;; (use-package darcula-theme)
 
 ;; Nimbus is my personal theme, now available on Melpa
 (require 'nimbus-theme)
@@ -715,8 +722,50 @@
 ;; Improved package management
 ;; (use-package paradox)
 
+;; Key chords
+(use-package key-chord
+  :init
+  (key-chord-mode 1)
+  (setq key-chord-one-key-delay .25)
+  (setq key-chord-two-keys-delay .15)
+  (key-chord-define-global "jx" 'helm-mini)
+  (key-chord-define-global "fk" 'kill-buffer)
+  (key-chord-define-global "ii" 'helm-projectile-ag-inexact)
+  (key-chord-define-global "uu" 'helm-projectile-ag-exact)
+  (key-chord-define-global "jq" 'focus-mode)
+  (key-chord-define-global "j2" 'split-window-below-focus)
+  (key-chord-define-global "j3" 'split-window-right-focus)
+  (key-chord-define-global "f0" 'delete-window)
+  (key-chord-define-global "fh" 'mark-defun)
+  (key-chord-define-global "jb" 'previous-buffer)
+  (key-chord-define-global "jf" 'next-buffer)
+  (key-chord-define-global "jg" 'magit-status)
+  )
+(defun helm-projectile-ag-inexact ()
+  "Run helm-projectile-ag case-insensitive and without word boundaries. Push the mark first."
+  (interactive)
+  (push-mark)
+  (setq helm-ag-base-command "ag --nocolor --nogroup --ignore-case")
+  (helm-projectile-ag)
+  )
+(defun helm-projectile-ag-exact ()
+  "Run helm-projectile-ag case-sensitive and with word boundaries. Push the mark first."
+  (interactive)
+  (push-mark)
+  (setq helm-ag-base-command
+        "ag --nocolor --nogroup --word-regexp --case-sensitive")
+  (helm-projectile-ag)
+  )
+
+;; Show unused keys
+(use-package free-keys)
+
+;; Dim surrounding paragraphs, add key chord below
+(use-package focus)
+
 ;; Add indicators for position in buffer and end of buffer
 (use-package indicators
+  :diminish indicators-mode
   :init (add-hook 'prog-mode-hook 'new-indicators)
   )
 (defun new-indicators ()
@@ -734,6 +783,9 @@
   ;; show relative position in the file (a.k.a. scroll bar)
   (ind-create-indicator 'point :managed t)
   )
+
+;; Copy selected region to be pasted into Slack/Github/etc.
+(use-package copy-as-format)
 
 ;; Jump to tag definitions using ripgrep
 (use-package dumb-jump
@@ -800,11 +852,11 @@
   :config
   ;; Use more characters (and better ones) in the decision tree
   ;; QWERTY keys
-  ;; (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
-  ;;                     ?w ?e ?r ?u ?i ?o))
+  (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
+                      ?w ?e ?r ?u ?i ?o))
   ;; DVORAK keys
-  (setq avy-keys '(?p ?g ?c ?r
-                      ?a ?o ?e ?u ?h ?t ?n ?s))
+  ;; (setq avy-keys '(?p ?g ?c ?r
+  ;;                     ?a ?o ?e ?u ?h ?t ?n ?s))
   ;; Set the background to gray to highlight the decision tree
   (setq avy-background t)
   )
@@ -839,7 +891,7 @@
 (diminish 'whitespace-mode)
 (diminish 'global-whitespace-mode)
 
-;; multiple cursors, use C-M-j for newline
+;; Multiple cursors, use C-M-j for newline
 (use-package multiple-cursors
   :config
   (global-set-key (kbd "C-{") 'mc/mark-previous-like-this)
@@ -882,9 +934,9 @@
   :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
 ;; ;; Highlight matching parentheses around point
-;; (use-package highlight-parentheses
-;;   :diminish highlight-parentheses-mode
-;;   :init (add-hook 'prog-mode-hook #'highlight-parentheses-mode))
+(use-package highlight-parentheses
+  :diminish highlight-parentheses-mode
+  :init (add-hook 'prog-mode-hook #'highlight-parentheses-mode))
 
 ;; Highlight numbers in code
 (use-package highlight-numbers
@@ -905,10 +957,6 @@
 (use-package volatile-highlights
   :diminish volatile-highlights-mode
   :config (volatile-highlights-mode))
-
-;; ;; Always keep the cursor centered
-;; (use-package centered-cursor-mode)
-;; (global-centered-cursor-mode)
 
 ;; Track recently-opened files
 (use-package recentf
@@ -934,8 +982,10 @@
 
 ;; Maximize/unmaximize current window.
 (use-package zygospore
-  :bind (("C-x 1" . zygospore-toggle-delete-other-windows)
-         ("M-o"   . zygospore-toggle-delete-other-windows)))
+  :bind (
+         ;; ("C-x 1" . zygospore-toggle-delete-other-windows)
+         ("M-o"   . zygospore-toggle-delete-other-windows)
+         ))
 
 ;; Undo/redo window configurations
 ;; Default keys are C-c left and C-c right
@@ -969,9 +1019,10 @@
 ;; Make switching windows better. Other functions:
 ;; x - delete a window
 ;; m - swap two windows
-;; (use-package ace-window
-;;   :bind ("M-o" . ace-window)
-;;   )
+;; Note: C-M-o is already `split-line` which is actually cool.
+(use-package ace-window
+  :bind ("C-S-o" . ace-window)
+  )
 
 ;; Make switching windows faster
 (use-package window-numbering
@@ -980,7 +1031,8 @@
   (eval-after-load 'window-numbering
     '(progn
        (define-key window-numbering-keymap (kbd "M-9") nil)
-       (define-key window-numbering-keymap (kbd "M-0") nil)))
+       (define-key window-numbering-keymap (kbd "M-0") nil)
+       ))
   :config (window-numbering-mode))
 
 ;; Doesn't work with window-numbering.el
@@ -1007,7 +1059,9 @@
          ("M-]" . corral-brackets-forward)
          ;; ("M-{" . corral-braces-backward)
          ;; ("M-}" . corral-braces-forward)
-         ("M-\"" . corral-double-quotes-backward))
+         ("M-\"" . corral-double-quotes-backward)
+         ("M-'" . corral-double-quotes-forward)
+         )
   :config (setq corral-preserve-point t))
 
 ;; More powerful (way better) comment command
@@ -1018,7 +1072,8 @@
 (use-package magit
   :diminish auto-revert-mode
   :bind ("C-x g" . magit-status)
-  :config (setq magit-diff-refine-hunk `all)
+  :init
+  (setq magit-diff-refine-hunk `all)
   )
 
 ;; Project manager
@@ -1063,7 +1118,7 @@
   (setq flycheck-check-syntax-automatically '(mode-enabled save))
   (setq sentence-end-double-space nil)
   ;; Disable checkers that don't work correctly
-  (setq-default flycheck-disabled-checkers '());'(rust-cargo rust))
+  (setq-default flycheck-disabled-checkers '())
 
   ;; proselint
   (flycheck-define-checker proselint
@@ -1203,7 +1258,10 @@
 
 ;; TODO: organize this section
 
-(use-package org)
+(use-package org
+  :diminish visual-line-mode
+  :diminish org-indent-mode
+  )
 ;; Open .org files in org-mode
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
