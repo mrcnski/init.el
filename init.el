@@ -722,6 +722,14 @@
 ;; Improved package management
 ;; (use-package paradox)
 
+(use-package dashboard
+  :diminish page-break-lines-mode
+  :config
+  (setq dashboard-items '((recents  . 6)
+                        (projects . 6)
+                        (agenda . 6)))
+  (dashboard-setup-startup-hook))
+
 ;; Key chords
 (use-package key-chord
   :init
@@ -729,17 +737,17 @@
   (setq key-chord-one-key-delay .25)
   (setq key-chord-two-keys-delay .15)
   (key-chord-define-global "jx" 'helm-mini)
-  (key-chord-define-global "fk" 'kill-buffer)
-  (key-chord-define-global "ii" 'helm-projectile-ag-inexact)
-  (key-chord-define-global "uu" 'helm-projectile-ag-exact)
   (key-chord-define-global "jq" 'focus-mode)
-  (key-chord-define-global "j2" 'split-window-below-focus)
-  (key-chord-define-global "j3" 'split-window-right-focus)
-  (key-chord-define-global "f0" 'delete-window)
-  (key-chord-define-global "fh" 'mark-defun)
   (key-chord-define-global "jb" 'previous-buffer)
   (key-chord-define-global "jf" 'next-buffer)
   (key-chord-define-global "jg" 'magit-status)
+  (key-chord-define-global "j2" 'split-window-below-focus)
+  (key-chord-define-global "j3" 'split-window-right-focus)
+  (key-chord-define-global "xk" 'kill-buffer)
+  (key-chord-define-global "xi" 'helm-projectile-ag-inexact)
+  (key-chord-define-global "xu" 'helm-projectile-ag-exact)
+  (key-chord-define-global "x0" 'delete-window)
+  (key-chord-define-global "xh" 'mark-defun)
   )
 (defun helm-projectile-ag-inexact ()
   "Run helm-projectile-ag case-insensitive and without word boundaries. Push the mark first."
@@ -1046,9 +1054,6 @@
 ;; Expand-region
 (use-package expand-region
   :bind ("C-=" . er/expand-region)
-  ;; workaround for mark breaking
-  ;; https://github.com/magnars/expand-region.el/issues/220
-  :config (setq shift-select-mode nil)
   )
 
 ;; Wrap parentheses or quotes around word
@@ -1068,6 +1073,8 @@
 (use-package evil-nerd-commenter
   :bind ("M-;" . evilnc-comment-or-uncomment-lines))
 
+;;; Git packages
+
 ;; Git client in Emacs
 (use-package magit
   :diminish auto-revert-mode
@@ -1075,6 +1082,14 @@
   :init
   (setq magit-diff-refine-hunk `all)
   )
+
+;; Browse historic versions of a file
+(use-package git-timemachine)
+
+;; Generate links to Github for current code location
+(use-package git-link)
+
+;;; Project packages
 
 ;; Project manager
 (use-package projectile
