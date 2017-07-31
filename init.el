@@ -726,8 +726,8 @@
   :diminish page-break-lines-mode
   :config
   (setq dashboard-items '((recents  . 6)
-                        (projects . 6)
-                        (agenda . 6)))
+                          (projects . 6)
+                          (agenda . 6)))
   (dashboard-setup-startup-hook))
 
 ;; Key chords
@@ -741,13 +741,15 @@
   (key-chord-define-global "jb" 'previous-buffer)
   (key-chord-define-global "jf" 'next-buffer)
   (key-chord-define-global "jg" 'magit-status)
+  (key-chord-define-global "j1" 'delete-other-windows)
   (key-chord-define-global "j2" 'split-window-below-focus)
   (key-chord-define-global "j3" 'split-window-right-focus)
   (key-chord-define-global "xk" 'kill-buffer)
-  (key-chord-define-global "xi" 'helm-projectile-ag-inexact)
-  (key-chord-define-global "xu" 'helm-projectile-ag-exact)
+  (key-chord-define-global "ii" 'helm-projectile-ag-inexact)
+  (key-chord-define-global "uu" 'helm-projectile-ag-exact)
   (key-chord-define-global "x0" 'delete-window)
   (key-chord-define-global "xh" 'mark-defun)
+  (key-chord-define-global "hh" 'helm-mark-ring)
   )
 (defun helm-projectile-ag-inexact ()
   "Run helm-projectile-ag case-insensitive and without word boundaries. Push the mark first."
@@ -763,6 +765,19 @@
   (setq helm-ag-base-command
         "ag --nocolor --nogroup --word-regexp --case-sensitive")
   (helm-projectile-ag)
+  )
+
+;; Go to last change without undoing it
+(use-package goto-last-change
+  :bind ("C-?" . goto-last-change)
+  )
+
+;; Fix the capitalization commands
+(use-package fix-word
+  :bind (("M-u" . fix-word-upcase)
+         ("M-l" . fix-word-downcase)
+         ("M-c" . fix-word-capitalize)
+         )
   )
 
 ;; Show unused keys
@@ -940,11 +955,6 @@
 ;; Highlight delimiters with colors depending on depth
 (use-package rainbow-delimiters
   :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
-
-;; ;; Highlight matching parentheses around point
-(use-package highlight-parentheses
-  :diminish highlight-parentheses-mode
-  :init (add-hook 'prog-mode-hook #'highlight-parentheses-mode))
 
 ;; Highlight numbers in code
 (use-package highlight-numbers
