@@ -643,8 +643,8 @@
 
 ;; Set font
 (cond
- ((font-exists-p "Iosevka Medium")
-  (set-face-attribute 'default nil :font "Iosevka Medium"))
+ ((font-exists-p "Iosevka Term Medium")
+  (set-face-attribute 'default nil :font "Iosevka Term Medium"))
  ((font-exists-p "Hack")
   (set-face-attribute 'default nil :font "Hack"))
  )
@@ -744,11 +744,14 @@
   (key-chord-define-global "j1" 'delete-other-windows)
   (key-chord-define-global "j2" 'split-window-below-focus)
   (key-chord-define-global "j3" 'split-window-right-focus)
+  (key-chord-define-global "jc" 'org-note-capture)
+  (key-chord-define-global "jv" 'org-task-capture)
+  (key-chord-define-global "jj" 'org-refile-goto-last-stored)
   (key-chord-define-global "xk" 'kill-buffer)
+  (key-chord-define-global "x0" 'delete-window)
   (key-chord-define-global "ii" 'helm-projectile-ag-inexact)
   (key-chord-define-global "uu" 'helm-projectile-ag-exact)
-  (key-chord-define-global "x0" 'delete-window)
-  (key-chord-define-global "xh" 'mark-defun)
+  (key-chord-define-global "zh" 'mark-defun)
   (key-chord-define-global "hh" 'helm-mark-ring)
   )
 (defun helm-projectile-ag-inexact ()
@@ -1140,7 +1143,7 @@
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors)
   :config
-  (setq flycheck-check-syntax-automatically '(mode-enabled save))
+  (setq flycheck-check-syntax-automatically nil);'(mode-enabled save))
   (setq sentence-end-double-space nil)
   ;; Disable checkers that don't work correctly
   (setq-default flycheck-disabled-checkers '())
@@ -1187,6 +1190,10 @@
 ;; YAML mode
 (use-package yaml-mode
   :mode "\\.yml\\'")
+
+;; TOML mode
+(use-package toml-mode
+  :mode "\\.toml\\'")
 
 ;; Javascript mode
 (use-package js2-mode
@@ -1363,8 +1370,8 @@
   (interactive)
   (org-capture nil "n"))
 
-(global-set-key (kbd "C-c c") 'org-task-capture) ;; org-capture
-(global-set-key (kbd "C-c v") 'org-note-capture)
+(global-set-key (kbd "C-c c") 'org-note-capture) ;; org-capture
+(global-set-key (kbd "C-c v") 'org-task-capture)
 
 ;; Jump to last capture
 (global-set-key (kbd "C-c j") 'org-refile-goto-last-stored)
