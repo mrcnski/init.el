@@ -13,8 +13,8 @@
 ;; Use restart-emacs to restart after making changes.
 ;; To stop execution of this file at some point, put in (error "Done").
 
-;; I prefer to explicitly define functions when I could use lambdas instead.
-;; Defining functions makes them more discoverable in many situations.
+;; I prefer to explicitly define functions instead of using lambdas.
+;; Defining named functions makes them more discoverable in many situations.
 
 ;;; Code:
 
@@ -93,33 +93,29 @@
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
 ;; make TAB work in terminal
 (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
-;; list actions using C-z
-(define-key helm-map (kbd "C-z") 'helm-select-action)
+(define-key helm-map (kbd "C-z") 'helm-select-action) ;; list actions using C-z
 (define-key helm-map (kbd "M-x") 'helm-select-action)
 
-(global-set-key (kbd "M-x")     'helm-M-x)
-(global-set-key (kbd "C-x C-m") 'execute-extended-command)
-(global-set-key (kbd "M-y")     'helm-show-kill-ring)
+(global-set-key (kbd "M-x")       'helm-M-x)
+(global-set-key (kbd "C-x C-m")   'execute-extended-command)
+(global-set-key (kbd "M-y")       'helm-show-kill-ring)
+(global-set-key (kbd "C-x b")     'helm-mini)
+(global-set-key (kbd "C-x C-f")   'helm-find-files)
+(global-set-key (kbd "C-h C-a")   'helm-apropos)
+(global-set-key (kbd "C-x C-SPC") 'helm-all-mark-rings)
+(global-set-key (kbd "M-i")       'helm-semantic-or-imenu)
 
-(global-set-key (kbd "C-x b") 'helm-mini)
 (setq helm-buffers-fuzzy-matching t
       helm-recentf-fuzzy-match    t
       helm-follow-mode-persistent t
       )
 
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
-
-(global-set-key (kbd "C-h C-a") 'helm-apropos)
 (setq helm-apropos-fuzzy-match t)
-
-(global-set-key (kbd "C-x C-SPC") 'helm-all-mark-rings)
 
 ;; Jump to a function definition
 (semantic-mode 1)
 (setq helm-semantic-fuzzy-match t
       helm-imenu-fuzzy-match    t)
-(global-set-key (kbd "M-i") 'helm-semantic-or-imenu)
-;;(global-set-key (kbd "M-i") #'imenu-anywhere)
 
 (when (executable-find "curl")
   (setq helm-google-suggest-use-curl-p t))
@@ -722,13 +718,14 @@
 ;; Improved package management
 ;; (use-package paradox)
 
-(use-package dashboard
-  :diminish page-break-lines-mode
-  :config
-  (setq dashboard-items '((recents  . 6)
-                          (projects . 6)
-                          (agenda . 6)))
-  (dashboard-setup-startup-hook))
+;; Doesn't seem to work.
+;; (use-package dashboard
+;;   :diminish page-break-lines-mode
+;;   :config
+;;   (setq dashboard-items '((recents  . 6)
+;;                           (projects . 6)
+;;                           (agenda . 6)))
+;;   (dashboard-setup-startup-hook))
 
 ;; Key chords
 (use-package key-chord
