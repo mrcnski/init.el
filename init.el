@@ -1,18 +1,20 @@
 ;;; .emacs --- Emacs configuration file
-
+;;
 ;; Copyright (C) 2017 Marcin Swieczkowski
-
+;;
 ;;; Commentary:
-
+;;
+;; Requires Emacs 25.
+;;
 ;; Making changes / testing:
-
+;;
 ;; Use M-x free-keys to find unused keybindings.
 ;; Use M-x bug-hunter-init-file to locate errors.
 ;; Use M-x esup to profile startup time,
 ;; M-x profiler-start and profiler-report to profile runtime.
 ;; Use restart-emacs to restart after making changes.
 ;; To stop execution of this file at some point, put in (error "Done").
-
+;;
 ;; I prefer to explicitly define functions instead of using lambdas.
 ;; Defining named functions makes them more discoverable in many situations.
 
@@ -98,7 +100,6 @@
 
 (global-set-key (kbd "M-x")       'helm-M-x)
 (global-set-key (kbd "C-x C-m")   'execute-extended-command)
-(global-set-key (kbd "M-y")       'helm-show-kill-ring)
 (global-set-key (kbd "C-x b")     'helm-mini)
 (global-set-key (kbd "C-x C-f")   'helm-find-files)
 (global-set-key (kbd "C-h C-a")   'helm-apropos)
@@ -269,6 +270,7 @@
       require-final-newline t    ;; Ensure that files end with a newline
       next-line-add-newlines t   ;; add newline at end of buffer with C-n
       visible-bell t
+      ring-bell-function 'ignore
       load-prefer-newer t
       ediff-window-setup-function 'ediff-setup-windows-plain
       window-combination-resize t
@@ -276,7 +278,7 @@
       inhibit-startup-message t       ;; Disable startup screen
       initial-scratch-message ""      ;; Change the initial *scratch* buffer
       help-window-select t            ;; Focus new help windows when opened
-      confirm-kill-emacs 'yes-or-no-p ;; Always confirm before closing Emacs
+      confirm-kill-emacs nil          ;; Always confirm before closing Emacs
       delete-by-moving-to-trash t     ;; Send deleted files to trash
       backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
       version-control t      ;; Always make numeric backup versions
@@ -345,7 +347,7 @@
   (interactive)
   (save-some-buffers t))
 (add-hook 'focus-out-hook 'save-all)
-(add-hook 'focus-out-hook 'balance-windows)
+;; (add-hook 'focus-out-hook 'balance-windows)
 
 ;;; User-Defined Variables
 
@@ -436,10 +438,6 @@
 ;; Reload the current buffer from disk
 (global-set-key [f5] 'revert-buffer)
 
-;; Previous/next buffers
-(global-set-key (kbd "C-c b") 'previous-buffer)
-(global-set-key (kbd "C-c f") 'next-buffer)
-
 ;; Zoom in/out
 (global-set-key (kbd "M-+") 'text-scale-increase)
 (global-set-key (kbd "M--") 'text-scale-decrease)
@@ -451,8 +449,9 @@
   "Indent the whole buffer."
   (interactive)
   (indent-region (point-min) (point-max))
-  (balance-windows) ;; might as well stick this in here
+  ;; (balance-windows) ;; might as well stick this in here
   )
+
 (global-set-key (kbd "C-c n") 'indent-buffer)
 ;; (add-hook 'before-save-hook 'indent-buffer)
 
@@ -462,6 +461,7 @@
   (interactive)
   (save-excursion
     (flush-lines "^$" (point-min) (point-max))))
+
 (global-set-key (kbd "C-c m") 'cleanup-empty-lines)
 
 ;; Delete current buffer file
@@ -477,6 +477,7 @@
         (delete-file filename)
         (kill-buffer buffer)
         (message "File '%s' successfully removed" filename)))))
+
 (global-set-key (kbd "C-c C-k") 'delete-current-buffer-file)
 
 ;; Rename current buffer file
@@ -528,6 +529,7 @@
   (let ((col (current-column)))
     (join-line -1)
     (move-to-column col)))
+
 (global-set-key (kbd "M-j") 'join-next-line)
 
 ;; Scroll down/up by a smaller amount, doesn't change cursor position
@@ -539,6 +541,7 @@
   "Scroll down by a smaller amount without changing the cursor position."
   (interactive)
   (scroll-down-line 5))
+
 (global-set-key (kbd "M-n") 'scroll-up-line-quick)
 (global-set-key (kbd "M-p") 'scroll-down-line-quick)
 
@@ -551,6 +554,7 @@
   "Scroll the other window down by a smaller amount."
   (interactive)
   (scroll-other-window-down 5))
+
 (global-set-key (kbd "M-N") 'scroll-other-window-up-quick)
 (global-set-key (kbd "M-P") 'scroll-other-window-down-quick)
 
@@ -580,6 +584,7 @@
   (interactive "r")
   (let ((char (read-string "string: ")))
     (align-regexp beg end (concat "\\(\\s-*\\)" char))))
+
 (global-set-key (kbd "M-=") 'align-to-string)
 
 ;; Commands to split window and move focus to other window
@@ -587,13 +592,13 @@
   "Split window vertically and move focus to other window."
   (interactive)
   (split-window-right)
-  (balance-windows)
+  ;; (balance-windows)
   (other-window 1))
 (defun split-window-below-focus ()
   "Split window horizontally and move focus to other window."
   (interactive)
   (split-window-below)
-  (balance-windows)
+  ;; (balance-windows)
   (other-window 1))
 
 ;; Remap the default window-splitting commands to the ones above
@@ -621,15 +626,9 @@
 
 ;; Load Themes
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
-;; (load-theme 'paganini t)
-;; (use-package afternoon-theme)
-;; (load-theme 'afternoon t)
-;; (use-package cyberpunk-theme)
-;; (load-theme 'cyberpunk)
-;; (use-package gotham-theme)
-
 ;; Nimbus is my personal theme, now available on Melpa
-(require 'nimbus-theme)
+(use-package nimbus-theme)
+;; (require 'nimbus-theme)
 (load-theme 'nimbus)
 
 ;; Function for checking font existence
@@ -639,13 +638,13 @@
 
 ;; Set font
 (cond
- ((font-exists-p "Iosevka Term Medium")
-  (set-face-attribute 'default nil :font "Iosevka Term Medium"))
+ ((font-exists-p "Iosevka Light")
+  (set-face-attribute 'default nil :font "Iosevka Light"))
  ((font-exists-p "Hack")
   (set-face-attribute 'default nil :font "Hack"))
  )
 
-(set-face-attribute 'default nil :height 90)
+(set-face-attribute 'default nil :height 120)
 
 ;;; Dired settings
 
@@ -687,10 +686,19 @@
 
 ;;; Eshell settings
 
-;; use helm to list eshell history
+;; Supposed to stop auto-scrolling of eshell output.
+;; TODO: Not even sure if this works.
+(setq eshell-scroll-show-maximum-output nil
+      eshell-scroll-to-bottom-on-input  nil
+      eshell-scroll-to-bottom-on-output nil
+      )
+
+;; Use helm to list eshell history
 (add-hook 'eshell-mode-hook
           #'(lambda ()
               (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)
+              (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
+              (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
               ))
 
 ;; Open a new eshell buffer
@@ -713,19 +721,17 @@
 ;; Open certain programs from eshell in a term buffer
 (add-hook 'eshell-load-hook #'(add-to-list 'eshell-visual-commands "ghci"))
 
+;; Mouse settings
+
+(setq mouse-wheel-progressive-speed nil) ;; Make the mouse wheel not accelerate
+
+(global-set-key (kbd "<mouse-8>") 'previous-buffer)
+(global-set-key (kbd "<mouse-9>") 'next-buffer)
+
 ;;; Load packages
 
 ;; Improved package management
 ;; (use-package paradox)
-
-;; Doesn't seem to work.
-;; (use-package dashboard
-;;   :diminish page-break-lines-mode
-;;   :config
-;;   (setq dashboard-items '((recents  . 6)
-;;                           (projects . 6)
-;;                           (agenda . 6)))
-;;   (dashboard-setup-startup-hook))
 
 ;; Key chords
 (use-package key-chord
@@ -733,6 +739,7 @@
   (key-chord-mode 1)
   (setq key-chord-one-key-delay .25)
   (setq key-chord-two-keys-delay .15)
+
   (key-chord-define-global "jx" 'helm-mini)
   (key-chord-define-global "jq" 'focus-mode)
   (key-chord-define-global "jb" 'previous-buffer)
@@ -741,11 +748,12 @@
   (key-chord-define-global "j1" 'delete-other-windows)
   (key-chord-define-global "j2" 'split-window-below-focus)
   (key-chord-define-global "j3" 'split-window-right-focus)
-  (key-chord-define-global "jc" 'org-note-capture)
-  (key-chord-define-global "jv" 'org-task-capture)
+  (key-chord-define-global "xc" 'org-note-capture)
+  (key-chord-define-global "xv" 'org-task-capture)
   (key-chord-define-global "jj" 'org-refile-goto-last-stored)
   (key-chord-define-global "xk" 'kill-buffer)
   (key-chord-define-global "x0" 'delete-window)
+  (key-chord-define-global "xy" 'helm-show-kill-ring)
   (key-chord-define-global "ii" 'helm-projectile-ag-inexact)
   (key-chord-define-global "uu" 'helm-projectile-ag-exact)
   (key-chord-define-global "zh" 'mark-defun)
@@ -765,6 +773,17 @@
   (setq helm-ag-base-command
         "ag --nocolor --nogroup --word-regexp --case-sensitive")
   (helm-projectile-ag)
+  )
+
+;; Workspaces
+(use-package eyebrowse
+  :bind (("C-<" . eyebrowse-prev-window-config)
+         ("C->" . eyebrowse-next-window-config)
+         ("C-\"" . eyebrowse-create-window-config)
+         )
+  :config
+  (eyebrowse-mode t)
+  (setq eyebrowse-wrap-around t)
   )
 
 ;; Go to last change without undoing it
@@ -835,10 +854,10 @@
 ;; (use-package region-state
 ;;   :config (region-state-mode))
 
-;; display current function in mode line
-(use-package which-func
-  :config
-  (which-function-mode 1))
+;; ;; Display current function in mode line
+;; (use-package which-func
+;;   :config
+;;   (which-function-mode 1))
 
 ;; Highlight indentation using periods
 ;; (use-package highlight-indent-guides
@@ -849,6 +868,7 @@
 ;;         highlight-indent-guides-character ?\.)
 ;;   )
 
+;; Automatically clean up extraneous whitespace
 (use-package ws-butler
   :diminish ws-butler-mode
   :init (add-hook 'prog-mode-hook #'ws-butler-mode))
@@ -869,9 +889,10 @@
 ;; Avy mode (jump to a char/word using a decision tree)
 (use-package avy
   :bind (("C-," . avy-goto-line-end)
-         ("C-<" . avy-goto-char-in-line)
+         ;; ("C-<" . avy-goto-char-in-line)
          ("C-." . avy-goto-char)
-         ("C->" . avy-goto-word-1))
+         ;; ("C->" . avy-goto-word-1)
+         )
   :config
   ;; Use more characters (and better ones) in the decision tree
   ;; QWERTY keys
@@ -891,8 +912,7 @@
 ;; Automatically save place in each file
 (use-package saveplace
   :config
-  (setq-default save-place t)
-  (setq save-place-file (concat user-emacs-directory "places"))
+  (save-place-mode 1)
   )
 
 ;; Nicer-looking modeline
@@ -900,19 +920,35 @@
 ;; (use-package powerline
 ;;   :config (powerline-default-theme))
 
+;; Modeline improvement
+(use-package smart-mode-line
+  :config
+  (setq sml/theme 'respectful)
+  (sml/setup)
+  )
+
 ;; Midnight mode - clean up buffers older than 3 days
 (require 'midnight)
 (midnight-delay-set 'midnight-delay "4:30am")
 
 ;; highlight the parts of lines that exceed column 80
 (require 'whitespace)
-(setq whitespace-style '(face empty tabs lines-tail trailing)
-      whitespace-line-column 80)
-(add-hook 'c-mode-hook 'whitespace-mode)
-(add-hook 'c++-mode-hook 'whitespace-mode)
-(add-hook 'emacs-lisp-mode-hook 'whitespace-mode)
+(setq whitespace-style '(face empty tabs lines-tail trailing))
+(add-hook 'c-mode-hook 'c-whitespace-mode)
+(add-hook 'c++-mode-hook 'c-whitespace-mode)
+(add-hook 'emacs-lisp-mode-hook 'c-whitespace-mode)
+(add-hook 'rust-mode-hook 'rust-whitespace-mode)
+(defun c-whitespace-mode ()
+  "Set whitespace column for c-like modes and turn on `whitespace-mode'."
+  (setq-local whitespace-line-column 80)
+  (whitespace-mode)
+  )
+(defun rust-whitespace-mode ()
+  "Set whitespace column for rust-mode and turn on `whitespace-mode'."
+  (setq-local whitespace-line-column 100)
+  (whitespace-mode)
+  )
 (diminish 'whitespace-mode)
-(diminish 'global-whitespace-mode)
 
 ;; Multiple cursors, use C-M-j for newline
 (use-package multiple-cursors
@@ -1053,13 +1089,18 @@
        ))
   :config (window-numbering-mode))
 
-;; Doesn't work with window-numbering.el
-;; (use-package golden-ratio
-;;   :diminish golden-ratio-mode
-;;   :config
-;;   (golden-ratio-mode)
-;;   (setq golden-ratio-auto-scale t)
-;;   )
+;; Make currently focused window larger.
+;; This package is not actively maintained.
+(use-package golden-ratio
+  :diminish golden-ratio-mode
+  :config
+  ;; (golden-ratio-mode)
+  (setq golden-ratio-auto-scale nil)
+  (setq golden-ratio-adjust-factor 0.8)
+  (defadvice select-window-by-number
+              (after golden-ratio-resize-window activate)
+    (golden-ratio) nil)
+  )
 
 ;; Expand-region
 (use-package expand-region
@@ -1140,8 +1181,10 @@
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors)
   :config
-  (setq flycheck-check-syntax-automatically nil);'(mode-enabled save))
-  (setq sentence-end-double-space nil)
+  ;; (setq flycheck-check-syntax-automatically '(mode-enabled save))
+  (setq flycheck-check-syntax-automatically nil)
+
+  (setq sentence-end-double-space nil) ;; Stupid check
   ;; Disable checkers that don't work correctly
   (setq-default flycheck-disabled-checkers '())
 
@@ -1235,8 +1278,12 @@
 (use-package rust-mode
   :mode "\\.rs\\'"
   :diminish eldoc-mode
-  :config
+  :init
   (setq rust-format-on-save nil)
+  ;; (add-hook 'rust-mode-hook
+  ;;           (lambda ()
+  ;;             (setq-local flycheck-check-syntax-automatically nil)
+  ;;             ))
   )
 
 (use-package racer
@@ -1244,7 +1291,18 @@
   :init
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hook #'eldoc-mode)
-  (setq racer-rust-src-path "/usr/local/src/rust/src")
+  ;; (setq racer-rust-src-path "/usr/local/src/rust/src")
+
+  :config
+  (define-key racer-mode-map (kbd "<mouse-2>") 'mouse-find-definition)
+  (define-key racer-mode-map (kbd "<mouse-3>") 'pop-tag-mark)
+  (defun mouse-find-definition (@click)
+    (interactive "e")
+    (let ((p1 (posn-point (event-start @click))))
+      (goto-char p1)
+      (call-interactively 'racer-find-definition)
+      )
+    )
   )
 
 ;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
@@ -1312,7 +1370,7 @@
 
 (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
 
-;; Org-mode word-wrap
+;; Org-mode word-wrap and indented entries
 (add-hook 'org-mode-hook #'
           (lambda ()
             (visual-line-mode)
@@ -1381,7 +1439,7 @@
 ;;(find-file user-todo-list-location) ;; Start with notes.org
 ;;(org-agenda nil "a")                ;; Open org-agenda
 
-(message "init.el finished loading!")
+(message "init.el finished loading successfully!")
 
 (provide 'init)
 ;;; init.el ends here
