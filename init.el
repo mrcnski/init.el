@@ -25,7 +25,7 @@
 ;; First things first, increase GC threshold to speed up startup.
 ;; Reset the GC threshold after initialization, and GC whenever we tab out
 (setq gc-cons-threshold most-positive-fixnum)
-(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
+(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 10000000)))
 (add-hook 'focus-out-hook 'garbage-collect)
 
 ;; First things first, define the init file location and make it easy to reload
@@ -356,10 +356,45 @@
 
 ;;; My Functions and Shortcuts/Keybindings
 
+;; Set up keys using super.
+;; s-x, s-c, and s-v already correspond to cut, copy, and paste,
+;; which is consistent on Macs.
+(global-set-key (kbd "s-p") 'previous-buffer)
+(global-set-key (kbd "s-n") 'next-buffer)
+(global-set-key (kbd "s-k") 'kill-buffer)
+(global-set-key (kbd "s-q") 'focus-mode)
+(global-set-key (kbd "s-y") 'helm-show-kill-ring)
+(global-set-key (kbd "s-h") 'helm-mark-ring)
+
+(global-set-key (kbd "s-i") 'helm-projectile-ag-inexact)
+(global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
+
+(defun helm-projectile-ag-inexact ()
+  "Run helm-projectile-ag case-insensitive and without word boundaries. Push the mark first."
+  (interactive)
+  (push-mark)
+  (setq helm-ag-base-command "ag --nocolor --nogroup --ignore-case")
+  (helm-projectile-ag)
+  )
+(defun helm-projectile-ag-exact ()
+  "Run helm-projectile-ag case-sensitive and with word boundaries. Push the mark first."
+  (interactive)
+  (push-mark)
+  (setq helm-ag-base-command
+        "ag --nocolor --nogroup --word-regexp --case-sensitive")
+  (helm-projectile-ag)
+  )
+
+(global-set-key (kbd "C-0") 'delete-window)
+(global-set-key (kbd "C-1") 'delete-other-windows)
+(global-set-key (kbd "C-2") 'split-window-below-focus)
+(global-set-key (kbd "C-3") 'split-window-right-focus)
+
 (global-set-key (kbd "C-j") 'indent-new-comment-line)
 (global-set-key (kbd "M-$") 'ispell-buffer)
 
-(define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
+;; (define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
+(global-set-key (kbd "<C-tab>") 'helm-mini)
 
 ;; narrow/widen easily
 (defun narrow-dwim ()
@@ -628,8 +663,8 @@
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 ;; Nimbus is my personal theme, now available on Melpa
 (use-package nimbus-theme)
-;; (require 'nimbus-theme)
 (load-theme 'nimbus)
+;; (use-package arjen-grey-theme)
 
 ;; Function for checking font existence
 (defun font-exists-p (font)
@@ -733,53 +768,30 @@
 ;; Improved package management
 ;; (use-package paradox)
 
-;; Key chords
-(use-package key-chord
-  :init
-  (key-chord-mode 1)
-  (setq key-chord-one-key-delay .25)
-  (setq key-chord-two-keys-delay .15)
+;; ;; Key chords
+;; (use-package key-chord
+;;   :init
+;;   (key-chord-mode 1)
+;;   (setq key-chord-one-key-delay .25)
+;;   (setq key-chord-two-keys-delay .15)
 
-  (key-chord-define-global "jx" 'helm-mini)
-  (key-chord-define-global "jq" 'focus-mode)
-  (key-chord-define-global "jb" 'previous-buffer)
-  (key-chord-define-global "jf" 'next-buffer)
-  (key-chord-define-global "jg" 'magit-status)
-  (key-chord-define-global "j1" 'delete-other-windows)
-  (key-chord-define-global "j2" 'split-window-below-focus)
-  (key-chord-define-global "j3" 'split-window-right-focus)
-  (key-chord-define-global "xc" 'org-note-capture)
-  (key-chord-define-global "xv" 'org-task-capture)
-  (key-chord-define-global "jj" 'org-refile-goto-last-stored)
-  (key-chord-define-global "xk" 'kill-buffer)
-  (key-chord-define-global "x0" 'delete-window)
-  (key-chord-define-global "xy" 'helm-show-kill-ring)
-  (key-chord-define-global "ii" 'helm-projectile-ag-inexact)
-  (key-chord-define-global "uu" 'helm-projectile-ag-exact)
-  (key-chord-define-global "zh" 'mark-defun)
-  (key-chord-define-global "hh" 'helm-mark-ring)
-  )
-(defun helm-projectile-ag-inexact ()
-  "Run helm-projectile-ag case-insensitive and without word boundaries. Push the mark first."
-  (interactive)
-  (push-mark)
-  (setq helm-ag-base-command "ag --nocolor --nogroup --ignore-case")
-  (helm-projectile-ag)
-  )
-(defun helm-projectile-ag-exact ()
-  "Run helm-projectile-ag case-sensitive and with word boundaries. Push the mark first."
-  (interactive)
-  (push-mark)
-  (setq helm-ag-base-command
-        "ag --nocolor --nogroup --word-regexp --case-sensitive")
-  (helm-projectile-ag)
-  )
+;;   (key-chord-define-global "jx" 'helm-mini)
+;;   )
 
 ;; Workspaces
 (use-package eyebrowse
   :bind (("C-<" . eyebrowse-prev-window-config)
          ("C->" . eyebrowse-next-window-config)
-         ("C-\"" . eyebrowse-create-window-config)
+         ;; ("C-\"" . eyebrowse-create-window-config)
+         ("s-1" . eyebrowse-switch-to-window-config-1)
+         ("s-2" . eyebrowse-switch-to-window-config-2)
+         ("s-3" . eyebrowse-switch-to-window-config-3)
+         ("s-4" . eyebrowse-switch-to-window-config-4)
+         ("s-5" . eyebrowse-switch-to-window-config-5)
+         ("s-6" . eyebrowse-switch-to-window-config-6)
+         ("s-7" . eyebrowse-switch-to-window-config-7)
+         ("s-8" . eyebrowse-switch-to-window-config-8)
+         ("s-9" . eyebrowse-switch-to-window-config-9)
          )
   :config
   (eyebrowse-mode t)
@@ -844,11 +856,11 @@
   )
 
 ;; line numbers - disabled due to performance problems
-;; (use-package nlinum
-;;   :init (add-hook 'prog-mode-hook 'nlinum-mode)
-;;   :config
-;;   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
-;;   )
+(use-package nlinum
+  :init (add-hook 'prog-mode-hook 'nlinum-mode)
+  :config
+  (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
+  )
 
 ;; show info about the current region
 ;; (use-package region-state
@@ -1167,7 +1179,7 @@
 (use-package diff-hl
   :init (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
   :config
-  (diff-hl-margin-mode)
+  ;; (diff-hl-margin-mode)
   )
 
 ;;; Language packages
@@ -1198,8 +1210,16 @@
               (message (one-or-more not-newline)
                        (zero-or-more "\n" (any " ") (one-or-more not-newline)))
               line-end))
-    :modes (text-mode markdown-mode gfm-mode))
+    :modes (text-mode markdown-mode))
   (add-to-list 'flycheck-checkers 'proselint)
+  )
+
+;; Highlight weasel words
+(use-package artbollocks-mode
+  :diminish artbollocks-mode
+  :config
+  ;; (add-hook 'text-mode-hook 'artbollocks-mode)
+  (add-hook 'markdown-mode  'artbollocks-mode)
   )
 
 ;; Add linting for elisp packages
@@ -1226,6 +1246,10 @@
   (add-hook 'prog-mode-hook #'yas-minor-mode)
   :config
   (yas-reload-all))
+
+;; Markdown mode
+(use-package markdown-mode
+  :mode "\\.md\\'")
 
 ;; YAML mode
 (use-package yaml-mode
