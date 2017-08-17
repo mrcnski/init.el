@@ -210,9 +210,7 @@
 ;; ag with helm
 (use-package helm-ag
   :init
-  (custom-set-variables
-   '(helm-ag-insert-at-point 'symbol)
-   )
+  (setq helm-ag-insert-at-point 'symbol)
   )
 
 ;;; Load customizations
@@ -255,7 +253,6 @@
 (put 'scroll-right 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
-(put 'dired-find-alternate-file 'disabled nil) ;; Open file with a
 
 (show-paren-mode 1)
 (setq-default indent-tabs-mode nil
@@ -281,21 +278,21 @@
       confirm-kill-emacs nil          ;; Always confirm before closing Emacs
       delete-by-moving-to-trash t     ;; Send deleted files to trash
       backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
-      version-control t      ;; Always make numeric backup versions
-      vc-make-backup-files t ;; Make backups of all files
-      delete-old-versions t  ;; Silently delete old backup versions
+      version-control t               ;; Always make numeric backup versions
+      vc-make-backup-files t          ;; Make backups of all files
+      delete-old-versions t           ;; Silently delete old backup versions
       isearch-allow-scroll t
       ;; Isearch convenience, space matches anything
       ;; search-whitespace-regexp ".*?"
       ;; Display trailing whitespace
       show-trailing-whitespace 1
 
-      pop-up-frames nil      ;; Open files in existing frames
+      pop-up-frames nil               ;; Open files in existing frames
       pop-up-windows t
       ;; Tab will first try to indent, then complete
       tab-always-indent 'complete
-      resize-mini-windows t          ;; Resize the minibuffer when needed.
-      enable-recursive-minibuffers t ;; Enable recursive editing of minibuffer
+      resize-mini-windows t           ;; Resize the minibuffer when needed.
+      enable-recursive-minibuffers t  ;; Enable recursive editing of minibuffer
       ;; (setq max-mini-window-height 0.33)
       ;; Move point to beginning or end of buffer when scrolling
       scroll-error-top-bottom t
@@ -343,11 +340,13 @@
 
 ;; Automatically save on loss of focus
 (defun save-all ()
-  "Automatically save all file-visiting buffers when Emacs loses focus."
+  "Save all file-visiting buffers without prompting."
   (interactive)
   (save-some-buffers t))
+                                        ; Automatically save all file-visiting buffers when Emacs loses focus.
 (add-hook 'focus-out-hook 'save-all)
 ;; (add-hook 'focus-out-hook 'balance-windows)
+(global-set-key (kbd "C-x s") 'save-all)
 
 ;;; User-Defined Variables
 
@@ -357,14 +356,17 @@
 ;;; My Functions and Shortcuts/Keybindings
 
 ;; Set up keys using super.
-;; s-x, s-c, and s-v already correspond to cut, copy, and paste,
-;; which is consistent on Macs.
+;; s-s, s-x, s-c, and s-v correspond to save, cut, copy, and paste,
+;; which I've left for consistency/utility on Macs.
+;; s-l is goto-line which is already useful.
+(global-set-key (kbd "s-j") 'helm-mini)
 (global-set-key (kbd "s-p") 'previous-buffer)
 (global-set-key (kbd "s-n") 'next-buffer)
 (global-set-key (kbd "s-k") 'kill-buffer)
 (global-set-key (kbd "s-q") 'focus-mode)
 (global-set-key (kbd "s-y") 'helm-show-kill-ring)
 (global-set-key (kbd "s-h") 'helm-mark-ring)
+(global-set-key (kbd "s-g") 'magit-status)
 
 (global-set-key (kbd "s-i") 'helm-projectile-ag-inexact)
 (global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
@@ -374,6 +376,7 @@
   (interactive)
   (push-mark)
   (setq helm-ag-base-command "ag --nocolor --nogroup --ignore-case")
+  (setq helm-ag-insert-at-point nil)
   (helm-projectile-ag)
   )
 (defun helm-projectile-ag-exact ()
@@ -382,6 +385,7 @@
   (push-mark)
   (setq helm-ag-base-command
         "ag --nocolor --nogroup --word-regexp --case-sensitive")
+  (setq helm-ag-insert-at-point 'symbol)
   (helm-projectile-ag)
   )
 
@@ -389,12 +393,13 @@
 (global-set-key (kbd "C-1") 'delete-other-windows)
 (global-set-key (kbd "C-2") 'split-window-below-focus)
 (global-set-key (kbd "C-3") 'split-window-right-focus)
+(global-set-key (kbd "s-C-,") (lambda () (interactive) (other-window -1)))
+(global-set-key (kbd "s-C-.") (lambda () (interactive) (other-window 1)))
 
 (global-set-key (kbd "C-j") 'indent-new-comment-line)
 (global-set-key (kbd "M-$") 'ispell-buffer)
 
-;; (define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
-(global-set-key (kbd "<C-tab>") 'helm-mini)
+(define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
 
 ;; narrow/widen easily
 (defun narrow-dwim ()
@@ -780,9 +785,10 @@
 
 ;; Workspaces
 (use-package eyebrowse
-  :bind (("C-<" . eyebrowse-prev-window-config)
-         ("C->" . eyebrowse-next-window-config)
+  :bind (("s-," . eyebrowse-prev-window-config)
+         ("s-." . eyebrowse-next-window-config)
          ;; ("C-\"" . eyebrowse-create-window-config)
+         ("s-0" . eyebrowse-switch-to-window-config-0)
          ("s-1" . eyebrowse-switch-to-window-config-1)
          ("s-2" . eyebrowse-switch-to-window-config-2)
          ("s-3" . eyebrowse-switch-to-window-config-3)
@@ -792,6 +798,7 @@
          ("s-7" . eyebrowse-switch-to-window-config-7)
          ("s-8" . eyebrowse-switch-to-window-config-8)
          ("s-9" . eyebrowse-switch-to-window-config-9)
+         ("s-/" . eyebrowse-close-window-config)
          )
   :config
   (eyebrowse-mode t)
@@ -866,10 +873,10 @@
 ;; (use-package region-state
 ;;   :config (region-state-mode))
 
-;; ;; Display current function in mode line
-;; (use-package which-func
-;;   :config
-;;   (which-function-mode 1))
+;; Display current function in mode line
+(use-package which-func
+  :config
+  (which-function-mode 1))
 
 ;; Highlight indentation using periods
 ;; (use-package highlight-indent-guides
@@ -933,11 +940,11 @@
 ;;   :config (powerline-default-theme))
 
 ;; Modeline improvement
-(use-package smart-mode-line
-  :config
-  (setq sml/theme 'respectful)
-  (sml/setup)
-  )
+;; (use-package smart-mode-line
+;;   :config
+;;   (setq sml/theme 'respectful)
+;;   (sml/setup)
+;;   )
 
 ;; Midnight mode - clean up buffers older than 3 days
 (require 'midnight)
@@ -1024,6 +1031,14 @@
   :diminish volatile-highlights-mode
   :config (volatile-highlights-mode))
 
+;; Highlight surrounding parentheses
+(use-package highlight-parentheses
+  :diminish highlight-parentheses-mode
+  :init
+  (add-hook 'prog-mode-hook 'highlight-parentheses-mode)
+  :config (setq hl-paren-colors '("white"))
+  )
+
 ;; Track recently-opened files
 (use-package recentf
   :config
@@ -1054,11 +1069,13 @@
          ))
 
 ;; Undo/redo window configurations
-;; Default keys are C-c left and C-c right
 (use-package winner
   :defer 1
-  :bind (("C-c C-/" . winner-undo)
-         ("C-c C-?" . winner-redo))
+  :bind (("C-c C-," . winner-undo)
+         ("C-c ,"   . winner-undo)
+         ("C-c C-." . winner-redo)
+         ("C-c ."   . winner-redo)
+         )
   :config (winner-mode 1))
 
 ;; ;; Enable undo tree mode (C-x u)
@@ -1090,16 +1107,31 @@
   :bind ("C-S-o" . ace-window)
   )
 
-;; Make switching windows faster
-(use-package window-numbering
+;; Switch windows more easily
+;; (use-package window-numbering
+;;   :init
+;;   ;; Free up M-9 and M-0 for corral. I never have this many windows.
+;;   (eval-after-load 'window-numbering
+;;     '(progn
+;;        (define-key window-numbering-keymap (kbd "M-9") nil)
+;;        (define-key window-numbering-keymap (kbd "M-0") nil)
+;;        ))
+;;   :config (window-numbering-mode))
+(use-package winum
   :init
-  ;; Free up M-9 and M-0 for corral. I never have this many windows.
-  (eval-after-load 'window-numbering
-    '(progn
-       (define-key window-numbering-keymap (kbd "M-9") nil)
-       (define-key window-numbering-keymap (kbd "M-0") nil)
-       ))
-  :config (window-numbering-mode))
+  (setq winum-keymap
+        (let ((map (make-sparse-keymap)))
+          (define-key map (kbd "M-1") 'winum-select-window-1)
+          (define-key map (kbd "M-2") 'winum-select-window-2)
+          (define-key map (kbd "M-3") 'winum-select-window-3)
+          (define-key map (kbd "M-4") 'winum-select-window-4)
+          (define-key map (kbd "M-5") 'winum-select-window-5)
+          (define-key map (kbd "M-6") 'winum-select-window-6)
+          (define-key map (kbd "M-7") 'winum-select-window-7)
+          (define-key map (kbd "M-8") 'winum-select-window-8)
+          map))
+  (winum-mode)
+  )
 
 ;; Make currently focused window larger.
 ;; This package is not actively maintained.
@@ -1110,7 +1142,7 @@
   (setq golden-ratio-auto-scale nil)
   (setq golden-ratio-adjust-factor 0.8)
   (defadvice select-window-by-number
-              (after golden-ratio-resize-window activate)
+      (after golden-ratio-resize-window activate)
     (golden-ratio) nil)
   )
 
@@ -1125,8 +1157,8 @@
          ("M-0" . corral-parentheses-forward)
          ("M-[" . corral-brackets-backward)
          ("M-]" . corral-brackets-forward)
-         ;; ("M-{" . corral-braces-backward)
-         ;; ("M-}" . corral-braces-forward)
+         ("M-{" . corral-braces-backward)
+         ("M-}" . corral-braces-forward)
          ("M-\"" . corral-double-quotes-backward)
          ("M-'" . corral-double-quotes-forward)
          )
@@ -1457,10 +1489,47 @@
 
 ;;; Final
 
+;; Set mode-line format
+(setq-default
+ mode-line-format
+ (list
+  " "
+  '(:eval (winum-get-number-string))
+  " "
+  'mode-line-modified
+  " "
+  '(:eval (propertize "%b"
+                      'face '(:weight bold)
+                      'help-echo (buffer-file-name)))
+  " -- "
+  "line %02l:%02c"
+  " -- "
+  '(:eval (propertize "[%m]"
+                      ;; 'face '(:weight bold)
+                      'help-echo buffer-file-coding-system))
+
+  ;; is this buffer read-only?
+  '(:eval (when buffer-read-only
+            (concat " -- "  (propertize "RO"
+                                     'face 'font-lock-preprocessor-face
+                                     'help-echo "Buffer is read-only"))))
+  " -- "
+  'mode-line-misc-info
+  ;; " "
+  ;; '(:eval (propertize (format-time-string "%H:%M")))
+  'mode-line-end-spaces
+  ))
+
+;; Set final variables
 (setq default-directory "~/")         ;; Default directory
 (setq org-directory "~/Text/org")     ;; Default org directory
 
-;;(find-file user-todo-list-location) ;; Start with notes.org
+;; Starts with todo.org and notes.org
+(find-file user-todo-location)
+(beginning-of-buffer)
+(org-show-subtree)
+(split-window-right-focus)
+(find-file user-notes-location)
 ;;(org-agenda nil "a")                ;; Open org-agenda
 
 (message "init.el finished loading successfully!")
