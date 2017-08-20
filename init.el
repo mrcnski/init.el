@@ -25,7 +25,7 @@
 ;; First things first, increase GC threshold to speed up startup.
 ;; Reset the GC threshold after initialization, and GC whenever we tab out
 (setq gc-cons-threshold most-positive-fixnum)
-(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 10000000)))
+(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 20000000)))
 (add-hook 'focus-out-hook 'garbage-collect)
 
 ;; First things first, define the init file location and make it easy to reload
@@ -756,7 +756,7 @@
 ;; Add up to eshell
 ;; Jump to a directory higher up in the directory hierarchy
 (use-package eshell-up
-  :config (setq eshell-up-print-parent-dir t))
+  :config (setq eshell-up-print-parent-dir nil))
 
 ;; Open certain programs from eshell in a term buffer
 (add-hook 'eshell-load-hook #'(add-to-list 'eshell-visual-commands "ghci"))
@@ -862,7 +862,7 @@
   :ensure
   )
 
-;; line numbers - disabled due to performance problems
+;; line numbers
 (use-package nlinum
   :init (add-hook 'prog-mode-hook 'nlinum-mode)
   :config
@@ -1039,6 +1039,13 @@
   :config (setq hl-paren-colors '("white"))
   )
 
+;; Open files in Finder on Mac
+(use-package reveal-in-osx-finder
+  :bind ("C-c f" . reveal-in-osx-finder)
+  )
+
+(use-package discover)
+
 ;; Track recently-opened files
 (use-package recentf
   :config
@@ -1072,9 +1079,7 @@
 (use-package winner
   :defer 1
   :bind (("C-c C-," . winner-undo)
-         ("C-c ,"   . winner-undo)
          ("C-c C-." . winner-redo)
-         ("C-c ."   . winner-redo)
          )
   :config (winner-mode 1))
 
@@ -1176,6 +1181,8 @@
   :bind ("C-x g" . magit-status)
   :init
   (setq magit-diff-refine-hunk `all)
+  (setq magit-display-buffer-function
+        #'magit-display-buffer-same-window-except-diff-v1)
   )
 
 ;; Browse historic versions of a file
@@ -1209,6 +1216,7 @@
 
 ;; Show markers in margin indicating changes
 (use-package diff-hl
+  :bind ("C-c d" . diff-hl-revert-hunk)
   :init (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
   :config
   ;; (diff-hl-margin-mode)
@@ -1336,10 +1344,6 @@
   :diminish eldoc-mode
   :init
   (setq rust-format-on-save nil)
-  ;; (add-hook 'rust-mode-hook
-  ;;           (lambda ()
-  ;;             (setq-local flycheck-check-syntax-automatically nil)
-  ;;             ))
   )
 
 (use-package racer
@@ -1498,6 +1502,11 @@
   " "
   'mode-line-modified
   " "
+  '(:eval (when buffer-file-name
+            (concat (file-name-nondirectory
+                        (directory-file-name default-directory))
+                        " | "
+                        )))
   '(:eval (propertize "%b"
                       'face '(:weight bold)
                       'help-echo (buffer-file-name)))
@@ -1521,7 +1530,6 @@
   ))
 
 ;; Set final variables
-(setq default-directory "~/")         ;; Default directory
 (setq org-directory "~/Text/org")     ;; Default org directory
 
 ;; Starts with todo.org and notes.org
