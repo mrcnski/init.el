@@ -147,7 +147,6 @@
 (setq helm-mini-default-sources '(helm-source-buffers-list
                                   helm-source-recentf
                                   helm-source-files-in-current-dir
-                                  helm-source-files-in-all-dired
                                   helm-source-buffer-not-found))
 
 (setq helm-autoresize-max-height 0)
@@ -176,9 +175,6 @@
 
   (setq helm-swoop-speed-or-color t) ;; Show syntax highlighting in results
   )
-
-;; Search current bindings with helm (C-h b)
-;; TODO: broken in emacs 24
 
 ;; ggtags with helm
 (use-package helm-gtags
@@ -220,14 +216,31 @@
 
 ;;; Quality of life changes
 
+;; Keep directories clean
+(use-package no-littering
+  :config
+  (require 'recentf)
+  (add-to-list 'recentf-exclude no-littering-var-directory)
+  (add-to-list 'recentf-exclude no-littering-etc-directory)
+  (setq auto-save-file-name-transforms
+        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+  )
+
+;; Track recently-opened files
+(use-package recentf
+  :config
+  (setq recentf-max-saved-items 10000) ;; Go ahead and save everything
+  (recentf-mode t)
+  )
+
 ;; Enable ido mode if helm's not there
 (unless (fboundp 'helm-mode)
   (ido-mode t)
   (setq ido-enable-flex-matching t)
   (setq ido-everywhere t))
 
-;; Turn off blinking cursor
-(blink-cursor-mode 0)
+;; Turn on blinking/flashing cursor
+(blink-cursor-mode 1)
 (when (display-graphic-p)
   (setq-default cursor-type 'bar))
 ;; Stretch cursor to be as wide as the character at point
@@ -335,15 +348,17 @@
 (add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 
-;; ;; Clean up whitespace when saving
+;; Actions to perform when saving
 ;; (add-hook 'before-save-hook 'whitespace-cleanup)
+;; (add-hook 'before-save-hook 'ispell-comments-and-strings)
 
 ;; Automatically save on loss of focus
 (defun save-all ()
   "Save all file-visiting buffers without prompting."
   (interactive)
   (save-some-buffers t))
-                                        ; Automatically save all file-visiting buffers when Emacs loses focus.
+
+;; Automatically save all file-visiting buffers when Emacs loses focus.
 (add-hook 'focus-out-hook 'save-all)
 ;; (add-hook 'focus-out-hook 'balance-windows)
 (global-set-key (kbd "C-x s") 'save-all)
@@ -355,21 +370,20 @@
 
 ;;; My Functions and Shortcuts/Keybindings
 
-;; Set up keys using super.
-;; s-s, s-x, s-c, and s-v correspond to save, cut, copy, and paste,
-;; which I've left for consistency/utility on Macs.
-;; s-l is goto-line which is already useful.
+;; Set up keys using super. s-a, s-s, s-x, s-c, and s-v correspond to
+;; select-all, save, cut, copy, and paste, which I've left for
+;; consistency/utility on Macs. s-l is goto-line which is already useful.
 (global-set-key (kbd "s-j") 'helm-mini)
 (global-set-key (kbd "s-p") 'previous-buffer)
 (global-set-key (kbd "s-n") 'next-buffer)
-(global-set-key (kbd "s-k") 'kill-buffer)
-(global-set-key (kbd "s-q") 'focus-mode)
+(global-set-key (kbd "s-k") 'kill-this-buffer)
 (global-set-key (kbd "s-y") 'helm-show-kill-ring)
 (global-set-key (kbd "s-h") 'helm-mark-ring)
 (global-set-key (kbd "s-g") 'magit-status)
 
 (global-set-key (kbd "s-i") 'helm-projectile-ag-inexact)
 (global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
+(global-set-key (kbd "s-o") 'helm-ag-pop-stack)
 
 (defun helm-projectile-ag-inexact ()
   "Run helm-projectile-ag case-insensitive and without word boundaries. Push the mark first."
@@ -397,7 +411,8 @@
 (global-set-key (kbd "s-C-.") (lambda () (interactive) (other-window 1)))
 
 (global-set-key (kbd "C-j") 'indent-new-comment-line)
-(global-set-key (kbd "M-$") 'ispell-buffer)
+;; (global-set-key (kbd "M-$") 'ispell-buffer)
+(global-set-key (kbd "M-SPC") 'cycle-spacing)
 
 (define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
 
@@ -495,6 +510,14 @@
 (global-set-key (kbd "C-c n") 'indent-buffer)
 ;; (add-hook 'before-save-hook 'indent-buffer)
 
+(defun region-history-other (begin end)
+  "Display the source controlled region history in another window."
+  (interactive "r")
+  (vc-region-history begin end)
+  (other-window 1)
+  )
+(global-set-key (kbd "C-c h") 'region-history-other)
+
 ;; TODO: This seems to be buggy in org-mode
 (defun cleanup-empty-lines ()
   "Remove all empty lines from the buffer."
@@ -564,7 +587,7 @@
 ;; Join the following line onto the current line
 ;; Use this to quickly consolidate multiple lines into one
 (defun join-next-line ()
-  "Join the following line onto the current line, preserving the cursor position.  This command can be used to rapidly consolidate multiple lines into one."
+  "Join the following line onto the current line, preserving the cursor position. This command can be used to rapidly consolidate multiple lines into one."
   (interactive)
   (let ((col (current-column)))
     (join-line -1)
@@ -604,7 +627,6 @@
   (interactive)
   (end-of-line)
   (newline-and-indent))
-
 (defun open-line-above ()
   "Open a new line above, even if the point is midsentence."
   (interactive)
@@ -612,9 +634,17 @@
   (newline-and-indent)
   (forward-line -1)
   (indent-according-to-mode))
+(defun clear-line ()
+  "Clear the line, but don't delete it."
+  (interactive)
+  (beginning-of-line)
+  (kill-line)
+  (indent-according-to-mode)
+  )
 
 (global-set-key (kbd "<C-return>") 'open-line-below)
 (global-set-key (kbd "<S-return>") 'open-line-above)
+(global-set-key (kbd "<M-return>") 'clear-line)
 
 ;; Align region by character.
 ;; TODO: Enable history in read-string to allow for default values
@@ -669,7 +699,6 @@
 ;; Nimbus is my personal theme, now available on Melpa
 (use-package nimbus-theme)
 (load-theme 'nimbus)
-;; (use-package arjen-grey-theme)
 
 ;; Function for checking font existence
 (defun font-exists-p (font)
@@ -685,8 +714,13 @@
  )
 
 (set-face-attribute 'default nil :height 120)
+(setq-default line-spacing 0)
 
 ;;; Dired settings
+
+(with-eval-after-load 'dired
+  (define-key dired-mode-map "f" 'helm-find-files)
+  )
 
 ;; Handle opening and editing zip directories in dired
 (eval-after-load "dired-aux"
@@ -715,10 +749,19 @@
 
 ;; Expanded dired
 ;; Enables C-x C-j to jump to the current directory in dired
-(require 'dired-x)
+(use-package dired-x
+  :ensure nil
+  :bind ("s-d" . dired-jump)
+  :config
+  ;; Prevent certain files from showing up
+  (setq-default dired-omit-files-p t)
+  (setq dired-omit-files
+        (concat dired-omit-files "\\|\\.bk$"))
+  )
 
 ;; Make C-l go up a directory in dired
 (define-key dired-mode-map (kbd "C-l") 'dired-up-directory)
+(define-key dired-mode-map (kbd "s-l") 'dired-up-directory)
 
 ;; Allow changing file permissions in WDired
 ;; Notes: WDired can be enabled with C-x C-q and compiled with C-c C-c
@@ -800,9 +843,12 @@
          ("s-9" . eyebrowse-switch-to-window-config-9)
          ("s-/" . eyebrowse-close-window-config)
          )
+  ;; :init
+  ;; (setq eyebrowse-keymap-prefix nil) ; Broken!
   :config
   (eyebrowse-mode t)
   (setq eyebrowse-wrap-around t)
+  (setq eyebrowse-new-workspace t)
   )
 
 ;; Go to last change without undoing it
@@ -821,8 +867,19 @@
 ;; Show unused keys
 (use-package free-keys)
 
-;; Dim surrounding paragraphs, add key chord below
-(use-package focus)
+;; Dim surrounding paragraphs
+(use-package focus
+  :bind ("s-q" . focus-mode)
+  )
+
+;; Mode for writing
+(use-package olivetti
+  :bind ("s-w" . olivetti-mode)
+  :init
+  (setq olivetti-hide-mode-line t
+        olivetti-body-width     .9
+        )
+  )
 
 ;; Add indicators for position in buffer and end of buffer
 (use-package indicators
@@ -833,13 +890,13 @@
   "Create new indicators in the current buffer."
   (interactive)
 
-  ;; show a little arrow at the end of buffer using the default fringe face
-  (ind-create-indicator 'point-max
-                        :managed t
-                        :relative nil
-                        :fringe 'left-fringe
-                        :bitmap 'right-arrow
-                        :face 'fringe)
+  ;; ;; show a little arrow at the end of buffer using the default fringe face
+  ;; (ind-create-indicator 'point-max
+  ;;                       :managed t
+  ;;                       :relative nil
+  ;;                       :fringe 'left-fringe
+  ;;                       :bitmap 'right-arrow
+  ;;                       :face 'fringe)
 
   ;; show relative position in the file (a.k.a. scroll bar)
   (ind-create-indicator 'point :managed t)
@@ -849,27 +906,27 @@
 (use-package copy-as-format)
 
 ;; Jump to tag definitions using ripgrep
-(use-package dumb-jump
-  :bind (("M-g o" . dumb-jump-go-other-window)
-         ("M-g j" . dumb-jump-go)
-         ("M-g q" . dumb-jump-quick-look)
-         ;; ("M-g x" . dumb-jump-go-prefer-external)
-         ;; ("M-g z" . dumb-jump-go-prefer-external-other-window)
-         )
-  :config
-  (setq dumb-jump-selector 'helm)
-  (setq dumb-jump-prefer-searcher 'rg)
-  :ensure
-  )
+;; (use-package dumb-jump
+;;   :bind (("M-g o" . dumb-jump-go-other-window)
+;;          ("M-g j" . dumb-jump-go)
+;;          ("M-g q" . dumb-jump-quick-look)
+;;          ;; ("M-g x" . dumb-jump-go-prefer-external)
+;;          ;; ("M-g z" . dumb-jump-go-prefer-external-other-window)
+;;          )
+;;   :config
+;;   (setq dumb-jump-selector 'helm)
+;;   (setq dumb-jump-prefer-searcher 'rg)
+;;   :ensure
+;;   )
 
-;; line numbers
+;; Line numbers
 (use-package nlinum
   :init (add-hook 'prog-mode-hook 'nlinum-mode)
   :config
   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
   )
 
-;; show info about the current region
+;; Show info about the current region
 ;; (use-package region-state
 ;;   :config (region-state-mode))
 
@@ -879,13 +936,13 @@
   (which-function-mode 1))
 
 ;; Highlight indentation using periods
-;; (use-package highlight-indent-guides
-;;   :init
-;;   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
-;;   :config
-;;   (setq highlight-indent-guides-method 'character
-;;         highlight-indent-guides-character ?\.)
-;;   )
+(use-package highlight-indent-guides
+  :init
+  (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'character
+        highlight-indent-guides-character ?\.)
+  )
 
 ;; Automatically clean up extraneous whitespace
 (use-package ws-butler
@@ -969,11 +1026,15 @@
   )
 (diminish 'whitespace-mode)
 
-;; Multiple cursors, use C-M-j for newline
+;; Multiple cursors
 (use-package multiple-cursors
   :config
   (global-set-key (kbd "C-{") 'mc/mark-previous-like-this)
   (global-set-key (kbd "C-}") 'mc/mark-next-like-this)
+  (define-key mc/keymap (kbd "<return>") nil)
+  (global-unset-key (kbd "M-<down-mouse-1>"))
+  (global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
+
   (setq mc/always-run-for-all t)
   )
 
@@ -995,16 +1056,12 @@
          ("C-r"   . isearch-backward)))
 
 ;; Make marks visible
-(use-package visible-mark
-  :config (global-visible-mark-mode t))
+;; (use-package visible-mark
+;;   :config (global-visible-mark-mode t))
 
 ;; Highlight color strings with the corresponding color
 (use-package rainbow-mode
   :diminish rainbow-mode
-  ;; :init
-  ;; (add-hook 'prog-mode-hook #'rainbow-mode)
-  ;; ;; Turn off in C-modes by default, since this gets triggered each "#DEFINE"
-  ;; (add-hook 'c-mode-common-hook #'rainbow-turn-off)
   )
 
 ;; Highlight delimiters with colors depending on depth
@@ -1036,37 +1093,27 @@
   :diminish highlight-parentheses-mode
   :init
   (add-hook 'prog-mode-hook 'highlight-parentheses-mode)
-  :config (setq hl-paren-colors '("white"))
+  :config
+  (setq hl-paren-colors '("white")
+        hl-paren-delay .05
+        )
   )
+
+;; Inherit environment variables from Shell
+(when (memq window-system '(mac ns x))
+  (use-package exec-path-from-shell
+    :config
+    (exec-path-from-shell-initialize)
+    (exec-path-from-shell-copy-env "RUST_SRC_PATH")
+    ))
 
 ;; Open files in Finder on Mac
 (use-package reveal-in-osx-finder
   :bind ("C-c f" . reveal-in-osx-finder)
   )
 
+;; Display available keybindings in Dired mode (? creates popup)
 (use-package discover)
-
-;; Track recently-opened files
-(use-package recentf
-  :config
-  (setq recentf-max-saved-items 10000) ;; Go ahead and save everything
-  ;; Don't turn on recentf on my windows system
-  (cond
-   ((string-equal system-type "gnu/linux")
-    (progn
-      (recentf-mode t))))
-  )
-
-(use-package discover-my-major
-  :bind (("C-h C-m" . discover-my-major)
-         ("C-h M-m" . discover-my-mode)))
-
-;; ;; Start scrolling near the edge of the screen
-;; (use-package smooth-scrolling
-;;   :config
-;;   (smooth-scrolling-mode 1)
-;;   (setq scroll-step 1)            ;; Always scroll one line at a time
-;;   (setq smooth-scroll-margin 10))
 
 ;; Maximize/unmaximize current window.
 (use-package zygospore
@@ -1104,24 +1151,7 @@
 (use-package popwin
   :config (popwin-mode 1))
 
-;; Make switching windows better. Other functions:
-;; x - delete a window
-;; m - swap two windows
-;; Note: C-M-o is already `split-line` which is actually cool.
-(use-package ace-window
-  :bind ("C-S-o" . ace-window)
-  )
-
 ;; Switch windows more easily
-;; (use-package window-numbering
-;;   :init
-;;   ;; Free up M-9 and M-0 for corral. I never have this many windows.
-;;   (eval-after-load 'window-numbering
-;;     '(progn
-;;        (define-key window-numbering-keymap (kbd "M-9") nil)
-;;        (define-key window-numbering-keymap (kbd "M-0") nil)
-;;        ))
-;;   :config (window-numbering-mode))
 (use-package winum
   :init
   (setq winum-keymap
@@ -1134,9 +1164,19 @@
           (define-key map (kbd "M-6") 'winum-select-window-6)
           (define-key map (kbd "M-7") 'winum-select-window-7)
           (define-key map (kbd "M-8") 'winum-select-window-8)
+          (define-key map (kbd "M-9") 'winum-select-window-9)
+          (define-key map (kbd "M-0") 'winum-select-window-0)
           map))
   (winum-mode)
   )
+
+;; Move buffers around
+(use-package buffer-move
+  :bind (("<C-S-up>"    . buf-move-up)
+         ("<C-S-down>"  . buf-move-down)
+         ("<C-S-left>"  . buf-move-left)
+         ("<C-S-right>" . buf-move-right)
+))
 
 ;; Make currently focused window larger.
 ;; This package is not actively maintained.
@@ -1158,14 +1198,16 @@
 
 ;; Wrap parentheses or quotes around word
 (use-package corral
-  :bind (("M-9" . corral-parentheses-backward)
-         ("M-0" . corral-parentheses-forward)
+  :bind (("M-(" . corral-parentheses-backward)
+         ("M-)" . corral-parentheses-forward)
          ("M-[" . corral-brackets-backward)
          ("M-]" . corral-brackets-forward)
          ("M-{" . corral-braces-backward)
          ("M-}" . corral-braces-forward)
-         ("M-\"" . corral-double-quotes-backward)
-         ("M-'" . corral-double-quotes-forward)
+         ("M-`" . corral-backquote-forward)
+         ("M-~" . corral-backquote-backward)
+         ("M-'"  . corral-double-quotes-backward)
+         ("M-\"" . corral-double-quotes-forward)
          )
   :config (setq corral-preserve-point t))
 
@@ -1210,13 +1252,18 @@
   )
 
 (use-package helm-projectile
-  :bind ("C-'" . helm-projectile) ;; All projectile commands in a single key
+  :bind (("C-\"" . helm-projectile-recentf)
+         ("C-'"  . helm-projectile)
+         )
   :config
   (helm-projectile-on))
 
 ;; Show markers in margin indicating changes
 (use-package diff-hl
-  :bind ("C-c d" . diff-hl-revert-hunk)
+  :bind (("C-c d" . diff-hl-revert-hunk)
+         ("C-<"   . diff-hl-previous-hunk)
+         ("C->"   . diff-hl-next-hunk)
+         )
   :init (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
   :config
   ;; (diff-hl-margin-mode)
@@ -1233,14 +1280,16 @@
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors)
   :config
-  ;; (setq flycheck-check-syntax-automatically '(mode-enabled save))
-  (setq flycheck-check-syntax-automatically nil)
+  (setq flycheck-check-syntax-automatically '(mode-enabled save))
+  ;; (setq flycheck-check-syntax-automatically nil)
 
   (setq sentence-end-double-space nil) ;; Stupid check
   ;; Disable checkers that don't work correctly
-  (setq-default flycheck-disabled-checkers '())
+  ;; (setq-default flycheck-disabled-checkers '(rust rust-cargo))
+    (setq-default flycheck-disabled-checkers '(rust))
 
-  ;; proselint
+  ;; Proselint
+  ;; Not available on MELPA yet.
   (flycheck-define-checker proselint
     "A linter for prose."
     :command ("proselint" source-inplace)
@@ -1254,12 +1303,9 @@
   (add-to-list 'flycheck-checkers 'proselint)
   )
 
-;; Highlight weasel words
-(use-package artbollocks-mode
-  :diminish artbollocks-mode
+(use-package flycheck-vale
   :config
-  ;; (add-hook 'text-mode-hook 'artbollocks-mode)
-  (add-hook 'markdown-mode  'artbollocks-mode)
+  (flycheck-vale-setup)
   )
 
 ;; Add linting for elisp packages
@@ -1297,7 +1343,8 @@
 
 ;; TOML mode
 (use-package toml-mode
-  :mode "\\.toml\\'")
+  :mode "\\.toml\\'"
+  )
 
 ;; Javascript mode
 (use-package js2-mode
@@ -1374,9 +1421,9 @@
   )
 
 ;; Doesn't work, json-read-error
-(use-package flycheck-rust
-  :init
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+;; (use-package flycheck-rust
+;;   :init
+;;   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
 (use-package nim-mode
   :init
@@ -1416,11 +1463,12 @@
 (eval-after-load "org"
   '(require 'ox-md nil t))
 
-;; This binding conflicts with projectile so get rid of it
-(define-key org-mode-map (kbd "C-'") nil)
-
 ;; The ellipsis to use in the org-mode outline
-(setq org-ellipsis " (...)")
+;; (setq org-ellipsis "...")
+;; Try to keep cursor before ellipses
+(setq org-special-ctrl-a/e t)
+;; Smart editing of invisible region around ellipses
+(setq org-catch-invisible-edits 'smart)
 
 ;; All subtasks must be DONE before marking a task as DONE
 (setq org-enforce-todo-dependencies t)
@@ -1435,7 +1483,8 @@
           (lambda ()
             (visual-line-mode)
             (org-indent-mode)
-            (toggle-word-wrap)))
+            (toggle-word-wrap)
+            ))
 
 ;; Unbind keys stolen by org-mode
 (add-hook 'org-mode-hook
@@ -1451,7 +1500,7 @@
 (setq org-agenda-files '("~/Text/org/todo.org"))
 
 ;; Org-refile settings
-;; org-refile notes to the top of the list
+;; `org-refile' notes to the top of the list
 (setq org-reverse-note-order t)
 ;; Use headline paths (level1/level2/...)
 (setq org-refile-use-outline-path t)
@@ -1470,7 +1519,23 @@
      (file "notes.org")
      "* %?")))
 
-;; Shortcuts
+;; Shortcuts/Keybindings
+
+;; This binding conflicts with projectile so get rid of it
+(define-key org-mode-map (kbd "C-'")   nil)
+(define-key org-mode-map (kbd "C-S-n") 'org-move-subtree-down)
+(define-key org-mode-map (kbd "C-S-p") 'org-move-subtree-up)
+
+(define-key org-mode-map (kbd "C-<")   'org-do-promote)
+(define-key org-mode-map (kbd "C->")   'org-do-demote)
+
+(defun org-refile-goto ()
+  (interactive)
+  (let ((current-prefix-arg '(4))) (call-interactively 'org-refile))
+  )
+(define-key org-mode-map (kbd "s-;")   'org-refile-goto)
+(define-key org-mode-map (kbd "s-'")   'org-refile)
+
 (global-set-key (kbd "C-c l") 'org-store-link)
 (global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda
 
@@ -1504,25 +1569,25 @@
   " "
   '(:eval (when buffer-file-name
             (concat (file-name-nondirectory
-                        (directory-file-name default-directory))
-                        " | "
-                        )))
+                     (directory-file-name default-directory))
+                    " | "
+                    )))
   '(:eval (propertize "%b"
                       'face '(:weight bold)
                       'help-echo (buffer-file-name)))
-  " -- "
+  " - "
   "line %02l:%02c"
-  " -- "
+  " - "
   '(:eval (propertize "[%m]"
                       ;; 'face '(:weight bold)
                       'help-echo buffer-file-coding-system))
 
   ;; is this buffer read-only?
   '(:eval (when buffer-read-only
-            (concat " -- "  (propertize "RO"
-                                     'face 'font-lock-preprocessor-face
-                                     'help-echo "Buffer is read-only"))))
-  " -- "
+            (concat " - "  (propertize "RO"
+                                       'face 'font-lock-preprocessor-face
+                                       'help-echo "Buffer is read-only"))))
+  " - "
   'mode-line-misc-info
   ;; " "
   ;; '(:eval (propertize (format-time-string "%H:%M")))
@@ -1534,8 +1599,6 @@
 
 ;; Starts with todo.org and notes.org
 (find-file user-todo-location)
-(beginning-of-buffer)
-(org-show-subtree)
 (split-window-right-focus)
 (find-file user-notes-location)
 ;;(org-agenda nil "a")                ;; Open org-agenda
