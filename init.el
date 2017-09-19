@@ -29,8 +29,9 @@
 (add-hook 'focus-out-hook 'garbage-collect)
 
 ;; First things first, define the init file location and make it easy to reload
-(defvar init-file-location (concat user-emacs-directory "init.el"))
-(defvar packages-location  (concat user-emacs-directory "packages/nimbus"))
+(defvar init-file-location   (concat user-emacs-directory "init.el"))
+(defvar packages-location    (concat user-emacs-directory "packages/nimbus"))
+(defvar scratchpad-location  "~/Text/scratchpad.txt")
 
 ;; ;; Reload init file
 ;; (defun reload-init-file ()
@@ -45,6 +46,13 @@
   (interactive)
   (find-file init-file-location))
 (global-set-key (kbd "C-c i") 'open-init-file)
+
+;; Open scratchpad.txt
+(defun open-scratchpad-file ()
+  "Open scratchpad file."
+  (interactive)
+  (find-file scratchpad-location))
+(global-set-key (kbd "C-c s") 'open-scratchpad-file)
 
 ;;; Package settings
 
@@ -386,17 +394,15 @@
 (global-set-key (kbd "s-o") 'helm-ag-pop-stack)
 
 (defun helm-projectile-ag-inexact ()
-  "Run helm-projectile-ag case-insensitive and without word boundaries. Push the mark first."
+  "Run helm-projectile-ag case-insensitive and without word boundaries."
   (interactive)
-  (push-mark)
   (setq helm-ag-base-command "ag --nocolor --nogroup --ignore-case")
   (setq helm-ag-insert-at-point nil)
   (helm-projectile-ag)
   )
 (defun helm-projectile-ag-exact ()
-  "Run helm-projectile-ag case-sensitive and with word boundaries. Push the mark first."
+  "Run helm-projectile-ag case-sensitive and with word boundaries."
   (interactive)
-  (push-mark)
   (setq helm-ag-base-command
         "ag --nocolor --nogroup --word-regexp --case-sensitive")
   (setq helm-ag-insert-at-point 'symbol)
@@ -708,18 +714,29 @@
 ;; Set font
 (cond
  ((font-exists-p "Iosevka Light")
-  (set-face-attribute 'default nil :font "Iosevka Light"))
+  (set-face-attribute 'default nil :font "Iosevka Light")
+  (setq-default line-spacing 0)
+  )
+ ((font-exists-p "Fira Mono")
+  (set-face-attribute 'default nil :font "Fira Mono")
+  (setq-default line-spacing 1)
+  )
  ((font-exists-p "Hack")
-  (set-face-attribute 'default nil :font "Hack"))
+  (set-face-attribute 'default nil :font "Hack")
+  (setq-default line-spacing 1)
+  )
  )
 
 (set-face-attribute 'default nil :height 120)
-(setq-default line-spacing 0)
 
 ;;; Dired settings
 
 (with-eval-after-load 'dired
-  (define-key dired-mode-map "f" 'helm-find-files)
+;; Make C-l go up a directory in dired
+  (define-key dired-mode-map (kbd "C-l") 'dired-up-directory)
+  (define-key dired-mode-map (kbd "s-l") 'dired-up-directory)
+  (define-key dired-mode-map "f"         'helm-find-files)
+  (define-key dired-mode-map (kbd "M-p") 'scroll-down-line-quick)
   )
 
 ;; Handle opening and editing zip directories in dired
@@ -756,16 +773,28 @@
   ;; Prevent certain files from showing up
   (setq-default dired-omit-files-p t)
   (setq dired-omit-files
-        (concat dired-omit-files "\\|\\.bk$"))
+        (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
   )
-
-;; Make C-l go up a directory in dired
-(define-key dired-mode-map (kbd "C-l") 'dired-up-directory)
-(define-key dired-mode-map (kbd "s-l") 'dired-up-directory)
 
 ;; Allow changing file permissions in WDired
 ;; Notes: WDired can be enabled with C-x C-q and compiled with C-c C-c
 (setq wdired-allow-to-change-permissions t)
+
+;;; ERC settings
+
+(setq erc-autojoin-channels-alist
+      '(("freenode.net" "#emacs")
+        ("mozilla.org" "#rust")))
+;; (erc :server "irc.mozilla.org" :port 6667 :nick "m-cat")
+
+;; Notify in minibuffer when private messaged
+(setq erc-echo-notices-in-minibuffer-flag t)
+
+;; Match keywords, highlight pals, ignore fools
+(require 'erc-match)
+(setq erc-keywords '("rust"))
+(setq erc-pals  '())
+(setq erc-fools '())
 
 ;;; Eshell settings
 
@@ -1176,7 +1205,7 @@
          ("<C-S-down>"  . buf-move-down)
          ("<C-S-left>"  . buf-move-left)
          ("<C-S-right>" . buf-move-right)
-))
+         ))
 
 ;; Make currently focused window larger.
 ;; This package is not actively maintained.
@@ -1285,8 +1314,8 @@
 
   (setq sentence-end-double-space nil) ;; Stupid check
   ;; Disable checkers that don't work correctly
-  ;; (setq-default flycheck-disabled-checkers '(rust rust-cargo))
-    (setq-default flycheck-disabled-checkers '(rust))
+  (setq-default flycheck-disabled-checkers '(rust rust-cargo))
+  ;; (setq-default flycheck-disabled-checkers '(rust))
 
   ;; Proselint
   ;; Not available on MELPA yet.
@@ -1567,16 +1596,16 @@
   " "
   'mode-line-modified
   " "
-  '(:eval (when buffer-file-name
-            (concat (file-name-nondirectory
-                     (directory-file-name default-directory))
-                    " | "
-                    )))
+  ;; '(:eval (when buffer-file-name
+  ;;           (concat (file-name-nondirectory
+  ;;                    (directory-file-name default-directory))
+  ;;                   " | "
+  ;;                   )))
   '(:eval (propertize "%b"
                       'face '(:weight bold)
                       'help-echo (buffer-file-name)))
   " - "
-  "line %02l:%02c"
+  "%02l:%02c"
   " - "
   '(:eval (propertize "[%m]"
                       ;; 'face '(:weight bold)
