@@ -189,8 +189,6 @@
   :diminish helm-gtags-mode
   :init
   ;; Enable helm-gtags-mode
-  (add-hook 'dired-mode-hook  'helm-gtags-mode)
-  (add-hook 'eshell-mode-hook 'helm-gtags-mode)
   (add-hook 'c-mode-hook      'helm-gtags-mode)
   (add-hook 'c++-mode-hook    'helm-gtags-mode)
   (add-hook 'asm-mode-hook    'helm-gtags-mode)
@@ -433,9 +431,9 @@
 
 ;; code folding
 (require 'hideshow)
+(diminish 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 (define-key hs-minor-mode-map (kbd "C-)") 'hs-toggle-hiding)
-(diminish 'hs-minor-mode)
 
 ;; artist mode
 (global-set-key (kbd "C-$") 'artist-mode)
@@ -731,13 +729,14 @@
 
 ;;; Dired settings
 
-(with-eval-after-load 'dired
-;; Make C-l go up a directory in dired
-  (define-key dired-mode-map (kbd "C-l") 'dired-up-directory)
-  (define-key dired-mode-map (kbd "s-l") 'dired-up-directory)
-  (define-key dired-mode-map "f"         'helm-find-files)
-  (define-key dired-mode-map (kbd "M-p") 'scroll-down-line-quick)
-  )
+(add-hook 'dired-mode-hook
+          #'(lambda ()
+              ;; Make C-l go up a directory in dired
+              (define-key dired-mode-map (kbd "C-l") 'dired-up-directory)
+              (define-key dired-mode-map (kbd "s-l") 'dired-up-directory)
+              (define-key dired-mode-map "f"         'helm-find-files)
+              (define-key dired-mode-map (kbd "M-p") 'scroll-down-line-quick)
+              ))
 
 ;; Handle opening and editing zip directories in dired
 (eval-after-load "dired-aux"
@@ -782,6 +781,12 @@
 
 ;;; ERC settings
 
+(add-hook 'erc-mode-hook
+          #'(lambda ()
+              (define-key erc-mode-map (kbd "M-n") 'scroll-up-line-quick)
+              (define-key erc-mode-map (kbd "M-p") 'scroll-down-line-quick)
+              ))
+
 (setq erc-autojoin-channels-alist
       '(("freenode.net" "#emacs")
         ("mozilla.org" "#rust")))
@@ -808,6 +813,13 @@
 ;; Use helm to list eshell history
 (add-hook 'eshell-mode-hook
           #'(lambda ()
+              (define-key eshell-mode-map (kbd "M-n") 'scroll-up-line-quick)
+              (define-key eshell-mode-map (kbd "M-p") 'scroll-down-line-quick)
+              (define-key eshell-mode-map (kbd "M-,")
+                'eshell-previous-matching-input-from-input)
+              (define-key eshell-mode-map (kbd "M-.")
+                'eshell-next-matching-input-from-input)
+
               (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)
               (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
               (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
