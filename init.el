@@ -4,19 +4,16 @@
 ;;
 ;;; Commentary:
 ;;
-;; Requires Emacs 25.
+;; Requires Emacs 25 or higher.
 ;;
 ;; Making changes / testing:
 ;;
-;; Use M-x free-keys to find unused keybindings.
-;; Use M-x bug-hunter-init-file to locate errors.
-;; Use M-x esup to profile startup time,
-;; M-x profiler-start and profiler-report to profile runtime.
-;; Use restart-emacs to restart after making changes.
-;; To stop execution of this file at some point, put in (error "Done").
-;;
-;; I prefer to explicitly define functions instead of using lambdas.
-;; Defining named functions makes them more discoverable in many situations.
+;; - Use M-x free-keys to find unused keybindings.
+;; - Use M-x bug-hunter-init-file to locate errors.
+;; - Use M-x esup to profile startup time,
+;;   M-x profiler-start and profiler-report to profile runtime.
+;; - Use restart-emacs to restart after making changes.
+;; - To stop execution of this file at some point, put in (error "Done").
 
 ;;; Code:
 
@@ -25,7 +22,7 @@
 ;; First things first, increase GC threshold to speed up startup.
 ;; Reset the GC threshold after initialization, and GC whenever we tab out
 (setq gc-cons-threshold most-positive-fixnum)
-(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 20000000)))
+(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 100000000)))
 (add-hook 'focus-out-hook 'garbage-collect)
 
 ;; First things first, define the init file location and make it easy to reload
@@ -603,11 +600,11 @@
 (defun scroll-up-line-quick ()
   "Scroll up by a smaller amount without changing the cursor position."
   (interactive)
-  (scroll-up-line 5))
+  (scroll-up-line 6))
 (defun scroll-down-line-quick ()
   "Scroll down by a smaller amount without changing the cursor position."
   (interactive)
-  (scroll-down-line 5))
+  (scroll-down-line 6))
 
 (global-set-key (kbd "M-n") 'scroll-up-line-quick)
 (global-set-key (kbd "M-p") 'scroll-down-line-quick)
@@ -1235,6 +1232,10 @@
 ;; Expand-region
 (use-package expand-region
   :bind ("C-=" . er/expand-region)
+  :config
+  ;; Fix region not highlighting.
+  ;; See https://github.com/magnars/expand-region.el/issues/229
+  (setq shift-select-mode nil)
   )
 
 ;; Wrap parentheses or quotes around word
@@ -1366,6 +1367,7 @@
   )
 
 ;; Yasnippet
+;; Note: list all snippets for current mode with M-x `yas-describe-tables'.
 (use-package yasnippet
   :defer t
   :diminish yas-minor-mode
@@ -1376,7 +1378,14 @@
 
 ;; Markdown mode
 (use-package markdown-mode
-  :mode "\\.md\\'")
+  :mode "\\.md\\'"
+  :init
+  (add-hook 'markdown-mode-hook
+          #'(lambda ()
+              (define-key markdown-mode-map (kbd "M-p") 'scroll-down-line-quick)
+              (define-key markdown-mode-map (kbd "M-n") 'scroll-up-line-quick)
+              ))
+  )
 
 ;; YAML mode
 (use-package yaml-mode
@@ -1385,6 +1394,10 @@
 ;; TOML mode
 (use-package toml-mode
   :mode "\\.toml\\'"
+  )
+
+;; JSON mode
+(use-package json-mode
   )
 
 ;; Javascript mode
