@@ -104,7 +104,6 @@
 (define-key helm-map (kbd "M-x") 'helm-select-action)
 
 (global-set-key (kbd "M-x")       'helm-M-x)
-(global-set-key (kbd "C-x C-m")   'execute-extended-command)
 (global-set-key (kbd "C-x b")     'helm-mini)
 (global-set-key (kbd "C-x C-f")   'helm-find-files)
 (global-set-key (kbd "C-h C-a")   'helm-apropos)
@@ -699,7 +698,7 @@
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 ;; Nimbus is my personal theme, now available on Melpa
 (use-package nimbus-theme)
-(load-theme 'nimbus)
+;; (use-package ujelly-theme)
 
 ;; Function for checking font existence
 (defun font-exists-p (font)
@@ -708,8 +707,8 @@
 
 ;; Set font
 (cond
- ((font-exists-p "Iosevka Light")
-  (set-face-attribute 'default nil :font "Iosevka Light")
+ ((font-exists-p "Iosevka")
+  (set-face-attribute 'default nil :font "Iosevka:weight=Regular" :height 160)
   (setq-default line-spacing 0)
   )
  ((font-exists-p "Fira Mono")
@@ -721,8 +720,6 @@
   (setq-default line-spacing 1)
   )
  )
-
-(set-face-attribute 'default nil :height 120)
 
 ;;; Dired settings
 
@@ -851,9 +848,6 @@
 
 ;;; Load packages
 
-;; Improved package management
-;; (use-package paradox)
-
 ;; ;; Key chords
 ;; (use-package key-chord
 ;;   :init
@@ -862,6 +856,26 @@
 ;;   (setq key-chord-two-keys-delay .15)
 
 ;;   (key-chord-define-global "jx" 'helm-mini)
+;;   )
+
+;; ;; Pressing ; anywhere will insert a semicolon at the end of the line.
+;; (use-package smart-semicolon
+;;   :init
+;;   (add-hook 'rust-mode-hook #'smart-semicolon-mode)
+;;   (add-hook 'c-mode-common-hook #'smart-semicolon-mode)
+;;   )
+
+;; ;; Undo tree.
+;; (use-package undo-tree
+;;   :config
+;;   (global-undo-tree-mode t)
+;;   (setq undo-tree-visualizer-diff nil)
+;;   (setq undo-tree-visualizer-timestamps )
+;;   )
+
+;; ;; Go to last change without undoing it
+;; (use-package goto-last-change
+;;   :bind ("C-?" . goto-last-change)
 ;;   )
 
 ;; Workspaces
@@ -887,11 +901,6 @@
   (eyebrowse-mode t)
   (setq eyebrowse-wrap-around t)
   (setq eyebrowse-new-workspace t)
-  )
-
-;; Go to last change without undoing it
-(use-package goto-last-change
-  :bind ("C-?" . goto-last-change)
   )
 
 ;; Fix the capitalization commands
@@ -1047,22 +1056,25 @@
 
 ;; highlight the parts of lines that exceed column 80
 (require 'whitespace)
+(diminish 'whitespace-mode)
 (setq whitespace-style '(face empty tabs lines-tail trailing))
+
 (add-hook 'c-mode-hook 'c-whitespace-mode)
 (add-hook 'c++-mode-hook 'c-whitespace-mode)
 (add-hook 'emacs-lisp-mode-hook 'c-whitespace-mode)
-(add-hook 'rust-mode-hook 'rust-whitespace-mode)
+(add-hook 'nim-mode-hook 'c-whitespace-mode)
 (defun c-whitespace-mode ()
   "Set whitespace column for c-like modes and turn on `whitespace-mode'."
   (setq-local whitespace-line-column 80)
   (whitespace-mode)
   )
+
+(add-hook 'rust-mode-hook 'rust-whitespace-mode)
 (defun rust-whitespace-mode ()
   "Set whitespace column for rust-mode and turn on `whitespace-mode'."
   (setq-local whitespace-line-column 100)
   (whitespace-mode)
   )
-(diminish 'whitespace-mode)
 
 ;; Multiple cursors
 (use-package multiple-cursors
@@ -1102,6 +1114,11 @@
   :diminish rainbow-mode
   )
 
+;; Highlight blocks based on depth.
+(use-package rainbow-blocks
+  :bind ("s-r" . rainbow-blocks-mode)
+  )
+
 ;; Highlight delimiters with colors depending on depth
 (use-package rainbow-delimiters
   :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
@@ -1133,7 +1150,7 @@
   (add-hook 'prog-mode-hook 'highlight-parentheses-mode)
   :config
   (setq hl-paren-colors '("white")
-        hl-paren-delay .05
+        hl-paren-delay .03
         )
   )
 
@@ -1381,11 +1398,12 @@
   :mode "\\.md\\'"
   :init
   (add-hook 'markdown-mode-hook
-          #'(lambda ()
-              (define-key markdown-mode-map (kbd "M-p") 'scroll-down-line-quick)
-              (define-key markdown-mode-map (kbd "M-n") 'scroll-up-line-quick)
-              ))
+            #'(lambda ()
+                (define-key markdown-mode-map (kbd "M-p") 'scroll-down-line-quick)
+                (define-key markdown-mode-map (kbd "M-n") 'scroll-up-line-quick)
+                ))
   )
+(use-package markdown-toc)
 
 ;; YAML mode
 (use-package yaml-mode
@@ -1580,10 +1598,11 @@
 (define-key org-mode-map (kbd "C-S-n") 'org-move-subtree-down)
 (define-key org-mode-map (kbd "C-S-p") 'org-move-subtree-up)
 
-(define-key org-mode-map (kbd "C-<")   'org-do-promote)
-(define-key org-mode-map (kbd "C->")   'org-do-demote)
+(define-key org-mode-map (kbd "C-<")   'org-promote-subtree)
+(define-key org-mode-map (kbd "C->")   'org-demote-subtree)
 
 (defun org-refile-goto ()
+  "Use org-refile to conveniently choose and go to a heading."
   (interactive)
   (let ((current-prefix-arg '(4))) (call-interactively 'org-refile))
   )
