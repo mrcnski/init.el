@@ -271,7 +271,9 @@
 
 (show-paren-mode 1)
 (setq-default indent-tabs-mode nil
-              tab-width 4)
+              tab-width 4
+              fill-column 80
+              )
 
 (setq x-select-enable-clipboard t
       x-select-enable-primary t
@@ -318,7 +320,7 @@
                                      (dired-directory dired-directory "%b")))
 
       ;; Language-specific settings?
-      ;; c-default-style "gnu"
+      c-default-style "stroustrup"
       )
 
 ;; Set some builtin modes
@@ -349,6 +351,7 @@
 ;; Setup selected file endings to open in certain modes
 (add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
+(add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
 
 ;; Actions to perform when saving
 ;; (add-hook 'before-save-hook 'whitespace-cleanup)
@@ -795,6 +798,12 @@
 (setq erc-pals  '())
 (setq erc-fools '())
 
+(use-package erc-scrolltoplace
+  :config
+  (add-to-list 'erc-modules 'scrolltoplace)
+  (erc-update-modules)
+  )
+
 ;;; Eshell settings
 
 ;; Supposed to stop auto-scrolling of eshell output.
@@ -968,7 +977,10 @@
 
 ;; Line numbers
 (use-package nlinum
-  :init (add-hook 'prog-mode-hook 'nlinum-mode)
+  :init
+  (add-hook 'prog-mode-hook 'nlinum-mode)
+  (add-hook 'conf-mode-hook 'nlinum-mode)
+  (add-hook 'text-mode-hook 'nlinum-mode)
   :config
   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
   )
@@ -988,7 +1000,9 @@
   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
   :config
   (setq highlight-indent-guides-method 'character
-        highlight-indent-guides-character ?\.)
+        highlight-indent-guides-character ?\|
+        highlight-indent-guides-auto-enabled nil
+        )
   )
 
 ;; Automatically clean up extraneous whitespace
@@ -1323,7 +1337,9 @@
          ("C-<"   . diff-hl-previous-hunk)
          ("C->"   . diff-hl-next-hunk)
          )
-  :init (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+  :init
+  ;; (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+  (global-diff-hl-mode)
   :config
   ;; (diff-hl-margin-mode)
   )
@@ -1538,7 +1554,7 @@
 ;; The ellipsis to use in the org-mode outline
 ;; (setq org-ellipsis "...")
 ;; Try to keep cursor before ellipses
-(setq org-special-ctrl-a/e t)
+(setq org-special-ctrl-a/e nil)
 ;; Smart editing of invisible region around ellipses
 (setq org-catch-invisible-edits 'smart)
 
