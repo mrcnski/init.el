@@ -13,7 +13,6 @@
 ;; - Use M-x esup to profile startup time,
 ;;   M-x profiler-start and profiler-report to profile runtime.
 ;; - Use restart-emacs to restart after making changes.
-;; - To stop execution of this file at some point, put in (error "Done").
 
 ;;; Code:
 
@@ -51,6 +50,42 @@
   (find-file scratchpad-location))
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
 
+;; Set mode-line format
+(setq-default
+ mode-line-format
+ (list
+  " "
+  '(:eval (winum-get-number-string))
+  " "
+  'mode-line-modified
+  " "
+  ;; '(:eval (when buffer-file-name
+  ;;           (concat (file-name-nondirectory
+  ;;                    (directory-file-name default-directory))
+  ;;                   " | "
+  ;;                   )))
+  '(:eval (propertize "%b"
+                      'face '(:weight bold)
+                      'help-echo (buffer-file-name)))
+  " - "
+  "%02l:%02c"
+  " - "
+  '(:eval (propertize "[%m]"
+                      ;; 'face '(:weight bold)
+                      'help-echo buffer-file-coding-system))
+
+  ;; is this buffer read-only?
+  '(:eval (when buffer-read-only
+            (concat " - "  (propertize "RO"
+                                       'face 'font-lock-preprocessor-face
+                                       'help-echo "Buffer is read-only"))))
+  " - "
+  'mode-line-misc-info
+  ;; " "
+  ;; '(:eval (propertize (format-time-string "%H:%M")))
+  'mode-line-end-spaces
+  ))
+
 ;;; Package settings
 
 ;; Add "packages" folder to load-path
@@ -73,6 +108,17 @@
   (package-install 'use-package))
 (require 'use-package)
 (setq use-package-always-ensure t)
+
+;; Inherit environment variables from Shell
+(when (memq window-system '(mac ns x))
+  (use-package exec-path-from-shell
+    :config
+    (exec-path-from-shell-initialize)
+    (exec-path-from-shell-copy-env "RUST_SRC_PATH")
+    ))
+
+;; Ensure system binaries exist and download them if not
+(use-package use-package-ensure-system-package)
 
 ;; Enable restarting Emacs from within Emacs
 (use-package restart-emacs)
@@ -209,6 +255,7 @@
 (use-package helm-ag
   :init
   (setq helm-ag-insert-at-point 'symbol)
+  :ensure-system-package ag
   )
 
 ;;; Load customizations
@@ -698,31 +745,39 @@
 ;; (set-frame-parameter (selected-frame) 'alpha '(99))
 
 ;; Load Themes
-(add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
+;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 ;; Nimbus is my personal theme, now available on Melpa
 (use-package nimbus-theme)
 ;; (use-package ujelly-theme)
 
-;; Function for checking font existence
-(defun font-exists-p (font)
-  "Check if FONT exists."
-  (if (null (x-list-fonts font)) nil t))
+;; If we're not in the terminal
+(when (display-graphic-p)
+  ;; Function for checking font existence
+  (defun font-exists-p (font)
+    "Check if FONT exists."
+    (if (null (x-list-fonts font)) nil t))
 
-;; Set font
-(cond
- ((font-exists-p "Iosevka")
-  (set-face-attribute 'default nil :font "Iosevka:weight=Regular" :height 160)
-  (setq-default line-spacing 0)
-  )
- ((font-exists-p "Fira Mono")
-  (set-face-attribute 'default nil :font "Fira Mono")
-  (setq-default line-spacing 1)
-  )
- ((font-exists-p "Hack")
-  (set-face-attribute 'default nil :font "Hack")
-  (setq-default line-spacing 1)
-  )
- )
+  ;; Set font
+  (cond
+   ((font-exists-p "Iosevka")
+    (set-face-attribute 'default nil :font "Iosevka:weight=Regular" :height 160)
+    (setq-default line-spacing 0)
+    )
+   ((font-exists-p "Inconsolata for Powerline")
+    (set-face-attribute
+     'default nil :font "Inconsolata for Powerline:weight=Regular" :height 180)
+    (setq-default line-spacing 1)
+    )
+   ((font-exists-p "Fira Mono")
+    (set-face-attribute 'default nil :font "Fira Mono")
+    (setq-default line-spacing 1)
+    )
+   ((font-exists-p "Hack")
+    (set-face-attribute 'default nil :font "Hack")
+    (setq-default line-spacing 1)
+    )
+   )
+)
 
 ;;; Dired settings
 
@@ -857,6 +912,12 @@
 
 ;;; Load packages
 
+;; Stop execution here for Terminal
+(when (not (display-graphic-p))
+  (with-current-buffer " *load*"
+    (goto-char (point-max)))
+  )
+
 ;; ;; Key chords
 ;; (use-package key-chord
 ;;   :init
@@ -938,24 +999,28 @@
   )
 
 ;; Add indicators for position in buffer and end of buffer
-(use-package indicators
-  :diminish indicators-mode
-  :init (add-hook 'prog-mode-hook 'new-indicators)
-  )
-(defun new-indicators ()
-  "Create new indicators in the current buffer."
-  (interactive)
+(when (display-graphic-p)
+  (use-package indicators
+    :diminish indicators-mode
+    :init
+    (defun new-indicators ()
+      "Create new indicators in the current buffer."
+      (interactive)
 
-  ;; ;; show a little arrow at the end of buffer using the default fringe face
-  ;; (ind-create-indicator 'point-max
-  ;;                       :managed t
-  ;;                       :relative nil
-  ;;                       :fringe 'left-fringe
-  ;;                       :bitmap 'right-arrow
-  ;;                       :face 'fringe)
+      ;; ;; show a little arrow at the end of buffer using the default fringe face
+      ;; (ind-create-indicator 'point-max
+      ;;                       :managed t
+      ;;                       :relative nil
+      ;;                       :fringe 'left-fringe
+      ;;                       :bitmap 'right-arrow
+      ;;                       :face 'fringe)
 
-  ;; show relative position in the file (a.k.a. scroll bar)
-  (ind-create-indicator 'point :managed t)
+      ;; show relative position in the file (a.k.a. scroll bar)
+      (ind-create-indicator 'point :managed t)
+      )
+    
+    (add-hook 'prog-mode-hook 'new-indicators)
+    )
   )
 
 ;; Copy selected region to be pasted into Slack/Github/etc.
@@ -1119,10 +1184,6 @@
          ("C-s"   . isearch-forward)
          ("C-r"   . isearch-backward)))
 
-;; Make marks visible
-;; (use-package visible-mark
-;;   :config (global-visible-mark-mode t))
-
 ;; Highlight color strings with the corresponding color
 (use-package rainbow-mode
   :diminish rainbow-mode
@@ -1167,14 +1228,6 @@
         hl-paren-delay .03
         )
   )
-
-;; Inherit environment variables from Shell
-(when (memq window-system '(mac ns x))
-  (use-package exec-path-from-shell
-    :config
-    (exec-path-from-shell-initialize)
-    (exec-path-from-shell-copy-env "RUST_SRC_PATH")
-    ))
 
 ;; Open files in Finder on Mac
 (use-package reveal-in-osx-finder
@@ -1415,8 +1468,10 @@
   :init
   (add-hook 'markdown-mode-hook
             #'(lambda ()
-                (define-key markdown-mode-map (kbd "M-p") 'scroll-down-line-quick)
-                (define-key markdown-mode-map (kbd "M-n") 'scroll-up-line-quick)
+                (define-key markdown-mode-map
+                  (kbd "M-p") 'scroll-down-line-quick)
+                (define-key markdown-mode-map
+                  (kbd "M-n") 'scroll-up-line-quick)
                 ))
   )
 (use-package markdown-toc)
@@ -1446,7 +1501,8 @@
               (define-key js-mode-map (kbd "C-M-x")   'nodejs-repl-send-buffer)
               (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
               (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
-              (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
+              (define-key js-mode-map
+                (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
               )))
 
 ;; Haskell mode
@@ -1646,42 +1702,6 @@
 (global-set-key (kbd "C-c j") 'org-refile-goto-last-stored)
 
 ;;; Final
-
-;; Set mode-line format
-(setq-default
- mode-line-format
- (list
-  " "
-  '(:eval (winum-get-number-string))
-  " "
-  'mode-line-modified
-  " "
-  ;; '(:eval (when buffer-file-name
-  ;;           (concat (file-name-nondirectory
-  ;;                    (directory-file-name default-directory))
-  ;;                   " | "
-  ;;                   )))
-  '(:eval (propertize "%b"
-                      'face '(:weight bold)
-                      'help-echo (buffer-file-name)))
-  " - "
-  "%02l:%02c"
-  " - "
-  '(:eval (propertize "[%m]"
-                      ;; 'face '(:weight bold)
-                      'help-echo buffer-file-coding-system))
-
-  ;; is this buffer read-only?
-  '(:eval (when buffer-read-only
-            (concat " - "  (propertize "RO"
-                                       'face 'font-lock-preprocessor-face
-                                       'help-echo "Buffer is read-only"))))
-  " - "
-  'mode-line-misc-info
-  ;; " "
-  ;; '(:eval (propertize (format-time-string "%H:%M")))
-  'mode-line-end-spaces
-  ))
 
 ;; Set final variables
 (setq org-directory "~/Text/org")     ;; Default org directory
