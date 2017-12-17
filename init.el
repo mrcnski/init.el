@@ -24,17 +24,15 @@
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 100000000)))
 (add-hook 'focus-out-hook 'garbage-collect)
 
-;; First things first, define the init file location and make it easy to reload
+;;; User-Defined Variables
+
 (defvar init-file-location   (concat user-emacs-directory "init.el"))
 (defvar packages-location    (concat user-emacs-directory "packages/nimbus"))
 (defvar scratchpad-location  "~/Text/scratchpad.txt")
 
-;; ;; Reload init file
-;; (defun reload-init-file ()
-;;   "Reload the init file."
-;;   (interactive)
-;;   (load-file init-file-location))
-;; (global-set-key (kbd "C-c r") 'reload-init-file)
+(defvar user-todo-location "~/Text/org/todo.org")
+(defvar user-notes-location "~/Text/org/notes.org")
+(defvar highlight-delay .03)
 
 ;; Open .emacs init
 (defun open-init-file ()
@@ -49,42 +47,6 @@
   (interactive)
   (find-file scratchpad-location))
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
-
-;; Set mode-line format
-(setq-default
- mode-line-format
- (list
-  " "
-  '(:eval (winum-get-number-string))
-  " "
-  'mode-line-modified
-  " "
-  ;; '(:eval (when buffer-file-name
-  ;;           (concat (file-name-nondirectory
-  ;;                    (directory-file-name default-directory))
-  ;;                   " | "
-  ;;                   )))
-  '(:eval (propertize "%b"
-                      'face '(:weight bold)
-                      'help-echo (buffer-file-name)))
-  " - "
-  "%02l:%02c"
-  " - "
-  '(:eval (propertize "[%m]"
-                      ;; 'face '(:weight bold)
-                      'help-echo buffer-file-coding-system))
-
-  ;; is this buffer read-only?
-  '(:eval (when buffer-read-only
-            (concat " - "  (propertize "RO"
-                                       'face 'font-lock-preprocessor-face
-                                       'help-echo "Buffer is read-only"))))
-  " - "
-  'mode-line-misc-info
-  ;; " "
-  ;; '(:eval (propertize (format-time-string "%H:%M")))
-  'mode-line-end-spaces
-  ))
 
 ;;; Package settings
 
@@ -117,8 +79,8 @@
     (exec-path-from-shell-copy-env "RUST_SRC_PATH")
     ))
 
-;; Ensure system binaries exist and download them if not
-(use-package use-package-ensure-system-package)
+;; ;; Ensure system binaries exist and download them if not
+;; (use-package use-package-ensure-system-package)
 
 ;; Enable restarting Emacs from within Emacs
 (use-package restart-emacs)
@@ -245,7 +207,14 @@
    )
   (define-key helm-gtags-mode-map (kbd "C-c g a")
     'helm-gtags-tags-in-this-function)
-  (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-dwim)
+  (define-key helm-gtags-mode-map (kbd "M-.")
+    (lambda ()
+      (interactive)
+      (save-all)
+      ;; (helm-gtags-update-tags)
+      (let ((current-prefix-arg '(2))) (call-interactively
+                                        'helm-gtags-update-tags))
+      (helm-gtags-dwim)))
   (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
   (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
   (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
@@ -255,7 +224,6 @@
 (use-package helm-ag
   :init
   (setq helm-ag-insert-at-point 'symbol)
-  :ensure-system-package ag
   )
 
 ;;; Load customizations
@@ -316,7 +284,9 @@
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
 
+(setq show-paren-delay highlight-delay)
 (show-paren-mode 1)
+
 (setq-default indent-tabs-mode nil
               tab-width 4
               fill-column 80
@@ -341,7 +311,7 @@
       help-window-select t            ;; Focus new help windows when opened
       confirm-kill-emacs nil          ;; Always confirm before closing Emacs
       delete-by-moving-to-trash t     ;; Send deleted files to trash
-      backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
+      ;; backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
       version-control t               ;; Always make numeric backup versions
       vc-make-backup-files t          ;; Make backups of all files
       delete-old-versions t           ;; Silently delete old backup versions
@@ -350,6 +320,7 @@
       ;; search-whitespace-regexp ".*?"
       ;; Display trailing whitespace
       show-trailing-whitespace 1
+      lazy-highlight-initial-delay .15
 
       pop-up-frames nil               ;; Open files in existing frames
       pop-up-windows t
@@ -414,11 +385,6 @@
 (add-hook 'focus-out-hook 'save-all)
 ;; (add-hook 'focus-out-hook 'balance-windows)
 (global-set-key (kbd "C-x s") 'save-all)
-
-;;; User-Defined Variables
-
-(defvar user-todo-location "~/Text/org/todo.org")
-(defvar user-notes-location "~/Text/org/notes.org")
 
 ;;; My Functions and Shortcuts/Keybindings
 
@@ -658,6 +624,9 @@
 (global-set-key (kbd "M-n") 'scroll-up-line-quick)
 (global-set-key (kbd "M-p") 'scroll-down-line-quick)
 
+(define-key makefile-bsdmake-mode-map (kbd "M-n") 'scroll-up-line-quick)
+(define-key makefile-bsdmake-mode-map (kbd "M-p") 'scroll-down-line-quick)
+
 ;; Scroll other window down/up
 (defun scroll-other-window-up-quick ()
   "Scroll the other window up by a smaller amount."
@@ -742,15 +711,14 @@
 ;;; Visual settings
 
 ;; set transparency (cool but distracting)
-;; (set-frame-parameter (selected-frame) 'alpha '(99))
+;; (set-frame-parameter (selected-frame) 'alpha '(100))
 
 ;; Load Themes
 ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 ;; Nimbus is my personal theme, now available on Melpa
 (use-package nimbus-theme)
-;; (use-package ujelly-theme)
 
-;; If we're not in the terminal
+;; Set font only if we're not in the terminal
 (when (display-graphic-p)
   ;; Function for checking font existence
   (defun font-exists-p (font)
@@ -760,7 +728,7 @@
   ;; Set font
   (cond
    ((font-exists-p "Iosevka")
-    (set-face-attribute 'default nil :font "Iosevka:weight=Regular" :height 160)
+    (set-face-attribute 'default nil :font "Iosevka:weight=Light" :height 150)
     (setq-default line-spacing 0)
     )
    ((font-exists-p "Inconsolata for Powerline")
@@ -777,7 +745,7 @@
     (setq-default line-spacing 1)
     )
    )
-)
+  )
 
 ;;; Dired settings
 
@@ -817,15 +785,11 @@
 
 ;; Expanded dired
 ;; Enables C-x C-j to jump to the current directory in dired
-(use-package dired-x
-  :ensure nil
-  :bind ("s-d" . dired-jump)
-  :config
-  ;; Prevent certain files from showing up
-  (setq-default dired-omit-files-p t)
-  (setq dired-omit-files
-        (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
-  )
+(require 'dired-x)
+(global-set-key (kbd "s-d") 'dired-jump)
+;; Prevent certain files from showing up
+(setq-default dired-omit-files-p t)
+(setq dired-omit-files (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
 
 ;; Allow changing file permissions in WDired
 ;; Notes: WDired can be enabled with C-x C-q and compiled with C-c C-c
@@ -888,7 +852,7 @@
   "Open a new eshell buffer."
   (interactive)
   (eshell t))
-(global-set-key [f1] 'eshell)
+(global-set-key [f1] 'projectile-run-eshell)
 (global-set-key [f2] 'eshell-new)
 
 ;; Add z to eshell
@@ -935,6 +899,13 @@
 ;;   (add-hook 'c-mode-common-hook #'smart-semicolon-mode)
 ;;   )
 
+;; Text separated by more than one space doesn't move
+(use-package dynamic-spaces
+  :config
+  (dynamic-spaces-global-mode))
+
+(use-package make-color)
+
 ;; ;; Undo tree.
 ;; (use-package undo-tree
 ;;   :config
@@ -964,12 +935,14 @@
          ("s-8" . eyebrowse-switch-to-window-config-8)
          ("s-9" . eyebrowse-switch-to-window-config-9)
          ("s-/" . eyebrowse-close-window-config)
+         ("s-t" . eyebrowse-rename-window-config)
          )
   ;; :init
   ;; (setq eyebrowse-keymap-prefix nil) ; Broken!
   :config
   (eyebrowse-mode t)
   (setq eyebrowse-wrap-around t)
+  (setq eyebrowse-switch-back-and-forth t)
   (setq eyebrowse-new-workspace t)
   )
 
@@ -1110,6 +1083,7 @@
 ;; Use a sensible mechanism for making buffer names unique
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward)
+(setq uniquify-min-dir-content 1)
 
 ;; Automatically save place in each file
 (use-package saveplace
@@ -1129,9 +1103,9 @@
 ;;   (sml/setup)
 ;;   )
 
-;; Midnight mode - clean up buffers older than 3 days
-(require 'midnight)
-(midnight-delay-set 'midnight-delay "4:30am")
+;; ;; Midnight mode - clean up buffers older than 3 days
+;; (require 'midnight)
+;; (midnight-delay-set 'midnight-delay "4:30am")
 
 ;; highlight the parts of lines that exceed column 80
 (require 'whitespace)
@@ -1225,7 +1199,7 @@
   (add-hook 'prog-mode-hook 'highlight-parentheses-mode)
   :config
   (setq hl-paren-colors '("white")
-        hl-paren-delay .03
+        hl-paren-delay highlight-delay
         )
   )
 
@@ -1300,18 +1274,18 @@
          ("<C-S-right>" . buf-move-right)
          ))
 
-;; Make currently focused window larger.
-;; This package is not actively maintained.
-(use-package golden-ratio
-  :diminish golden-ratio-mode
-  :config
-  ;; (golden-ratio-mode)
-  (setq golden-ratio-auto-scale nil)
-  (setq golden-ratio-adjust-factor 0.8)
-  (defadvice select-window-by-number
-      (after golden-ratio-resize-window activate)
-    (golden-ratio) nil)
-  )
+;; ;; Make currently focused window larger.
+;; ;; This package is not actively maintained.
+;; (use-package golden-ratio
+;;   :diminish golden-ratio-mode
+;;   :config
+;;   (golden-ratio-mode)
+;;   (setq golden-ratio-auto-scale nil)
+;;   (setq golden-ratio-adjust-factor 0.80)
+;;   (defadvice select-window-by-number
+;;       (after golden-ratio-resize-window activate)
+;;     (golden-ratio) nil)
+;;   )
 
 ;; Expand-region
 (use-package expand-region
@@ -1332,8 +1306,8 @@
          ("M-}" . corral-braces-forward)
          ("M-`" . corral-backquote-forward)
          ("M-~" . corral-backquote-backward)
-         ("M-'"  . corral-double-quotes-backward)
-         ("M-\"" . corral-double-quotes-forward)
+         ("M-'"  . corral-double-quotes-forward)
+         ("M-\"" . corral-double-quotes-backward)
          )
   :config (setq corral-preserve-point t))
 
@@ -1542,7 +1516,7 @@
   :init
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hook #'eldoc-mode)
-  ;; (setq racer-rust-src-path "/usr/local/src/rust/src")
+  (setq racer-rust-src-path "/Users/marcin/.rustup/toolchains/stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
   :config
   (define-key racer-mode-map (kbd "<mouse-2>") 'mouse-find-definition)
@@ -1702,6 +1676,43 @@
 (global-set-key (kbd "C-c j") 'org-refile-goto-last-stored)
 
 ;;; Final
+
+;; Set mode-line format
+;; This should run after (winum-mode)
+(setq-default
+ mode-line-format
+ (list
+  " "
+  '(:eval (winum-get-number-string))
+  " "
+  'mode-line-modified
+  " "
+  ;; '(:eval (when buffer-file-name
+  ;;           (concat (file-name-nondirectory
+  ;;                    (directory-file-name default-directory))
+  ;;                   " | "
+  ;;                   )))
+  '(:eval (propertize "%b"
+                      'face '(:weight bold)
+                      'help-echo (buffer-file-name)))
+  " - "
+  "%02l:%02c"
+  " - "
+  '(:eval (propertize "[%m]"
+                      ;; 'face '(:weight bold)
+                      'help-echo buffer-file-coding-system))
+
+  ;; is this buffer read-only?
+  '(:eval (when buffer-read-only
+            (concat " - "  (propertize "RO"
+                                       'face 'font-lock-preprocessor-face
+                                       'help-echo "Buffer is read-only"))))
+  " - "
+  'mode-line-misc-info
+  ;; " "
+  ;; '(:eval (propertize (format-time-string "%H:%M")))
+  'mode-line-end-spaces
+  ))
 
 ;; Set final variables
 (setq org-directory "~/Text/org")     ;; Default org directory
