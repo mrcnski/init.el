@@ -423,8 +423,8 @@
 (global-set-key (kbd "C-1") 'delete-other-windows)
 (global-set-key (kbd "C-2") 'split-window-below-focus)
 (global-set-key (kbd "C-3") 'split-window-right-focus)
-(global-set-key (kbd "s-C-,") (lambda () (interactive) (other-window -1)))
-(global-set-key (kbd "s-C-.") (lambda () (interactive) (other-window 1)))
+;; (global-set-key (kbd "s-C-,") (lambda () (interactive) (other-window -1)))
+;; (global-set-key (kbd "s-C-.") (lambda () (interactive) (other-window 1)))
 
 (global-set-key (kbd "C-j") 'indent-new-comment-line)
 ;; (global-set-key (kbd "M-$") 'ispell-buffer)
@@ -469,7 +469,9 @@
 ;; Can be called on multiple lines.
 ;; Will entirely kill any line that's even partially within the region
 (defun annihilate-line-dwim ()
-  "Annihilate the current line or region by killing it, deleting the empty line, and restoring cursor position. If called on a region, will annihilate every line included in the region."
+  "Annihilate the current line or region by killing it, deleting the empty \
+line, and restoring cursor position. If called on a region, will annihilate \
+every line included in the region."
   (interactive)
   (cond
    ;; No region selected
@@ -527,7 +529,8 @@
 ;; (add-hook 'before-save-hook 'indent-buffer)
 
 (defun region-history-other (begin end)
-  "Display the source controlled region history in another window."
+  "Display the source controlled history of region from BEGIN to END in \
+another window."
   (interactive "r")
   (vc-region-history begin end)
   (other-window 1)
@@ -603,7 +606,9 @@
 ;; Join the following line onto the current line
 ;; Use this to quickly consolidate multiple lines into one
 (defun join-next-line ()
-  "Join the following line onto the current line, preserving the cursor position. This command can be used to rapidly consolidate multiple lines into one."
+  "Join the following line onto the current line, preserving the cursor \
+position. This command can be used to rapidly consolidate multiple lines into \
+one."
   (interactive)
   (let ((col (current-column)))
     (join-line -1)
@@ -624,8 +629,13 @@
 (global-set-key (kbd "M-n") 'scroll-up-line-quick)
 (global-set-key (kbd "M-p") 'scroll-down-line-quick)
 
-(define-key makefile-bsdmake-mode-map (kbd "M-n") 'scroll-up-line-quick)
-(define-key makefile-bsdmake-mode-map (kbd "M-p") 'scroll-down-line-quick)
+(add-hook 'makefile-bsdmake-mode-hook
+          #'(lambda ()
+              (define-key makefile-bsdmake-mode-map (kbd "M-n")
+                'scroll-up-line-quick)
+              (define-key makefile-bsdmake-mode-map (kbd "M-p")
+                'scroll-down-line-quick)
+              ))
 
 ;; Scroll other window down/up
 (defun scroll-other-window-up-quick ()
@@ -711,11 +721,12 @@
 ;;; Visual settings
 
 ;; set transparency (cool but distracting)
-;; (set-frame-parameter (selected-frame) 'alpha '(100))
+(set-frame-parameter (selected-frame) 'alpha '(98))
 
 ;; Load Themes
 ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
-;; Nimbus is my personal theme, now available on Melpa
+
+;; Nimbus is my personal theme, available on Melpa
 (use-package nimbus-theme)
 
 ;; Set font only if we're not in the terminal
@@ -980,7 +991,7 @@
       "Create new indicators in the current buffer."
       (interactive)
 
-      ;; ;; show a little arrow at the end of buffer using the default fringe face
+      ;; ;; show an arrow at the end of buffer using the default fringe face
       ;; (ind-create-indicator 'point-max
       ;;                       :managed t
       ;;                       :relative nil
@@ -1032,7 +1043,7 @@
   :config
   (which-function-mode 1))
 
-;; Highlight indentation using periods
+;; Highlight indentation
 (use-package highlight-indent-guides
   :init
   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
@@ -1371,6 +1382,18 @@
   ;; (diff-hl-margin-mode)
   )
 
+;; (use-package aggressive-indent
+;;   :init
+;;   (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
+;;   (add-hook 'clojure-mode-hook #'aggressive-indent-mode)
+;;   )
+
+;; (use-package lispy
+;;   :init
+;;   (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
+;;   (add-hook 'clojure-mode-hook (lambda () (lispy-mode 1)))
+;;   )
+
 ;;; Language packages
 
 ;; On-the-fly syntax checker
@@ -1387,7 +1410,7 @@
 
   (setq sentence-end-double-space nil) ;; Stupid check
   ;; Disable checkers that don't work correctly
-  (setq-default flycheck-disabled-checkers '(rust rust-cargo))
+  (setq-default flycheck-disabled-checkers '(rust rust-cargo rust-clippy))
   ;; (setq-default flycheck-disabled-checkers '(rust))
 
   ;; Proselint
@@ -1423,11 +1446,11 @@
   (global-company-mode)
   (setq company-idle-delay nil)
   (setq company-tooltip-align-annotations t) ;; align tooltips to right border
-  (add-to-list 'company-backends 'company-racer)
   )
 
 ;; Yasnippet
 ;; Note: list all snippets for current mode with M-x `yas-describe-tables'.
+(use-package yasnippet-snippets)
 (use-package yasnippet
   :defer t
   :diminish yas-minor-mode
@@ -1504,6 +1527,20 @@
   :init
   (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
 
+;; Clojure
+
+(use-package clojure-mode)
+
+(use-package flycheck-clojure)
+
+(use-package cider
+  :ensure t
+  :config
+  (setq cider-use-overlays nil)
+  )
+
+;; Rust
+
 (use-package rust-mode
   :mode "\\.rs\\'"
   :diminish eldoc-mode
@@ -1516,11 +1553,13 @@
   :init
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hook #'eldoc-mode)
-  (setq racer-rust-src-path "/Users/marcin/.rustup/toolchains/stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
+  (setq racer-rust-src-path "/Users/marcin/.rustup/toolchains/\
+stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
   :config
   (define-key racer-mode-map (kbd "<mouse-2>") 'mouse-find-definition)
   (define-key racer-mode-map (kbd "<mouse-3>") 'pop-tag-mark)
+
   (defun mouse-find-definition (@click)
     (interactive "e")
     (let ((p1 (posn-point (event-start @click))))
