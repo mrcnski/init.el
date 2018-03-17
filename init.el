@@ -27,7 +27,7 @@
 ;;; User-Defined Variables
 
 (defvar init-file-location   (concat user-emacs-directory "init.el"))
-(defvar packages-location    (concat user-emacs-directory "packages/nimbus"))
+(defvar packages-location    (concat user-emacs-directory "packages/move-2"))
 (defvar scratchpad-location  "~/Text/scratchpad.txt")
 
 (defvar user-todo-location "~/Text/org/todo.org")
@@ -88,6 +88,10 @@
 ;; Diminish modeline clutter
 (use-package diminish)
 (diminish 'abbrev-mode)
+
+(require 'move-2)
+(global-set-key (kbd "C-b") 'move-2-left-twice)
+(global-set-key (kbd "C-f") 'move-2-right-twice)
 
 ;;; Initialize Helm
 
@@ -232,6 +236,9 @@
 (load custom-file t)
 
 ;;; Quality of life changes
+
+;; Fix cursor movement lag
+(setq auto-window-vscroll nil)
 
 ;; Keep directories clean
 (use-package no-littering
@@ -721,13 +728,28 @@ one."
 ;;; Visual settings
 
 ;; set transparency (cool but distracting)
-(set-frame-parameter (selected-frame) 'alpha '(98))
+;; (set-frame-parameter (selected-frame) 'alpha '(98))
+(set-frame-parameter (selected-frame) 'alpha '(100))
 
 ;; Load Themes
 ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 
 ;; Nimbus is my personal theme, available on Melpa
 (use-package nimbus-theme)
+
+;; (use-package doom-themes
+;;   :config
+;;   ;; Global settings (defaults)
+;;   (setq doom-themes-enable-bold nil    ; if nil, bold is universally disabled
+;;         doom-themes-enable-italic nil) ; if nil, italics is universally disabled
+
+;;   ;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
+;;   ;; may have their own settings.
+;;   (load-theme 'doom-one t)
+
+;;   ;; Corrects (and improves) org-mode's native fontification.
+;;   (doom-themes-org-config)
+;;   )
 
 ;; Set font only if we're not in the terminal
 (when (display-graphic-p)
@@ -738,21 +760,20 @@ one."
 
   ;; Set font
   (cond
-   ((font-exists-p "Iosevka")
-    (set-face-attribute 'default nil :font "Iosevka:weight=Light" :height 150)
-    (setq-default line-spacing 0)
-    )
-   ((font-exists-p "Inconsolata for Powerline")
-    (set-face-attribute
-     'default nil :font "Inconsolata for Powerline:weight=Regular" :height 180)
-    (setq-default line-spacing 1)
-    )
-   ((font-exists-p "Fira Mono")
-    (set-face-attribute 'default nil :font "Fira Mono")
-    (setq-default line-spacing 1)
-    )
+   ;; ((font-exists-p "Iosevka")
+   ;;  (set-face-attribute
+   ;;   'default nil :font "Iosevka:weight=Light" :height 150)
+   ;;  (setq-default line-spacing 0)
+   ;;  )
+   ;; ((font-exists-p "Inconsolata for Powerline")
+   ;;  (set-face-attribute
+   ;;   'default nil
+   ;;   :font "Inconsolata for Powerline:weight=Regular" :height 180)
+   ;;  (setq-default line-spacing 1)
+   ;;  )
    ((font-exists-p "Hack")
-    (set-face-attribute 'default nil :font "Hack")
+    (set-face-attribute
+     'default nil :font "Hack:weight=Regular" :height 140)
     (setq-default line-spacing 1)
     )
    )
@@ -798,8 +819,10 @@ one."
 ;; Enables C-x C-j to jump to the current directory in dired
 (require 'dired-x)
 (global-set-key (kbd "s-d") 'dired-jump)
-;; Prevent certain files from showing up
-(setq-default dired-omit-files-p t)
+
+;; Prevent certain files from showing up.
+;; Use C-x M-o to show omitted files.
+(add-hook 'dired-mode-hook (lambda () (dired-omit-mode)))
 (setq dired-omit-files (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
 
 ;; Allow changing file permissions in WDired
@@ -893,6 +916,8 @@ one."
     (goto-char (point-max)))
   )
 
+(use-package flame)
+
 ;; ;; Key chords
 ;; (use-package key-chord
 ;;   :init
@@ -955,6 +980,7 @@ one."
   (setq eyebrowse-wrap-around t)
   (setq eyebrowse-switch-back-and-forth t)
   (setq eyebrowse-new-workspace t)
+  (setq eyebrowse-close-window-config-prompt t)
   )
 
 ;; Fix the capitalization commands
@@ -1032,7 +1058,10 @@ one."
   (add-hook 'text-mode-hook 'nlinum-mode)
   :config
   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
+  (setq nlinum-highlight-current-line t)
   )
+;; Fix line numbers occasionally not appearing
+(use-package nlinum-hl)
 
 ;; Show info about the current region
 ;; (use-package region-state
@@ -1114,6 +1143,16 @@ one."
 ;;   (sml/setup)
 ;;   )
 
+(use-package hide-mode-line
+  :config
+  (defun hide-mode-line-toggle ()
+    (interactive)
+    (hide-mode-line-mode (if hide-mode-line-mode -1 +1))
+    (unless hide-mode-line-mode
+      (redraw-display)))
+  (global-set-key (kbd "s-m") 'hide-mode-line-toggle)
+  )
+
 ;; ;; Midnight mode - clean up buffers older than 3 days
 ;; (require 'midnight)
 ;; (midnight-delay-set 'midnight-delay "4:30am")
@@ -1125,7 +1164,6 @@ one."
 
 (add-hook 'c-mode-hook 'c-whitespace-mode)
 (add-hook 'c++-mode-hook 'c-whitespace-mode)
-(add-hook 'emacs-lisp-mode-hook 'c-whitespace-mode)
 (add-hook 'nim-mode-hook 'c-whitespace-mode)
 (defun c-whitespace-mode ()
   "Set whitespace column for c-like modes and turn on `whitespace-mode'."
