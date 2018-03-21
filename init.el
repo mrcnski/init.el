@@ -21,7 +21,7 @@
 ;; First things first, increase GC threshold to speed up startup.
 ;; Reset the GC threshold after initialization, and GC whenever we tab out
 (setq gc-cons-threshold most-positive-fixnum)
-(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 100000000)))
+(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 50000000)))
 (add-hook 'focus-out-hook 'garbage-collect)
 
 ;;; User-Defined Variables
@@ -89,10 +89,6 @@
 (use-package diminish)
 (diminish 'abbrev-mode)
 
-(require 'move-2)
-(global-set-key (kbd "C-b") 'move-2-left-twice)
-(global-set-key (kbd "C-f") 'move-2-right-twice)
-
 ;;; Initialize Helm
 
 (use-package helm
@@ -111,16 +107,16 @@
 ;; rebind tab to run persistent action
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
 ;; make TAB work in terminal
-(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
-(define-key helm-map (kbd "C-z") 'helm-select-action) ;; list actions using C-z
-(define-key helm-map (kbd "M-x") 'helm-select-action)
+(define-key helm-map (kbd "C-i")   'helm-execute-persistent-action)
+(define-key helm-map (kbd "C-z")   'helm-select-action) ;; list actions using C-z
+(define-key helm-map (kbd "M-x")   'helm-select-action)
 
-(global-set-key (kbd "M-x")       'helm-M-x)
-(global-set-key (kbd "C-x b")     'helm-mini)
-(global-set-key (kbd "C-x C-f")   'helm-find-files)
-(global-set-key (kbd "C-h C-a")   'helm-apropos)
-(global-set-key (kbd "C-x C-SPC") 'helm-all-mark-rings)
-(global-set-key (kbd "M-i")       'helm-semantic-or-imenu)
+(global-set-key (kbd "M-x")        'helm-M-x)
+(global-set-key (kbd "C-x b")      'helm-mini)
+(global-set-key (kbd "C-x C-f")    'helm-find-files)
+(global-set-key (kbd "C-h C-a")    'helm-apropos)
+(global-set-key (kbd "C-x C-SPC")  'helm-all-mark-rings)
+(global-set-key (kbd "M-i")        'helm-semantic-or-imenu)
 
 (setq helm-buffers-fuzzy-matching t
       helm-recentf-fuzzy-match    t
@@ -349,8 +345,8 @@
       )
 
 ;; Set some builtin modes
-(setq global-hl-line-sticky-flag t)     ;; Keep highlight across windows
 (global-hl-line-mode t)                 ;; Highlight current line
+(setq global-hl-line-sticky-flag t)     ;; Keep line highlight across windows
 ;; Use compressed files like normal files
 (auto-compression-mode 1)
 ;; (desktop-save-mode 1)                ;; Keep open files open across sessions
@@ -737,20 +733,6 @@ one."
 ;; Nimbus is my personal theme, available on Melpa
 (use-package nimbus-theme)
 
-;; (use-package doom-themes
-;;   :config
-;;   ;; Global settings (defaults)
-;;   (setq doom-themes-enable-bold nil    ; if nil, bold is universally disabled
-;;         doom-themes-enable-italic nil) ; if nil, italics is universally disabled
-
-;;   ;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
-;;   ;; may have their own settings.
-;;   (load-theme 'doom-one t)
-
-;;   ;; Corrects (and improves) org-mode's native fontification.
-;;   (doom-themes-org-config)
-;;   )
-
 ;; Set font only if we're not in the terminal
 (when (display-graphic-p)
   ;; Function for checking font existence
@@ -801,7 +783,7 @@ one."
               dired-listing-switches "-alhv"
               dired-dwim-target t            ;; Try suggesting dired targets
               dired-auto-revert-buffer t     ;; Update buffer when visiting
-              indicate-empty-lines nil       ;; highlight end of buffer?
+              indicate-empty-lines nil       ;; Highlight end of buffer?
               )
 
 ;; Extensions to Dired
@@ -916,6 +898,7 @@ one."
     (goto-char (point-max)))
   )
 
+;; Generate flames (use `flame-insert`).
 (use-package flame)
 
 ;; ;; Key chords
@@ -1157,7 +1140,7 @@ one."
 ;; (require 'midnight)
 ;; (midnight-delay-set 'midnight-delay "4:30am")
 
-;; highlight the parts of lines that exceed column 80
+;; Highlight the parts of lines that exceed column 80
 (require 'whitespace)
 (diminish 'whitespace-mode)
 (setq whitespace-style '(face empty tabs lines-tail trailing))
@@ -1247,7 +1230,7 @@ one."
   :init
   (add-hook 'prog-mode-hook 'highlight-parentheses-mode)
   :config
-  (setq hl-paren-colors '("white")
+  (setq hl-paren-colors '("cyan3")
         hl-paren-delay highlight-delay
         )
   )
@@ -1432,8 +1415,6 @@ one."
 ;;   (add-hook 'clojure-mode-hook (lambda () (lispy-mode 1)))
 ;;   )
 
-;;; Language packages
-
 ;; On-the-fly syntax checker
 (use-package flycheck
   :diminish flycheck-mode
@@ -1497,50 +1478,22 @@ one."
   :config
   (yas-reload-all))
 
-;; Markdown mode
-(use-package markdown-mode
-  :mode "\\.md\\'"
-  :init
-  (add-hook 'markdown-mode-hook
-            #'(lambda ()
-                (define-key markdown-mode-map
-                  (kbd "M-p") 'scroll-down-line-quick)
-                (define-key markdown-mode-map
-                  (kbd "M-n") 'scroll-up-line-quick)
-                ))
-  )
-(use-package markdown-toc)
+;;; Language packages
 
-;; YAML mode
-(use-package yaml-mode
-  :mode "\\.yml\\'")
+;; Clojure
 
-;; TOML mode
-(use-package toml-mode
-  :mode "\\.toml\\'"
+(use-package clojure-mode)
+
+(use-package flycheck-clojure)
+
+(use-package cider
+  :ensure t
+  :config
+  (setq cider-use-overlays nil)
   )
 
-;; JSON mode
-(use-package json-mode
-  )
+;; Haskell
 
-;; Javascript mode
-(use-package js2-mode
-  :mode "\\.js\\'")
-
-;; Javascript REPL
-(use-package nodejs-repl
-  :init
-  (add-hook 'js2-mode-hook
-            (lambda ()
-              (define-key js-mode-map (kbd "C-M-x")   'nodejs-repl-send-buffer)
-              (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
-              (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
-              (define-key js-mode-map
-                (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
-              )))
-
-;; Haskell mode
 (use-package haskell-mode
   :defer t
   :mode "\\.hs\\'"
@@ -1565,16 +1518,71 @@ one."
   :init
   (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
 
-;; Clojure
+;; ;; Completions for Haskell
+;; ;; TODO: doesn't get loaded...
+;; (use-package company-ghc
+;;   :after company
+;;   :init
+;;   (autoload 'ghc-init "ghc" nil t)
+;;   (autoload 'ghc-debug "ghc" nil t)
+;;   :config
+;;   (add-to-list 'company-backends 'company-ghc))
 
-(use-package clojure-mode)
+;; Haskell snippets
+(use-package haskell-snippets
+  :after yasnippet)
 
-(use-package flycheck-clojure)
+;; Javascript
 
-(use-package cider
-  :ensure t
+(use-package js2-mode
+  :mode "\\.js\\'")
+
+;; Javascript REPL
+(use-package nodejs-repl
+  :init
+  (add-hook 'js2-mode-hook
+            (lambda ()
+              (define-key js-mode-map (kbd "C-M-x")   'nodejs-repl-send-buffer)
+              (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
+              (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
+              (define-key js-mode-map
+                (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
+              )))
+
+;; JSON
+
+(use-package json-mode)
+
+;; Lua
+
+(use-package lua-mode)
+
+(use-package moonscript)
+
+;; Markdown
+
+(use-package markdown-mode
+  :mode "\\.md\\'"
+  :init
+  (add-hook 'markdown-mode-hook
+            #'(lambda ()
+                (define-key markdown-mode-map
+                  (kbd "M-p") 'scroll-down-line-quick)
+                (define-key markdown-mode-map
+                  (kbd "M-n") 'scroll-up-line-quick)
+                ))
+  )
+(use-package markdown-toc)
+
+;; Nim
+
+(use-package nim-mode
+  :init
+  (setq nim-nimsuggest-path "~/.nim/bin/nimsuggest")
+  ;; Currently nimsuggest doesn't support nimscript files, so only nim-mode...
+  (add-hook 'nim-mode-hook 'nimsuggest-mode)
   :config
-  (setq cider-use-overlays nil)
+  (define-key nim-mode-map (kbd "RET") #'newline-and-indent)
   )
 
 ;; Rust
@@ -1620,28 +1628,16 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 ;;   :init
 ;;   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
-(use-package nim-mode
-  :init
-  (setq nim-nimsuggest-path "~/.nim/bin/nimsuggest")
-  ;; Currently nimsuggest doesn't support nimscript files, so only nim-mode...
-  (add-hook 'nim-mode-hook 'nimsuggest-mode)
-  :config
-  (define-key nim-mode-map (kbd "RET") #'newline-and-indent)
+;; TOML
+
+(use-package toml-mode
+  :mode "\\.toml\\'"
   )
 
-;; ;; Completions for Haskell
-;; ;; TODO: doesn't get loaded...
-;; (use-package company-ghc
-;;   :after company
-;;   :init
-;;   (autoload 'ghc-init "ghc" nil t)
-;;   (autoload 'ghc-debug "ghc" nil t)
-;;   :config
-;;   (add-to-list 'company-backends 'company-ghc))
+;; YAML
 
-;; Haskell snippets
-(use-package haskell-snippets
-  :after yasnippet)
+(use-package yaml-mode
+  :mode "\\.yml\\'")
 
 ;;; Org Mode
 
