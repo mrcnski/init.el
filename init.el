@@ -233,6 +233,10 @@
 
 ;;; Quality of life changes
 
+;; Tries to preserve last open window point when multiple buffers are open for
+;; the same file.
+(setq switch-to-buffer-preserve-window-point t)
+
 ;; Fix cursor movement lag
 (setq auto-window-vscroll nil)
 
@@ -345,8 +349,8 @@
       )
 
 ;; Set some builtin modes
-(global-hl-line-mode t)                 ;; Highlight current line
 (setq global-hl-line-sticky-flag t)     ;; Keep line highlight across windows
+(global-hl-line-mode t)                 ;; Highlight current line
 ;; Use compressed files like normal files
 (auto-compression-mode 1)
 ;; (desktop-save-mode 1)                ;; Keep open files open across sessions
@@ -1100,7 +1104,7 @@ one."
   ;; (setq avy-keys '(?p ?g ?c ?r
   ;;                     ?a ?o ?e ?u ?h ?t ?n ?s))
   ;; Set the background to gray to highlight the decision tree
-  (setq avy-background t)
+  (setq avy-background nil)
   )
 
 ;; Use a sensible mechanism for making buffer names unique
@@ -1147,6 +1151,7 @@ one."
 
 (add-hook 'c-mode-hook 'c-whitespace-mode)
 (add-hook 'c++-mode-hook 'c-whitespace-mode)
+(add-hook 'emacs-lisp-mode-hook 'c-whitespace-mode)
 (add-hook 'nim-mode-hook 'c-whitespace-mode)
 (defun c-whitespace-mode ()
   "Set whitespace column for c-like modes and turn on `whitespace-mode'."
@@ -1462,7 +1467,7 @@ one."
   :diminish company-mode
   :bind ("M-/" . company-complete)
   :config
-  (global-company-mode)
+  (add-hook 'after-init-hook 'global-company-mode)
   (setq company-idle-delay nil)
   (setq company-tooltip-align-annotations t) ;; align tooltips to right border
   )
@@ -1555,7 +1560,10 @@ one."
 
 ;; Lua
 
-(use-package lua-mode)
+(use-package lua-mode
+  :config
+  (setq lua-indent-level 4)
+  )
 
 (use-package moonscript)
 
