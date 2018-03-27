@@ -1,6 +1,6 @@
 ;;; .emacs --- Emacs configuration file
 ;;
-;; Copyright (C) 2017 Marcin Swieczkowski
+;; Copyright (C) 2017-2018 Marcin Swieczkowski
 ;;
 ;;; Commentary:
 ;;
