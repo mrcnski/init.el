@@ -26,11 +26,11 @@
 
 ;;; User-Defined Variables
 
-(defvar init-file-location   (concat user-emacs-directory "init.el"))
-(defvar packages-location    (concat user-emacs-directory "packages/move-2"))
-(defvar scratchpad-location  "~/Text/scratchpad.txt")
+(defvar init-file-location  (concat user-emacs-directory "init.el"))
+(defvar packages-location   (concat user-emacs-directory "packages/move-2"))
+(defvar scratchpad-location "~/Text/scratchpad.txt")
 
-(defvar user-todo-location "~/Text/org/todo.org")
+(defvar user-todo-location  "~/Text/org/todo.org")
 (defvar user-notes-location "~/Text/org/notes.org")
 (defvar highlight-delay .03)
 
@@ -64,14 +64,14 @@
 ;; Run auto-load functions specified by package authors
 (package-initialize)
 
-;; Require use-package
+;; Require use-package.
 (when (not (package-installed-p 'use-package))
   (package-refresh-contents)
   (package-install 'use-package))
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-;; Inherit environment variables from Shell
+;; Inherit environment variables from Shell.
 (when (memq window-system '(mac ns x))
   (use-package exec-path-from-shell
     :config
@@ -82,10 +82,15 @@
 ;; ;; Ensure system binaries exist and download them if not
 ;; (use-package use-package-ensure-system-package)
 
-;; Enable restarting Emacs from within Emacs
-(use-package restart-emacs)
+;; Enable restarting Emacs from within Emacs.
+(use-package restart-emacs
+  :defer t)
 
-;; Diminish modeline clutter
+;; Find bugs in Emacs configuration.
+(use-package bug-hunter
+  :defer t)
+
+;; Diminish modeline clutter.
 (use-package diminish)
 (diminish 'abbrev-mode)
 
@@ -101,12 +106,12 @@
 ;; The default "C-x c" is quite close to "C-x C-c", which quits Emacs.
 ;; Changed to "C-c h". Note: We must set "C-c h" globally, because we
 ;; cannot change `helm-command-prefix-key' once `helm-config' is loaded.
-(global-set-key (kbd "C-c h") 'helm-command-prefix)
+(global-set-key   (kbd "C-c h") 'helm-command-prefix)
 (global-unset-key (kbd "C-x c"))
 
-;; rebind tab to run persistent action
+;; Rebind tab to run persistent action.
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
-;; make TAB work in terminal
+;; Make TAB work in terminal.
 (define-key helm-map (kbd "C-i")   'helm-execute-persistent-action)
 (define-key helm-map (kbd "C-z")   'helm-select-action) ;; list actions using C-z
 (define-key helm-map (kbd "M-x")   'helm-select-action)
@@ -183,7 +188,7 @@
   ;; When doing isearch, hand the word over to helm-swoop
   (define-key isearch-mode-map (kbd "C-;") 'helm-swoop-from-isearch)
   ;; From helm-swoop to helm-multi-swoop-all
-  (define-key helm-swoop-map (kbd "C-;") 'helm-multi-swoop-all-from-helm-swoop)
+  (define-key helm-swoop-map   (kbd "C-;") 'helm-multi-swoop-all-from-helm-swoop)
 
   (setq helm-swoop-speed-or-color t) ;; Show syntax highlighting in results
   )
@@ -214,7 +219,9 @@
       ;; (helm-gtags-update-tags)
       (let ((current-prefix-arg '(2))) (call-interactively
                                         'helm-gtags-update-tags))
-      (helm-gtags-dwim)))
+      (helm-gtags-dwim)
+      ))
+
   (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
   (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
   (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
@@ -253,7 +260,7 @@
 ;; Track recently-opened files
 (use-package recentf
   :config
-  (setq recentf-max-saved-items 10000) ;; Go ahead and save everything
+  (setq recentf-max-saved-items 1000)
   (recentf-mode t)
   )
 
@@ -397,7 +404,7 @@
 
 ;; Set up keys using super. s-a, s-s, s-x, s-c, and s-v correspond to
 ;; select-all, save, cut, copy, and paste, which I've left for
-;; consistency/utility on Macs. s-l is goto-line which is already useful.
+;; consistency/utility on Macs.
 (global-set-key (kbd "s-j") 'helm-mini)
 (global-set-key (kbd "s-p") 'previous-buffer)
 (global-set-key (kbd "s-n") 'next-buffer)
@@ -409,6 +416,16 @@
 (global-set-key (kbd "s-i") 'helm-projectile-ag-inexact)
 (global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
 (global-set-key (kbd "s-o") 'helm-ag-pop-stack)
+
+(defun goto-line-show ()
+  "Show line numbers temporarily, while prompting for the line number input."
+  (interactive)
+  (unwind-protect
+      (progn
+        (linum-mode 1)
+    (call-interactively #'goto-line))
+    (linum-mode -1)))
+(global-set-key (kbd "s-l") 'goto-line-show)
 
 (defun helm-projectile-ag-inexact ()
   "Run helm-projectile-ag case-insensitive and without word boundaries."
@@ -748,14 +765,8 @@ one."
   (cond
    ;; ((font-exists-p "Iosevka")
    ;;  (set-face-attribute
-   ;;   'default nil :font "Iosevka:weight=Light" :height 150)
+   ;;   'default nil :font "Iosevka:weight=Regular" :height 150)
    ;;  (setq-default line-spacing 0)
-   ;;  )
-   ;; ((font-exists-p "Inconsolata for Powerline")
-   ;;  (set-face-attribute
-   ;;   'default nil
-   ;;   :font "Inconsolata for Powerline:weight=Regular" :height 180)
-   ;;  (setq-default line-spacing 1)
    ;;  )
    ((font-exists-p "Hack")
     (set-face-attribute
@@ -896,14 +907,16 @@ one."
 
 ;;; Load packages
 
-;; Stop execution here for Terminal
+;; Stop execution here for terminal.
+;; We typically only want to open `emacs' in the terminal for quick editing.
 (when (not (display-graphic-p))
   (with-current-buffer " *load*"
     (goto-char (point-max)))
   )
 
 ;; Generate flames (use `flame-insert`).
-(use-package flame)
+(use-package flame
+  :defer t)
 
 ;; ;; Key chords
 ;; (use-package key-chord
@@ -915,27 +928,15 @@ one."
 ;;   (key-chord-define-global "jx" 'helm-mini)
 ;;   )
 
-;; ;; Pressing ; anywhere will insert a semicolon at the end of the line.
-;; (use-package smart-semicolon
-;;   :init
-;;   (add-hook 'rust-mode-hook #'smart-semicolon-mode)
-;;   (add-hook 'c-mode-common-hook #'smart-semicolon-mode)
-;;   )
-
 ;; Text separated by more than one space doesn't move
 (use-package dynamic-spaces
   :config
   (dynamic-spaces-global-mode))
 
-(use-package make-color)
-
-;; ;; Undo tree.
-;; (use-package undo-tree
-;;   :config
-;;   (global-undo-tree-mode t)
-;;   (setq undo-tree-visualizer-diff nil)
-;;   (setq undo-tree-visualizer-timestamps )
-;;   )
+;; A package for choosing a color by updating text sample.
+;; See https://www.emacswiki.org/emacs/MakeColor.
+(use-package make-color
+  :defer t)
 
 ;; ;; Go to last change without undoing it
 ;; (use-package goto-last-change
@@ -965,12 +966,12 @@ one."
   :config
   (eyebrowse-mode t)
   (setq eyebrowse-wrap-around t)
-  (setq eyebrowse-switch-back-and-forth t)
+  (setq eyebrowse-switch-back-and-forth nil)
   (setq eyebrowse-new-workspace t)
   (setq eyebrowse-close-window-config-prompt t)
   )
 
-;; Fix the capitalization commands
+;; Fix the capitalization commands.
 (use-package fix-word
   :bind (("M-u" . fix-word-upcase)
          ("M-l" . fix-word-downcase)
@@ -978,28 +979,33 @@ one."
          )
   )
 
-;; Show unused keys
-(use-package free-keys)
+;; Show unused keys.
+(use-package free-keys
+  :defer t)
 
-;; Dim surrounding paragraphs
+;; Dim surrounding paragraphs.
 (use-package focus
-  :bind ("s-q" . focus-mode)
   )
 
-;; Mode for writing
+;; Mode for writing.
 (use-package olivetti
-  :bind ("s-w" . olivetti-mode)
+  :bind ("s-m" . olivetti-mode)
   :init
   (setq olivetti-hide-mode-line t
         olivetti-body-width     .9
         )
   )
 
-;; Add indicators for position in buffer and end of buffer
+;; Add indicators for position in buffer and end of buffer.
+;; Only load this for graphical displays (i.e. not the terminal).
 (when (display-graphic-p)
   (use-package indicators
     :diminish indicators-mode
-    :init
+    :hook ((prog-mode . new-indicators)
+           (conf-mode . new-indicators)
+           (text-mode . new-indicators)
+           )
+    :config
     (defun new-indicators ()
       "Create new indicators in the current buffer."
       (interactive)
@@ -1015,13 +1021,12 @@ one."
       ;; show relative position in the file (a.k.a. scroll bar)
       (ind-create-indicator 'point :managed t)
       )
-    
-    (add-hook 'prog-mode-hook 'new-indicators)
     )
   )
 
 ;; Copy selected region to be pasted into Slack/Github/etc.
-(use-package copy-as-format)
+(use-package copy-as-format
+  :defer t)
 
 ;; Jump to tag definitions using ripgrep
 ;; (use-package dumb-jump
@@ -1037,18 +1042,18 @@ one."
 ;;   :ensure
 ;;   )
 
-;; Line numbers
-(use-package nlinum
-  :init
-  (add-hook 'prog-mode-hook 'nlinum-mode)
-  (add-hook 'conf-mode-hook 'nlinum-mode)
-  (add-hook 'text-mode-hook 'nlinum-mode)
-  :config
-  (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
-  (setq nlinum-highlight-current-line t)
-  )
-;; Fix line numbers occasionally not appearing
-(use-package nlinum-hl)
+;; ;; Line numbers
+;; (use-package nlinum
+;;   :hook ((prog-mode . nlinum-mode)
+;;          (conf-mode . nlinum-mode)
+;;          (text-mode . nlinum-mode)
+;;          )
+;;   :config
+;;   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
+;;   (setq nlinum-highlight-current-line t)
+;;   )
+;; ;; Fix line numbers occasionally not appearing
+;; (use-package nlinum-hl)
 
 ;; Show info about the current region
 ;; (use-package region-state
@@ -1061,8 +1066,7 @@ one."
 
 ;; Highlight indentation
 (use-package highlight-indent-guides
-  :init
-  (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+  :hook (prog-mode . highlight-indent-guides-mode)
   :config
   (setq highlight-indent-guides-method 'character
         highlight-indent-guides-character ?\|
@@ -1073,23 +1077,23 @@ one."
 ;; Automatically clean up extraneous whitespace
 (use-package ws-butler
   :diminish ws-butler-mode
-  :init (add-hook 'prog-mode-hook #'ws-butler-mode))
+  :hook (prog-mode . ws-butler-mode))
 
 ;; ;; Save open files across Emacs sessions.
 ;; ;; I use this instead of Desktop.el which saves the entire session.
 ;; (use-package save-visited-files
 ;;   :config (turn-on-save-visited-files-mode))
 
-;; Jump to the end of a line using avy's decision tree
-(defun avy-goto-line-end ()
-  "Jump to a line using avy and go to the end of the line."
-  (interactive)
-  (avy-goto-line)
-  (end-of-line)
-  )
-
 ;; Avy mode (jump to a char/word using a decision tree)
 (use-package avy
+  :init
+  ;; Jump to the end of a line using avy's decision tree
+  (defun avy-goto-line-end ()
+    "Jump to a line using avy and go to the end of the line."
+    (interactive)
+    (avy-goto-line)
+    (end-of-line)
+    )
   :bind (("C-," . avy-goto-line-end)
          ;; ("C-<" . avy-goto-char-in-line)
          ("C-." . avy-goto-char)
@@ -1107,44 +1111,32 @@ one."
   (setq avy-background nil)
   )
 
-;; Use a sensible mechanism for making buffer names unique
+;; Use a sensible mechanism for making buffer names unique.
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward)
 (setq uniquify-min-dir-content 1)
 
-;; Automatically save place in each file
+;; Automatically save place in each file.
 (use-package saveplace
   :config
   (save-place-mode 1)
   )
 
-;; Nicer-looking modeline
-;; Looks nice, but causes lag.
-;; (use-package powerline
-;;   :config (powerline-default-theme))
-
-;; Modeline improvement
-;; (use-package smart-mode-line
+;; (use-package hide-mode-line
 ;;   :config
-;;   (setq sml/theme 'respectful)
-;;   (sml/setup)
+;;   (defun hide-mode-line-toggle ()
+;;     (interactive)
+;;     (hide-mode-line-mode (if hide-mode-line-mode -1 +1))
+;;     (unless hide-mode-line-mode
+;;       (redraw-display)))
+;;   (global-set-key (kbd "s-m") 'hide-mode-line-toggle)
 ;;   )
 
-(use-package hide-mode-line
-  :config
-  (defun hide-mode-line-toggle ()
-    (interactive)
-    (hide-mode-line-mode (if hide-mode-line-mode -1 +1))
-    (unless hide-mode-line-mode
-      (redraw-display)))
-  (global-set-key (kbd "s-m") 'hide-mode-line-toggle)
-  )
+;; ;; Midnight mode - clean up buffers older than 3 days.
+(require 'midnight)
+(midnight-delay-set 'midnight-delay "4:30am")
 
-;; ;; Midnight mode - clean up buffers older than 3 days
-;; (require 'midnight)
-;; (midnight-delay-set 'midnight-delay "4:30am")
-
-;; Highlight the parts of lines that exceed column 80
+;; Highlight the parts of lines that exceed column 80.
 (require 'whitespace)
 (diminish 'whitespace-mode)
 (setq whitespace-style '(face empty tabs lines-tail trailing))
@@ -1153,6 +1145,7 @@ one."
 (add-hook 'c++-mode-hook 'c-whitespace-mode)
 (add-hook 'emacs-lisp-mode-hook 'c-whitespace-mode)
 (add-hook 'nim-mode-hook 'c-whitespace-mode)
+
 (defun c-whitespace-mode ()
   "Set whitespace column for c-like modes and turn on `whitespace-mode'."
   (setq-local whitespace-line-column 80)
@@ -1166,7 +1159,7 @@ one."
   (whitespace-mode)
   )
 
-;; Multiple cursors
+;; Multiple cursors.
 (use-package multiple-cursors
   :config
   (global-set-key (kbd "C-{") 'mc/mark-previous-like-this)
@@ -1178,12 +1171,12 @@ one."
   (setq mc/always-run-for-all t)
   )
 
-;; Display number of matches when searching
+;; Display number of matches when searching.
 (use-package anzu
   :diminish anzu-mode
   :config (global-anzu-mode))
 
-;; Enable more powerful replace, plus Python regexps
+;; Enable more powerful replace, plus Python regexps.
 ;; Notes: Enable expressions with C-c C-c
 ;;        You can use variables (like i, the match counter) in expressions
 (use-package visual-regexp-steroids
@@ -1195,9 +1188,10 @@ one."
          ("C-s"   . isearch-forward)
          ("C-r"   . isearch-backward)))
 
-;; Highlight color strings with the corresponding color
+;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode
   :diminish rainbow-mode
+  :defer t
   )
 
 ;; Highlight blocks based on depth.
@@ -1205,48 +1199,48 @@ one."
   :bind ("s-r" . rainbow-blocks-mode)
   )
 
-;; Highlight delimiters with colors depending on depth
+;; Highlight delimiters with colors depending on depth.
 (use-package rainbow-delimiters
-  :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode))
 
-;; Highlight numbers in code
+;; Highlight numbers in code.
 (use-package highlight-numbers
-  :init (add-hook 'prog-mode-hook 'highlight-numbers-mode))
+  :hook (prog-mode . highlight-numbers-mode))
 
-;; Highlight more elisp syntax
+;; Highlight more elisp syntax.
 (use-package highlight-quoted
-  :init (add-hook 'emacs-lisp-mode-hook 'highlight-quoted-mode))
+  :hook (emacs-lisp-mode . highlight-quoted-mode))
 
-;; Highlight operators
+;; Highlight operators.
 (use-package highlight-operators
-  :init
-  (add-hook 'c-mode-common-hook 'highlight-operators-mode)
-  (add-hook 'rust-mode-hook     'highlight-operators-mode)
+  :hook ((c-mode-common . highlight-operators-mode)
+         (rust-mode     . highlight-operators-mode)
+         )
   )
 
-;; Highlight some recent changes such as undos
+;; Highlight some recent changes such as undos.
 (use-package volatile-highlights
   :diminish volatile-highlights-mode
   :config (volatile-highlights-mode))
 
-;; Highlight surrounding parentheses
+;; Highlight surrounding parentheses.
 (use-package highlight-parentheses
   :diminish highlight-parentheses-mode
-  :init
-  (add-hook 'prog-mode-hook 'highlight-parentheses-mode)
+  :hook (prog-mode . highlight-parentheses-mode)
   :config
   (setq hl-paren-colors '("cyan3")
         hl-paren-delay highlight-delay
         )
   )
 
-;; Open files in Finder on Mac
+;; Open files in Finder on Mac.
 (use-package reveal-in-osx-finder
   :bind ("C-c f" . reveal-in-osx-finder)
   )
 
-;; Display available keybindings in Dired mode (? creates popup)
-(use-package discover)
+;; Display available keybindings in Dired mode (? creates popup).
+(use-package discover
+  :defer t)
 
 ;; Maximize/unmaximize current window.
 (use-package zygospore
@@ -1255,9 +1249,8 @@ one."
          ("M-o"   . zygospore-toggle-delete-other-windows)
          ))
 
-;; Undo/redo window configurations
+;; Undo/redo window configurations.
 (use-package winner
-  :defer 1
   :bind (("C-c C-," . winner-undo)
          ("C-c C-." . winner-redo)
          )
@@ -1272,7 +1265,7 @@ one."
 ;;     (setq undo-tree-visualizer-timestamps t)
 ;;     (setq undo-tree-visualizer-diff t)))
 
-;; Display available keys
+;; Display available keys.
 (use-package which-key
   :diminish which-key-mode
   :config
@@ -1280,11 +1273,11 @@ one."
   (setq which-key-sort-order 'which-key-key-order-alpha)
   (setq which-key-sort-uppercase-first nil))
 
-;; Auto-focus help buffers and allow exiting with C-g
+;; Auto-focus help buffers and allow exiting with C-g.
 (use-package popwin
   :config (popwin-mode 1))
 
-;; Switch windows more easily
+;; Switch windows more easily.
 (use-package winum
   :init
   (setq winum-keymap
@@ -1303,7 +1296,7 @@ one."
   (winum-mode)
   )
 
-;; Move buffers around
+;; Move buffers around.
 (use-package buffer-move
   :bind (("<C-S-up>"    . buf-move-up)
          ("<C-S-down>"  . buf-move-down)
@@ -1324,7 +1317,7 @@ one."
 ;;     (golden-ratio) nil)
 ;;   )
 
-;; Expand-region
+;; Expand-region.
 (use-package expand-region
   :bind ("C-=" . er/expand-region)
   :config
@@ -1333,7 +1326,7 @@ one."
   (setq shift-select-mode nil)
   )
 
-;; Wrap parentheses or quotes around word
+;; Wrap parentheses or quotes around word.
 (use-package corral
   :bind (("M-(" . corral-parentheses-backward)
          ("M-)" . corral-parentheses-forward)
@@ -1348,13 +1341,13 @@ one."
          )
   :config (setq corral-preserve-point t))
 
-;; More powerful (way better) comment command
+;; Better comment command.
 (use-package evil-nerd-commenter
   :bind ("M-;" . evilnc-comment-or-uncomment-lines))
 
 ;;; Git packages
 
-;; Git client in Emacs
+;; Git client in Emacs.
 (use-package magit
   :diminish auto-revert-mode
   :bind ("C-x g" . magit-status)
@@ -1364,19 +1357,20 @@ one."
         #'magit-display-buffer-same-window-except-diff-v1)
   )
 
-;; Browse historic versions of a file
-(use-package git-timemachine)
+;; Browse historic versions of a file.
+(use-package git-timemachine
+  :defer t)
 
-;; Generate links to Github for current code location
-(use-package git-link)
+;; Generate links to Github for current code location.
+(use-package git-link
+  :defer t)
 
 ;;; Project packages
 
-;; Project manager
+;; Project manager.
 (use-package projectile
+  :hook (prog-mode . projectile-mode)
   :bind ("<f6>" . projectile-compile-project)
-  :init
-  (add-hook 'prog-mode-hook #'projectile-mode)
   :config
   (setq projectile-completion-system 'helm)
   ;; Change mode line indicator
@@ -1395,37 +1389,25 @@ one."
   :config
   (helm-projectile-on))
 
-;; Show markers in margin indicating changes
+;; Show markers in margin indicating changes.
 (use-package diff-hl
   :bind (("C-c d" . diff-hl-revert-hunk)
          ("C-<"   . diff-hl-previous-hunk)
          ("C->"   . diff-hl-next-hunk)
          )
+  ;; :hook (prog-mode . turn-on-diff-hl-mode)
   :init
-  ;; (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
   (global-diff-hl-mode)
   :config
-  ;; (diff-hl-margin-mode)
+  (diff-hl-margin-mode)
   )
 
-;; (use-package aggressive-indent
-;;   :init
-;;   (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
-;;   (add-hook 'clojure-mode-hook #'aggressive-indent-mode)
-;;   )
-
-;; (use-package lispy
-;;   :init
-;;   (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
-;;   (add-hook 'clojure-mode-hook (lambda () (lispy-mode 1)))
-;;   )
-
-;; On-the-fly syntax checker
+;; On-the-fly syntax checker.
 (use-package flycheck
   :diminish flycheck-mode
-  :init
-  (add-hook 'prog-mode-hook #'flycheck-mode)
-  (add-hook 'text-mode-hook #'flycheck-mode)
+  :hook ((prog-mode . flycheck-mode)
+         (text-mode . flycheck-mode)
+         )
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors)
   :config
@@ -1452,34 +1434,33 @@ one."
   (add-to-list 'flycheck-checkers 'proselint)
   )
 
+;; English language lints.
 (use-package flycheck-vale
   :config
   (flycheck-vale-setup)
   )
 
-;; Add linting for elisp packages
+;; Elisp package lints.
 (use-package flycheck-package
-  :init
-  (add-hook 'flycheck-mode-hook #'flycheck-package-setup))
+  :hook (flycheck-mode . flycheck-package-setup))
 
-;; Company mode for auto-completion
+;; Company mode for auto-completion.
 (use-package company
   :diminish company-mode
   :bind ("M-/" . company-complete)
-  :config
-  (add-hook 'after-init-hook 'global-company-mode)
+  :hook (after-init . global-company-mode)
+  :init
   (setq company-idle-delay nil)
   (setq company-tooltip-align-annotations t) ;; align tooltips to right border
   )
 
-;; Yasnippet
+;; Yasnippet.
 ;; Note: list all snippets for current mode with M-x `yas-describe-tables'.
 (use-package yasnippet-snippets)
 (use-package yasnippet
   :defer t
   :diminish yas-minor-mode
-  :init
-  (add-hook 'prog-mode-hook #'yas-minor-mode)
+  :hook (prog-mode . yas-minor-mode)
   :config
   (yas-reload-all))
 
@@ -1487,9 +1468,11 @@ one."
 
 ;; Clojure
 
-(use-package clojure-mode)
+(use-package clojure-mode
+  :defer t)
 
-(use-package flycheck-clojure)
+(use-package flycheck-clojure
+  :defer t)
 
 (use-package cider
   :ensure t
@@ -1500,7 +1483,6 @@ one."
 ;; Haskell
 
 (use-package haskell-mode
-  :defer t
   :mode "\\.hs\\'"
   :init
   (add-hook 'haskell-mode-hook
@@ -1520,8 +1502,7 @@ one."
   )
 
 (use-package flycheck-haskell
-  :init
-  (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
+  :hook (flycheck-mode . flycheck-haskell-setup))
 
 ;; ;; Completions for Haskell
 ;; ;; TODO: doesn't get loaded...
@@ -1544,6 +1525,7 @@ one."
 
 ;; Javascript REPL
 (use-package nodejs-repl
+  :defer t
   :init
   (add-hook 'js2-mode-hook
             (lambda ()
@@ -1556,16 +1538,16 @@ one."
 
 ;; JSON
 
-(use-package json-mode)
+(use-package json-mode
+  :defer t)
 
 ;; Lua
 
 (use-package lua-mode
+  :mode "\\.lua\\'"
   :config
   (setq lua-indent-level 4)
   )
-
-(use-package moonscript)
 
 ;; Markdown
 
@@ -1580,7 +1562,8 @@ one."
                   (kbd "M-n") 'scroll-up-line-quick)
                 ))
   )
-(use-package markdown-toc)
+(use-package markdown-toc
+  :defer t)
 
 ;; Nim
 
@@ -1588,7 +1571,7 @@ one."
   :init
   (setq nim-nimsuggest-path "~/.nim/bin/nimsuggest")
   ;; Currently nimsuggest doesn't support nimscript files, so only nim-mode...
-  (add-hook 'nim-mode-hook 'nimsuggest-mode)
+  :hook (nim-mode . nimsuggest-mode)
   :config
   (define-key nim-mode-map (kbd "RET") #'newline-and-indent)
   )
@@ -1604,12 +1587,12 @@ one."
 
 (use-package racer
   :diminish racer-mode
+  :hook ((rust-mode  . racer-mode)
+         (racer-mode . eldoc-mode)
+         )
   :init
-  (add-hook 'rust-mode-hook #'racer-mode)
-  (add-hook 'racer-mode-hook #'eldoc-mode)
   (setq racer-rust-src-path "/Users/marcin/.rustup/toolchains/\
 stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
-
   :config
   (define-key racer-mode-map (kbd "<mouse-2>") 'mouse-find-definition)
   (define-key racer-mode-map (kbd "<mouse-3>") 'pop-tag-mark)
@@ -1626,9 +1609,9 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 ;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
 (use-package cargo
   :diminish cargo-minor-mode
-  :init
-  (add-hook 'rust-mode-hook 'cargo-minor-mode)
-  (add-hook 'toml-mode-hook 'cargo-minor-mode)
+  :hook ((rust-mode . cargo-minor-mode)
+         (toml-mode . cargo-minor-mode)
+         )
   )
 
 ;; Doesn't work, json-read-error
@@ -1698,16 +1681,19 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 ;; Set location of agenda files
 (setq org-agenda-files '("~/Text/org/todo.org"))
 
-;; Org-refile settings
+;;; Org-refile settings
+
 ;; `org-refile' notes to the top of the list
 (setq org-reverse-note-order t)
 ;; Use headline paths (level1/level2/...)
 (setq org-refile-use-outline-path t)
 ;; Go down in steps when completing a path
 (setq org-outline-path-complete-in-steps nil)
-
 (setq org-refile-targets '((org-agenda-files . (:maxlevel . 9))
                            ("~/Text/org/notes.org" . (:maxlevel . 9))))
+;; Jump to headings with completion.
+(setq org-goto-interface 'outline-path-interface
+      org-goto-max-level 10)
 
 ;; org-capture template
 (defvar org-capture-templates
