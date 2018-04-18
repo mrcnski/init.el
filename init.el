@@ -247,6 +247,9 @@
 ;; Fix cursor movement lag
 (setq auto-window-vscroll nil)
 
+;; Replace yes/no prompts with y/n
+(fset 'yes-or-no-p 'y-or-n-p)
+
 ;; Keep directories clean
 (use-package no-littering
   :config
@@ -290,13 +293,13 @@
 (tooltip-mode nil)
 (setq x-gtk-use-system-tooltips nil)
 
-(fset 'yes-or-no-p 'y-or-n-p)        ;; Replace yes/no prompts with y/n
-(put 'downcase-region 'disabled nil) ;; Enable downcase-region
-(put 'upcase-region 'disabled nil)   ;; Enable upcase-region
-(put 'scroll-left 'disabled nil)
-(put 'scroll-right 'disabled nil)
+;; Enable functions that are disabled by default.
+(put 'downcase-region  'disabled nil)
+(put 'upcase-region    'disabled nil)
+(put 'scroll-left      'disabled nil)
+(put 'scroll-right     'disabled nil)
 (put 'narrow-to-region 'disabled nil)
-(put 'narrow-to-page 'disabled nil)
+(put 'narrow-to-page   'disabled nil)
 
 (setq show-paren-delay highlight-delay)
 (show-paren-mode 1)
@@ -378,27 +381,12 @@
 ;; Turn on utf-8 by default
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
-(prefer-coding-system 'utf-8)
+(prefer-coding-system       'utf-8)
 
 ;; Setup selected file endings to open in certain modes
-(add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
+(add-to-list 'auto-mode-alist '("\\.hdl\\'"  . c-mode))
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
-
-;; Actions to perform when saving
-;; (add-hook 'before-save-hook 'whitespace-cleanup)
-;; (add-hook 'before-save-hook 'ispell-comments-and-strings)
-
-;; Automatically save on loss of focus
-(defun save-all ()
-  "Save all file-visiting buffers without prompting."
-  (interactive)
-  (save-some-buffers t))
-
-;; Automatically save all file-visiting buffers when Emacs loses focus.
-(add-hook 'focus-out-hook 'save-all)
-;; (add-hook 'focus-out-hook 'balance-windows)
-(global-set-key (kbd "C-x s") 'save-all)
 
 ;;; My Functions and Shortcuts/Keybindings
 
@@ -417,13 +405,30 @@
 (global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
 (global-set-key (kbd "s-o") 'helm-ag-pop-stack)
 
+(global-set-key [f12] 'toggle-frame-fullscreen)
+
+;; Actions to perform when saving
+;; (add-hook 'before-save-hook 'whitespace-cleanup)
+;; (add-hook 'before-save-hook 'ispell-comments-and-strings)
+
+;; Automatically save on loss of focus
+(defun save-all ()
+  "Save all file-visiting buffers without prompting."
+  (interactive)
+  (save-some-buffers t))
+
+;; Automatically save all file-visiting buffers when Emacs loses focus.
+(add-hook 'focus-out-hook 'save-all)
+;; (add-hook 'focus-out-hook 'balance-windows)
+(global-set-key (kbd "C-x s") 'save-all)
+
 (defun goto-line-show ()
   "Show line numbers temporarily, while prompting for the line number input."
   (interactive)
   (unwind-protect
       (progn
         (linum-mode 1)
-    (call-interactively #'goto-line))
+        (call-interactively #'goto-line))
     (linum-mode -1)))
 (global-set-key (kbd "s-l") 'goto-line-show)
 
@@ -765,12 +770,12 @@ one."
   (cond
    ;; ((font-exists-p "Iosevka")
    ;;  (set-face-attribute
-   ;;   'default nil :font "Iosevka:weight=Regular" :height 150)
+   ;;   'default nil :font "Iosevka:weight=Regular" :height 120)
    ;;  (setq-default line-spacing 0)
    ;;  )
    ((font-exists-p "Hack")
     (set-face-attribute
-     'default nil :font "Hack:weight=Regular" :height 140)
+     'default nil :font "Hack:weight=Regular" :height 120)
     (setq-default line-spacing 1)
     )
    )
@@ -1028,6 +1033,9 @@ one."
 (use-package copy-as-format
   :defer t)
 
+;; Generate filler text.
+(use-package lorem-ipsum)
+
 ;; Jump to tag definitions using ripgrep
 ;; (use-package dumb-jump
 ;;   :bind (("M-g o" . dumb-jump-go-other-window)
@@ -1059,10 +1067,10 @@ one."
 ;; (use-package region-state
 ;;   :config (region-state-mode))
 
-;; Display current function in mode line
-(use-package which-func
-  :config
-  (which-function-mode 1))
+;; ;; Display current function in mode line
+;; (use-package which-func
+;;   :config
+;;   (which-function-mode 1))
 
 ;; Highlight indentation
 (use-package highlight-indent-guides
@@ -1239,10 +1247,9 @@ one."
   )
 
 ;; Display available keybindings in Dired mode (? creates popup).
-(use-package discover
-  :defer t)
+(use-package discover)
 
-;; Maximize/unmaximize current window.
+;; Temporarily "hide" other windows.
 (use-package zygospore
   :bind (
          ;; ("C-x 1" . zygospore-toggle-delete-other-windows)
@@ -1400,6 +1407,10 @@ one."
   (global-diff-hl-mode)
   :config
   (diff-hl-margin-mode)
+  (diff-hl-flydiff-mode) ;; No need to save before seeing diffs
+  (diff-hl-dired-mode)   ;; See diffs in Dired
+  ;; Refresh diffs after a Magit commit
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   )
 
 ;; On-the-fly syntax checker.
@@ -1460,7 +1471,9 @@ one."
 (use-package yasnippet
   :defer t
   :diminish yas-minor-mode
-  :hook (prog-mode . yas-minor-mode)
+  :hook ((prog-mode . yas-minor-mode)
+         (text-mode . yas-minor-mode)
+         )
   :config
   (yas-reload-all))
 
