@@ -16,12 +16,14 @@
 
 ;;; Code:
 
-;;; Initialize initialization
+;;; Initialize initialization.
 
 ;; First things first, increase GC threshold to speed up startup.
-;; Reset the GC threshold after initialization, and GC whenever we tab out
-(setq gc-cons-threshold most-positive-fixnum)
-(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 50000000)))
+;; Reset the GC threshold after initialization, and GC whenever we tab out.
+(setq gc-cons-threshold (* 64 1000 1000))
+(add-hook 'after-init-hook #'(lambda ()
+                               ;; restore after startup
+                               (setq gc-cons-threshold (* 2 1000 1000))))
 (add-hook 'focus-out-hook 'garbage-collect)
 
 ;;; User-Defined Variables
@@ -34,14 +36,14 @@
 (defvar user-notes-location "~/Text/org/notes.org")
 (defvar highlight-delay .03)
 
-;; Open .emacs init
+;; Open .emacs init.
 (defun open-init-file ()
   "Open the init file."
   (interactive)
   (find-file init-file-location))
 (global-set-key (kbd "C-c i") 'open-init-file)
 
-;; Open scratchpad.txt
+;; Open scratchpad.txt.
 (defun open-scratchpad-file ()
   "Open scratchpad file."
   (interactive)
@@ -50,18 +52,18 @@
 
 ;;; Package settings
 
-;; Add "packages" folder to load-path
+;; Add "packages" folder to load-path.
 (add-to-list 'load-path packages-location)
 
 (require 'package)
-;; Explicitly enable packages
+;; Explicitly enable packages.
 (setq package-enable-at-startup nil)
 ;; Add package sources (use package-refresh-contents)
 (unless (assoc-default "melpa" package-archives)
   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t))
 ;;(package-refresh-contents)
 
-;; Run auto-load functions specified by package authors
+;; Run auto-load functions specified by package authors.
 (package-initialize)
 
 ;; Require use-package.
@@ -88,6 +90,11 @@
 
 ;; Find bugs in Emacs configuration.
 (use-package bug-hunter
+  :defer t)
+
+;; Emacs startup profiler.
+;; Breaks on my init file.
+(use-package esup
   :defer t)
 
 ;; Diminish modeline clutter.
@@ -369,6 +376,7 @@
 ;; (setq display-time-format "%l:%M%p")
 ;; Replace selected text when typing or pasting
 (delete-selection-mode 1)
+;; Auto revert files that changed on disk.
 (global-auto-revert-mode 1)
 
 ;; Set c-style comments to be "//" by default (these are just better, sorry)
@@ -405,6 +413,8 @@
 (global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
 (global-set-key (kbd "s-o") 'helm-ag-pop-stack)
 
+;; Reload the current buffer from disk
+(global-set-key [f5]  'revert-buffer)
 (global-set-key [f12] 'toggle-frame-fullscreen)
 
 ;; Actions to perform when saving
@@ -476,14 +486,11 @@
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 (define-key hs-minor-mode-map (kbd "C-)") 'hs-toggle-hiding)
 
-;; artist mode
-(global-set-key (kbd "C-$") 'artist-mode)
-
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
+(global-set-key (kbd "M-z") 'zap-up-to-char)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
-(global-set-key (kbd "M-z") 'zap-up-to-char)
 
 ;; Select the current line
 (defun select-current-line ()
@@ -536,9 +543,6 @@ every line included in the region."
     (move-to-column col))) ;; Restore column position
 
 (global-set-key (kbd "C-S-k") 'annihilate-line-dwim)
-
-;; Reload the current buffer from disk
-(global-set-key [f5] 'revert-buffer)
 
 ;; Zoom in/out
 (global-set-key (kbd "M-+") 'text-scale-increase)
@@ -611,7 +615,7 @@ another window."
 
 (global-set-key (kbd "C-c C-r") 'rename-current-buffer-file)
 
-;; Move current line up or down
+;; Move current line up or down.
 (defun move-line-down ()
   "Move the current line down, preserving the cursor position."
   (interactive)
@@ -632,8 +636,8 @@ another window."
 (global-set-key (kbd "C-S-n") 'move-line-down)
 (global-set-key (kbd "C-S-p") 'move-line-up)
 
-;; Join the following line onto the current line
-;; Use this to quickly consolidate multiple lines into one
+;; Join the following line onto the current line.
+;; Use this to quickly consolidate multiple lines into one.
 (defun join-next-line ()
   "Join the following line onto the current line, preserving the cursor \
 position. This command can be used to rapidly consolidate multiple lines into \
@@ -645,7 +649,7 @@ one."
 
 (global-set-key (kbd "M-j") 'join-next-line)
 
-;; Scroll down/up by a smaller amount, doesn't change cursor position
+;; Scroll down/up by a smaller amount, doesn't change cursor position.
 (defun scroll-up-line-quick ()
   "Scroll up by a smaller amount without changing the cursor position."
   (interactive)
@@ -666,7 +670,7 @@ one."
                 'scroll-down-line-quick)
               ))
 
-;; Scroll other window down/up
+;; Scroll other window down/up.
 (defun scroll-other-window-up-quick ()
   "Scroll the other window up by a smaller amount."
   (interactive)
@@ -679,7 +683,7 @@ one."
 (global-set-key (kbd "M-N") 'scroll-other-window-up-quick)
 (global-set-key (kbd "M-P") 'scroll-other-window-down-quick)
 
-;; Open a new line below or above, even if the point is midsentence
+;; Open a new line below or above, even if the point is midsentence.
 (defun open-line-below ()
   "Open a new line below, even if the point is midsentence."
   (interactive)
@@ -715,7 +719,7 @@ one."
 
 (global-set-key (kbd "M-=") 'align-to-string)
 
-;; Commands to split window and move focus to other window
+;; Commands to split window and move focus to other window.
 (defun split-window-right-focus ()
   "Split window vertically and move focus to other window."
   (interactive)
@@ -733,7 +737,7 @@ one."
 (global-set-key (kbd "C-x 3") 'split-window-right-focus)
 (global-set-key (kbd "C-x 2") 'split-window-below-focus)
 
-;; Show ASCII table
+;; Show ASCII table.
 ;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html
 (defun ascii-table ()
   "Print the ascii table. Based on a defun by Alex Schroeder <asc@bsiag.com>."
@@ -1047,7 +1051,6 @@ one."
 ;;   :config
 ;;   (setq dumb-jump-selector 'helm)
 ;;   (setq dumb-jump-prefer-searcher 'rg)
-;;   :ensure
 ;;   )
 
 ;; ;; Line numbers
@@ -1121,11 +1124,12 @@ one."
 
 ;; Use a sensible mechanism for making buffer names unique.
 (require 'uniquify)
-(setq uniquify-buffer-name-style 'forward)
-(setq uniquify-min-dir-content 1)
+(setq uniquify-buffer-name-style 'forward
+      uniquify-min-dir-content 1)
 
 ;; Automatically save place in each file.
 (use-package saveplace
+  :defer 1
   :config
   (save-place-mode 1)
   )
@@ -1145,26 +1149,32 @@ one."
 (midnight-delay-set 'midnight-delay "4:30am")
 
 ;; Highlight the parts of lines that exceed column 80.
-(require 'whitespace)
-(diminish 'whitespace-mode)
-(setq whitespace-style '(face empty tabs lines-tail trailing))
+(use-package whitespace
+  :defer 2
+  :diminish whitespace-mode
+  :config
+  (setq whitespace-style '(face empty tabs lines-tail trailing))
 
-(add-hook 'c-mode-hook 'c-whitespace-mode)
-(add-hook 'c++-mode-hook 'c-whitespace-mode)
-(add-hook 'emacs-lisp-mode-hook 'c-whitespace-mode)
-(add-hook 'nim-mode-hook 'c-whitespace-mode)
+  (defun c-whitespace-mode ()
+    "Set whitespace column for c-like modes and turn on `whitespace-mode'."
+    (setq whitespace-line-column 80
+          fill-column 80
+          )
+    (whitespace-mode)
+    )
+  (add-hook 'c-mode-hook 'c-whitespace-mode)
+  (add-hook 'c++-mode-hook 'c-whitespace-mode)
+  (add-hook 'emacs-lisp-mode-hook 'c-whitespace-mode)
+  (add-hook 'nim-mode-hook 'c-whitespace-mode)
 
-(defun c-whitespace-mode ()
-  "Set whitespace column for c-like modes and turn on `whitespace-mode'."
-  (setq-local whitespace-line-column 80)
-  (whitespace-mode)
-  )
-
-(add-hook 'rust-mode-hook 'rust-whitespace-mode)
-(defun rust-whitespace-mode ()
-  "Set whitespace column for rust-mode and turn on `whitespace-mode'."
-  (setq-local whitespace-line-column 100)
-  (whitespace-mode)
+  (defun rust-whitespace-mode ()
+    "Set whitespace column for rust-mode and turn on `whitespace-mode'."
+    (setq whitespace-line-column 100
+          fill-column 100
+          )
+    (whitespace-mode)
+    )
+  (add-hook 'rust-mode-hook 'rust-whitespace-mode)
   )
 
 ;; Multiple cursors.
@@ -1195,6 +1205,11 @@ one."
          ("C-M-r" . vr/isearch-backward)
          ("C-s"   . isearch-forward)
          ("C-r"   . isearch-backward)))
+
+;; Fontify symbols representing faces with that face.
+(use-package fontify-face
+  :diminish fontify-face-mode
+  :defer t)
 
 ;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode
@@ -1251,10 +1266,8 @@ one."
 
 ;; Temporarily "hide" other windows.
 (use-package zygospore
-  :bind (
-         ;; ("C-x 1" . zygospore-toggle-delete-other-windows)
-         ("M-o"   . zygospore-toggle-delete-other-windows)
-         ))
+  :bind ("M-o" . zygospore-toggle-delete-other-windows)
+  )
 
 ;; Undo/redo window configurations.
 (use-package winner
@@ -1376,6 +1389,7 @@ one."
 
 ;; Project manager.
 (use-package projectile
+  :defer 1
   :hook (prog-mode . projectile-mode)
   :bind ("<f6>" . projectile-compile-project)
   :config
@@ -1488,7 +1502,7 @@ one."
   :defer t)
 
 (use-package cider
-  :ensure t
+  :after clojure-mode
   :config
   (setq cider-use-overlays nil)
   )
@@ -1576,6 +1590,10 @@ one."
                 ))
   )
 (use-package markdown-toc
+  :defer t)
+
+;; On-the-fly markdown preview. M-x flymd-flyit
+(use-package flymd
   :defer t)
 
 ;; Nim
