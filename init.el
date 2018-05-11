@@ -32,8 +32,9 @@
 (defvar packages-location   (concat user-emacs-directory "packages/move-2"))
 (defvar scratchpad-location "~/Text/scratchpad.txt")
 
-(defvar user-todo-location  "~/Text/org/todo.org")
-(defvar user-notes-location "~/Text/org/notes.org")
+(defvar user-todo-location     "~/Text/org/todo.org")
+(defvar user-physical-location "~/Text/org/physical.org")
+(defvar user-notes-location    "~/Text/org/notes.org")
 (defvar highlight-delay .03)
 
 ;; Open .emacs init.
@@ -760,6 +761,10 @@ one."
 ;; Load Themes
 ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 
+(defadvice load-theme (before clear-previous-themes activate)
+  "Clear existing theme settings instead of layering them"
+  (mapc #'disable-theme custom-enabled-themes))
+
 ;; Nimbus is my personal theme, available on Melpa
 (use-package nimbus-theme)
 
@@ -1088,7 +1093,9 @@ one."
 ;; Automatically clean up extraneous whitespace
 (use-package ws-butler
   :diminish ws-butler-mode
-  :hook (prog-mode . ws-butler-mode))
+  :hook ((prog-mode . ws-butler-mode)
+         ;; (text-mode . ws-butler-mode)
+         ))
 
 ;; ;; Save open files across Emacs sessions.
 ;; ;; I use this instead of Desktop.el which saves the entire session.
@@ -1596,6 +1603,10 @@ one."
 (use-package flymd
   :defer t)
 
+;; Mode for JIRA-markup formatted text.
+(use-package jira-markup-mode
+  :defer t)
+
 ;; Nim
 
 (use-package nim-mode
@@ -1637,13 +1648,13 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
     )
   )
 
-;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
-(use-package cargo
-  :diminish cargo-minor-mode
-  :hook ((rust-mode . cargo-minor-mode)
-         (toml-mode . cargo-minor-mode)
-         )
-  )
+;; ;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
+;; (use-package cargo
+;;   :diminish cargo-minor-mode
+;;   :hook ((rust-mode . cargo-minor-mode)
+;;          (toml-mode . cargo-minor-mode)
+;;          )
+;;   )
 
 ;; Doesn't work, json-read-error
 ;; (use-package flycheck-rust
@@ -1666,112 +1677,105 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 ;; TODO: organize this section
 
 (use-package org
+  :hook (org-mode . org-mode-hook-fun)
   :diminish visual-line-mode
   :diminish org-indent-mode
+
+  :config
+  ;; Settings
+
+  ;; The ellipsis to use in the org-mode outline
+  ;; (setq org-ellipsis "...")
+  ;; Try to keep cursor before ellipses
+  (setq org-special-ctrl-a/e nil)
+  ;; Smart editing of invisible region around ellipses
+  (setq org-catch-invisible-edits 'smart)
+
+  ;; All subtasks must be DONE before marking a task as DONE
+  (setq org-enforce-todo-dependencies t)
+  (setq org-log-done (quote time))       ;; Log time a task was set to DONE
+  (setq org-log-redeadline (quote time)) ;; Log time a task's deadline changed
+  (setq org-log-reschedule (quote time)) ;; Log time a task was rescheduled
+
+  (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
+
+  ;; Custom to-do states
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
+          (sequence "|" "CANCELED(x)")))
+
+  ;; Set location of agenda files
+  (setq org-agenda-files '("~/Text/org/todo.org"))
+
+  ;; Org-refile settings
+
+  ;; `org-refile' notes to the top of the list
+  (setq org-reverse-note-order t)
+  ;; Use headline paths (level1/level2/...)
+  (setq org-refile-use-outline-path t)
+  ;; Go down in steps when completing a path
+  (setq org-outline-path-complete-in-steps nil)
+  (setq org-refile-targets '((org-agenda-files . (:maxlevel . 9))
+                             ("~/Text/org/notes.org" . (:maxlevel . 9))))
+  ;; Jump to headings with completion.
+  (setq org-goto-interface 'outline-path-interface
+        org-goto-max-level 10)
+
+  ;; org-capture template
+  (defvar org-capture-templates
+    '(("t" "My TODO task format." entry
+       (file+headline "todo.org" "Todo List")
+       "* TODO %?\nSCHEDULED: %t")
+      ("n" "My note format." entry
+       (file "notes.org")
+       "* %?")))
+
+  ;; Shortcuts/Keybindings
+
+  (defun org-refile-goto ()
+    "Use org-refile to conveniently choose and go to a heading."
+    (interactive)
+    (let ((current-prefix-arg '(4))) (call-interactively 'org-refile))
+    )
+
+  ;; org-capture with template as default behavior
+  (defun org-task-capture ()
+    "Capture a task with my todo template."
+    (interactive)
+    (org-capture nil "t"))
+  (defun org-note-capture ()
+    "Capture a note with my note template."
+    (interactive)
+    (org-capture nil "n"))
+
+  ;; This binding conflicts with projectile so get rid of it
+  (define-key org-mode-map (kbd "C-'")   nil)
+  (define-key org-mode-map (kbd "C-S-n") 'org-move-subtree-down)
+  (define-key org-mode-map (kbd "C-S-p") 'org-move-subtree-up)
+
+  (define-key org-mode-map (kbd "C-<")   'org-promote-subtree)
+  (define-key org-mode-map (kbd "C->")   'org-demote-subtree)
+  (define-key org-mode-map (kbd "s-;")   'org-refile-goto)
+  (define-key org-mode-map (kbd "s-'")   'org-refile)
+
+  (global-set-key (kbd "C-c l") 'org-store-link)
+  (global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda
+
+  (global-set-key (kbd "C-c c") 'org-note-capture) ;; org-capture
+  (global-set-key (kbd "C-c v") 'org-task-capture)
+
+  ;; Jump to last capture
+  (global-set-key (kbd "C-c j") 'org-refile-goto-last-stored)
   )
+
 ;; Open .org files in org-mode
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
-;; Enables exporting to markdown
-(eval-after-load "org"
-  '(require 'ox-md nil t))
-
-;; The ellipsis to use in the org-mode outline
-;; (setq org-ellipsis "...")
-;; Try to keep cursor before ellipses
-(setq org-special-ctrl-a/e nil)
-;; Smart editing of invisible region around ellipses
-(setq org-catch-invisible-edits 'smart)
-
-;; All subtasks must be DONE before marking a task as DONE
-(setq org-enforce-todo-dependencies t)
-(setq org-log-done (quote time))       ;; Log the time a task was set to DONE
-(setq org-log-redeadline (quote time)) ;; Log the time a task's deadline changed
-(setq org-log-reschedule (quote time)) ;; Log the time a task was rescheduled
-
-(setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
-
-;; Org-mode word-wrap and indented entries
-(add-hook 'org-mode-hook #'
-          (lambda ()
-            (visual-line-mode)
-            (org-indent-mode)
-            (toggle-word-wrap)
-            ))
-
-;; Unbind keys stolen by org-mode
-(add-hook 'org-mode-hook
-          (lambda()
-            (local-unset-key (kbd "C-,"))))
-
-;; Custom to-do states
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
-        (sequence "|" "CANCELED(x)")))
-
-;; Set location of agenda files
-(setq org-agenda-files '("~/Text/org/todo.org"))
-
-;;; Org-refile settings
-
-;; `org-refile' notes to the top of the list
-(setq org-reverse-note-order t)
-;; Use headline paths (level1/level2/...)
-(setq org-refile-use-outline-path t)
-;; Go down in steps when completing a path
-(setq org-outline-path-complete-in-steps nil)
-(setq org-refile-targets '((org-agenda-files . (:maxlevel . 9))
-                           ("~/Text/org/notes.org" . (:maxlevel . 9))))
-;; Jump to headings with completion.
-(setq org-goto-interface 'outline-path-interface
-      org-goto-max-level 10)
-
-;; org-capture template
-(defvar org-capture-templates
-  '(("t" "My TODO task format." entry
-     (file+headline "todo.org" "Todo List")
-     "* TODO %?\nSCHEDULED: %t")
-    ("n" "My note format." entry
-     (file "notes.org")
-     "* %?")))
-
-;; Shortcuts/Keybindings
-
-;; This binding conflicts with projectile so get rid of it
-(define-key org-mode-map (kbd "C-'")   nil)
-(define-key org-mode-map (kbd "C-S-n") 'org-move-subtree-down)
-(define-key org-mode-map (kbd "C-S-p") 'org-move-subtree-up)
-
-(define-key org-mode-map (kbd "C-<")   'org-promote-subtree)
-(define-key org-mode-map (kbd "C->")   'org-demote-subtree)
-
-(defun org-refile-goto ()
-  "Use org-refile to conveniently choose and go to a heading."
-  (interactive)
-  (let ((current-prefix-arg '(4))) (call-interactively 'org-refile))
-  )
-(define-key org-mode-map (kbd "s-;")   'org-refile-goto)
-(define-key org-mode-map (kbd "s-'")   'org-refile)
-
-(global-set-key (kbd "C-c l") 'org-store-link)
-(global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda
-
-;; org-capture with template as default behavior
-(defun org-task-capture ()
-  "Capture a task with my todo template."
-  (interactive)
-  (org-capture nil "t"))
-
-(defun org-note-capture ()
-  "Capture a note with my note template."
-  (interactive)
-  (org-capture nil "n"))
-
-(global-set-key (kbd "C-c c") 'org-note-capture) ;; org-capture
-(global-set-key (kbd "C-c v") 'org-task-capture)
-
-;; Jump to last capture
-(global-set-key (kbd "C-c j") 'org-refile-goto-last-stored)
+(defun org-mode-hook-fun()
+  (visual-line-mode) ;; Word-wrap
+  (toggle-word-wrap t)
+  (org-indent-mode) ;; Indented entries
+  (local-unset-key (kbd "C-,"))) ;; Unbind keys stolen by org-mode
 
 ;;; Final
 
@@ -1812,14 +1816,17 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   'mode-line-end-spaces
   ))
 
-;; Set final variables
+;; Set final variables.
 (setq org-directory "~/Text/org")     ;; Default org directory
 
-;; Starts with todo.org and notes.org
+;; Initialize org files I want to display.
 (find-file user-todo-location)
 (split-window-right-focus)
 (find-file user-notes-location)
-;;(org-agenda nil "a")                ;; Open org-agenda
+(next-multiframe-window)
+(split-window-below-focus)
+(find-file user-physical-location)
+(other-window 1)
 
 (message "init.el finished loading successfully!")
 
