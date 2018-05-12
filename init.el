@@ -660,16 +660,10 @@ one."
   (interactive)
   (scroll-down-line 6))
 
-(global-set-key (kbd "M-n") 'scroll-up-line-quick)
-(global-set-key (kbd "M-p") 'scroll-down-line-quick)
-
-(add-hook 'makefile-bsdmake-mode-hook
-          #'(lambda ()
-              (define-key makefile-bsdmake-mode-map (kbd "M-n")
-                'scroll-up-line-quick)
-              (define-key makefile-bsdmake-mode-map (kbd "M-p")
-                'scroll-down-line-quick)
-              ))
+(bind-keys*
+ ("M-n" . scroll-up-line-quick)
+ ("M-p" . scroll-down-line-quick)
+ )
 
 ;; Scroll other window down/up.
 (defun scroll-other-window-up-quick ()
@@ -842,12 +836,6 @@ one."
 
 ;;; ERC settings
 
-(add-hook 'erc-mode-hook
-          #'(lambda ()
-              (define-key erc-mode-map (kbd "M-n") 'scroll-up-line-quick)
-              (define-key erc-mode-map (kbd "M-p") 'scroll-down-line-quick)
-              ))
-
 (setq erc-autojoin-channels-alist
       '(("freenode.net" "#emacs")
         ("mozilla.org" "#rust")))
@@ -880,8 +868,6 @@ one."
 ;; Use helm to list eshell history
 (add-hook 'eshell-mode-hook
           #'(lambda ()
-              (define-key eshell-mode-map (kbd "M-n") 'scroll-up-line-quick)
-              (define-key eshell-mode-map (kbd "M-p") 'scroll-down-line-quick)
               (define-key eshell-mode-map (kbd "M-,")
                 'eshell-previous-matching-input-from-input)
               (define-key eshell-mode-map (kbd "M-.")
@@ -1587,14 +1573,6 @@ one."
 
 (use-package markdown-mode
   :mode "\\.md\\'"
-  :init
-  (add-hook 'markdown-mode-hook
-            #'(lambda ()
-                (define-key markdown-mode-map
-                  (kbd "M-p") 'scroll-down-line-quick)
-                (define-key markdown-mode-map
-                  (kbd "M-n") 'scroll-up-line-quick)
-                ))
   )
 (use-package markdown-toc
   :defer t)
