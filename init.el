@@ -29,12 +29,13 @@
 ;;; User-Defined Variables
 
 (defvar init-file-location  (concat user-emacs-directory "init.el"))
-(defvar packages-location   (concat user-emacs-directory "packages/move-2"))
 (defvar scratchpad-location "~/Text/scratchpad.txt")
 
-(defvar user-todo-location     "~/Text/org/todo.org")
 (defvar user-physical-location "~/Text/org/physical.org")
 (defvar user-notes-location    "~/Text/org/notes.org")
+(defvar user-todo-location     "~/Text/org/todo.org")
+(defvar user-work-location     "~/Text/org/work.org")
+
 (defvar highlight-delay .03)
 
 ;; Open .emacs init.
@@ -52,9 +53,6 @@
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
 
 ;;; Package settings
-
-;; Add "packages" folder to load-path.
-(add-to-list 'load-path packages-location)
 
 (require 'package)
 ;; Explicitly enable packages.
@@ -125,7 +123,6 @@
 (define-key helm-map (kbd "M-x")   'helm-select-action)
 
 (global-set-key (kbd "M-x")        'helm-M-x)
-(global-set-key (kbd "C-x b")      'helm-mini)
 (global-set-key (kbd "C-x C-f")    'helm-find-files)
 (global-set-key (kbd "C-h C-a")    'helm-apropos)
 (global-set-key (kbd "C-x C-SPC")  'helm-all-mark-rings)
@@ -172,7 +169,8 @@
 (setq helm-mini-default-sources '(helm-source-buffers-list
                                   helm-source-recentf
                                   helm-source-files-in-current-dir
-                                  helm-source-buffer-not-found))
+                                  ;; helm-source-buffer-not-found
+                                  ))
 
 (setq helm-autoresize-max-height 0)
 (setq helm-autoresize-min-height 40)
@@ -209,6 +207,7 @@
   (add-hook 'c-mode-hook      'helm-gtags-mode)
   (add-hook 'c++-mode-hook    'helm-gtags-mode)
   (add-hook 'asm-mode-hook    'helm-gtags-mode)
+
   :config
   (setq
    helm-gtags-ignore-case t
@@ -343,8 +342,7 @@
       isearch-allow-scroll t
       ;; Isearch convenience, space matches anything
       ;; search-whitespace-regexp ".*?"
-      ;; Display trailing whitespace
-      show-trailing-whitespace 1
+      show-trailing-whitespace 1      ;; Display trailing whitespace
       lazy-highlight-initial-delay .15
 
       pop-up-frames nil               ;; Open files in existing frames
@@ -399,6 +397,11 @@
 
 ;;; My Functions and Shortcuts/Keybindings
 
+(bind-keys*
+ ;; ("M-n" . scroll-up-line-quick)
+ ;; ("M-p" . scroll-down-line-quick)
+ )
+
 ;; Set up keys using super. s-a, s-s, s-x, s-c, and s-v correspond to
 ;; select-all, save, cut, copy, and paste, which I've left for
 ;; consistency/utility on Macs.
@@ -406,6 +409,7 @@
 (global-set-key (kbd "s-p") 'previous-buffer)
 (global-set-key (kbd "s-n") 'next-buffer)
 (global-set-key (kbd "s-k") 'kill-this-buffer)
+
 (global-set-key (kbd "s-y") 'helm-show-kill-ring)
 (global-set-key (kbd "s-h") 'helm-mark-ring)
 (global-set-key (kbd "s-g") 'magit-status)
@@ -414,19 +418,20 @@
 (global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
 (global-set-key (kbd "s-o") 'helm-ag-pop-stack)
 
-;; Reload the current buffer from disk
+;; Reload the current buffer from disk.
 (global-set-key [f5]  'revert-buffer)
 (global-set-key [f12] 'toggle-frame-fullscreen)
 
-;; Actions to perform when saving
+;; Actions to perform when saving.
 ;; (add-hook 'before-save-hook 'whitespace-cleanup)
 ;; (add-hook 'before-save-hook 'ispell-comments-and-strings)
 
-;; Automatically save on loss of focus
+;; Automatically save on loss of focus.
 (defun save-all ()
   "Save all file-visiting buffers without prompting."
   (interactive)
-  (save-some-buffers t))
+  (save-some-buffers t) ;; Do not prompt for confirmation.
+  )
 
 ;; Automatically save all file-visiting buffers when Emacs loses focus.
 (add-hook 'focus-out-hook 'save-all)
@@ -459,12 +464,28 @@
   (helm-projectile-ag)
   )
 
+;; Commands to split window and move focus to other window.
+(defun split-window-below-focus ()
+  "Split window horizontally and move focus to other window."
+  (interactive)
+  (split-window-below)
+  (balance-windows)
+  (other-window 1))
+(defun split-window-right-focus ()
+  "Split window vertically and move focus to other window."
+  (interactive)
+  (split-window-right)
+  (balance-windows)
+  (other-window 1))
+
+;; Remap the default window-splitting commands to the ones above
+(global-set-key (kbd "C-x 2") 'split-window-below-focus)
+(global-set-key (kbd "C-x 3") 'split-window-right-focus)
+
 (global-set-key (kbd "C-0") 'delete-window)
 (global-set-key (kbd "C-1") 'delete-other-windows)
 (global-set-key (kbd "C-2") 'split-window-below-focus)
 (global-set-key (kbd "C-3") 'split-window-right-focus)
-;; (global-set-key (kbd "s-C-,") (lambda () (interactive) (other-window -1)))
-;; (global-set-key (kbd "s-C-.") (lambda () (interactive) (other-window 1)))
 
 (global-set-key (kbd "C-j") 'indent-new-comment-line)
 ;; (global-set-key (kbd "M-$") 'ispell-buffer)
@@ -492,6 +513,67 @@
 (global-set-key (kbd "M-z") 'zap-up-to-char)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
+
+;; Zoom in/out
+(global-set-key (kbd "M-+") 'text-scale-increase)
+(global-set-key (kbd "M--") 'text-scale-decrease)
+
+;; Easily open info-display-manual
+(global-set-key (kbd "C-h I") 'info-display-manual)
+
+(defun indent-buffer ()
+  "Indent the whole buffer."
+  (interactive)
+  (indent-region (point-min) (point-max))
+  )
+
+(global-set-key (kbd "C-c n") 'indent-buffer)
+;; (add-hook 'before-save-hook 'indent-buffer)
+
+(defun region-history-other (begin end)
+  "Display the source controlled history of region from BEGIN to END in \
+another window."
+  (interactive "r")
+  (vc-region-history begin end)
+  (other-window 1)
+  )
+(global-set-key (kbd "C-c h") 'region-history-other)
+
+;; Delete current buffer file
+(defun delete-current-buffer-file ()
+  "Remove file connected to current buffer and kill buffer."
+  (interactive)
+  (let ((filename (buffer-file-name))
+        (buffer (current-buffer))
+        (name (buffer-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (ido-kill-buffer)
+      (when (yes-or-no-p "Are you sure you want to remove this file? ")
+        (delete-file filename)
+        (kill-buffer buffer)
+        (message "File '%s' successfully removed" filename)))))
+
+(global-set-key (kbd "C-c k") 'delete-current-buffer-file)
+
+;; Rename current buffer file
+(defun rename-current-buffer-file ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+        (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (if (get-buffer new-name)
+            (error "A buffer named '%s' already exists!" new-name)
+          (rename-file filename new-name 1)
+          (rename-buffer new-name)
+          (set-visited-file-name new-name)
+          (set-buffer-modified-p nil)
+          (message "File '%s' successfully renamed to '%s'"
+                   name (file-name-nondirectory new-name)))))))
+
+(global-set-key (kbd "C-c r") 'rename-current-buffer-file)
 
 ;; Select the current line
 (defun select-current-line ()
@@ -545,77 +627,6 @@ every line included in the region."
 
 (global-set-key (kbd "C-S-k") 'annihilate-line-dwim)
 
-;; Zoom in/out
-(global-set-key (kbd "M-+") 'text-scale-increase)
-(global-set-key (kbd "M--") 'text-scale-decrease)
-
-;; Easily open info-display-manual
-(global-set-key (kbd "C-h I") 'info-display-manual)
-
-(defun indent-buffer ()
-  "Indent the whole buffer."
-  (interactive)
-  (indent-region (point-min) (point-max))
-  ;; (balance-windows) ;; might as well stick this in here
-  )
-
-(global-set-key (kbd "C-c n") 'indent-buffer)
-;; (add-hook 'before-save-hook 'indent-buffer)
-
-(defun region-history-other (begin end)
-  "Display the source controlled history of region from BEGIN to END in \
-another window."
-  (interactive "r")
-  (vc-region-history begin end)
-  (other-window 1)
-  )
-(global-set-key (kbd "C-c h") 'region-history-other)
-
-;; TODO: This seems to be buggy in org-mode
-(defun cleanup-empty-lines ()
-  "Remove all empty lines from the buffer."
-  (interactive)
-  (save-excursion
-    (flush-lines "^$" (point-min) (point-max))))
-
-(global-set-key (kbd "C-c m") 'cleanup-empty-lines)
-
-;; Delete current buffer file
-(defun delete-current-buffer-file ()
-  "Remove file connected to current buffer and kill buffer."
-  (interactive)
-  (let ((filename (buffer-file-name))
-        (buffer (current-buffer))
-        (name (buffer-name)))
-    (if (not (and filename (file-exists-p filename)))
-        (ido-kill-buffer)
-      (when (yes-or-no-p "Are you sure you want to remove this file? ")
-        (delete-file filename)
-        (kill-buffer buffer)
-        (message "File '%s' successfully removed" filename)))))
-
-(global-set-key (kbd "C-c C-k") 'delete-current-buffer-file)
-
-;; Rename current buffer file
-(defun rename-current-buffer-file ()
-  "Renames current buffer and file it is visiting."
-  (interactive)
-  (let ((name (buffer-name))
-        (filename (buffer-file-name)))
-    (if (not (and filename (file-exists-p filename)))
-        (error "Buffer '%s' is not visiting a file!" name)
-      (let ((new-name (read-file-name "New name: " filename)))
-        (if (get-buffer new-name)
-            (error "A buffer named '%s' already exists!" new-name)
-          (rename-file filename new-name 1)
-          (rename-buffer new-name)
-          (set-visited-file-name new-name)
-          (set-buffer-modified-p nil)
-          (message "File '%s' successfully renamed to '%s'"
-                   name (file-name-nondirectory new-name)))))))
-
-(global-set-key (kbd "C-c C-r") 'rename-current-buffer-file)
-
 ;; Move current line up or down.
 (defun move-line-down ()
   "Move the current line down, preserving the cursor position."
@@ -650,34 +661,6 @@ one."
 
 (global-set-key (kbd "M-j") 'join-next-line)
 
-;; Scroll down/up by a smaller amount, doesn't change cursor position.
-(defun scroll-up-line-quick ()
-  "Scroll up by a smaller amount without changing the cursor position."
-  (interactive)
-  (scroll-up-line 6))
-(defun scroll-down-line-quick ()
-  "Scroll down by a smaller amount without changing the cursor position."
-  (interactive)
-  (scroll-down-line 6))
-
-(bind-keys*
- ("M-n" . scroll-up-line-quick)
- ("M-p" . scroll-down-line-quick)
- )
-
-;; Scroll other window down/up.
-(defun scroll-other-window-up-quick ()
-  "Scroll the other window up by a smaller amount."
-  (interactive)
-  (scroll-other-window 5))
-(defun scroll-other-window-down-quick ()
-  "Scroll the other window down by a smaller amount."
-  (interactive)
-  (scroll-other-window-down 5))
-
-(global-set-key (kbd "M-N") 'scroll-other-window-up-quick)
-(global-set-key (kbd "M-P") 'scroll-other-window-down-quick)
-
 ;; Open a new line below or above, even if the point is midsentence.
 (defun open-line-below ()
   "Open a new line below, even if the point is midsentence."
@@ -703,6 +686,40 @@ one."
 (global-set-key (kbd "<S-return>") 'open-line-above)
 (global-set-key (kbd "<M-return>") 'clear-line)
 
+;; Scroll down/up by a smaller amount, doesn't change cursor position.
+(defun scroll-up-line-quick ()
+  "Scroll up by a smaller amount without changing the cursor position."
+  (interactive)
+  (scroll-up-line 6))
+(defun scroll-down-line-quick ()
+  "Scroll down by a smaller amount without changing the cursor position."
+  (interactive)
+  (scroll-down-line 6))
+
+(global-set-key (kbd "M-n") 'scroll-up-line-quick)
+(global-set-key (kbd "M-p") 'scroll-down-line-quick)
+
+(add-hook 'makefile-bsdmake-mode-hook
+          #'(lambda ()
+              (define-key makefile-bsdmake-mode-map (kbd "M-n")
+                'scroll-up-line-quick)
+              (define-key makefile-bsdmake-mode-map (kbd "M-p")
+                'scroll-down-line-quick)
+              ))
+
+;; Scroll other window down/up.
+(defun scroll-other-window-up-quick ()
+  "Scroll the other window up by a smaller amount."
+  (interactive)
+  (scroll-other-window 5))
+(defun scroll-other-window-down-quick ()
+  "Scroll the other window down by a smaller amount."
+  (interactive)
+  (scroll-other-window-down 5))
+
+(global-set-key (kbd "M-N") 'scroll-other-window-up-quick)
+(global-set-key (kbd "M-P") 'scroll-other-window-down-quick)
+
 ;; Align region by character.
 ;; TODO: Enable history in read-string to allow for default values
 ;; (i.e. last input)
@@ -713,24 +730,6 @@ one."
     (align-regexp beg end (concat "\\(\\s-*\\)" char))))
 
 (global-set-key (kbd "M-=") 'align-to-string)
-
-;; Commands to split window and move focus to other window.
-(defun split-window-right-focus ()
-  "Split window vertically and move focus to other window."
-  (interactive)
-  (split-window-right)
-  ;; (balance-windows)
-  (other-window 1))
-(defun split-window-below-focus ()
-  "Split window horizontally and move focus to other window."
-  (interactive)
-  (split-window-below)
-  ;; (balance-windows)
-  (other-window 1))
-
-;; Remap the default window-splitting commands to the ones above
-(global-set-key (kbd "C-x 3") 'split-window-right-focus)
-(global-set-key (kbd "C-x 2") 'split-window-below-focus)
 
 ;; Show ASCII table.
 ;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html
@@ -812,10 +811,6 @@ one."
 ;; Extensions to Dired
 (use-package dired+)
 
-;; Hide file details in Dired
-(use-package dired-details+
-  :config (setq dired-details-propagate-flag t))
-
 ;; Colorify files in dired based on type
 (use-package diredful
   :config (diredful-mode))
@@ -835,6 +830,12 @@ one."
 (setq wdired-allow-to-change-permissions t)
 
 ;;; ERC settings
+
+(add-hook 'erc-mode-hook
+          #'(lambda ()
+              (define-key erc-mode-map (kbd "M-n") 'scroll-up-line-quick)
+              (define-key erc-mode-map (kbd "M-p") 'scroll-down-line-quick)
+              ))
 
 (setq erc-autojoin-channels-alist
       '(("freenode.net" "#emacs")
@@ -868,6 +869,8 @@ one."
 ;; Use helm to list eshell history
 (add-hook 'eshell-mode-hook
           #'(lambda ()
+              (define-key eshell-mode-map (kbd "M-n") 'scroll-up-line-quick)
+              (define-key eshell-mode-map (kbd "M-p") 'scroll-down-line-quick)
               (define-key eshell-mode-map (kbd "M-,")
                 'eshell-previous-matching-input-from-input)
               (define-key eshell-mode-map (kbd "M-.")
@@ -1031,18 +1034,17 @@ one."
 ;; Generate filler text.
 (use-package lorem-ipsum)
 
-;; Jump to tag definitions using ripgrep
-;; (use-package dumb-jump
-;;   :bind (("M-g o" . dumb-jump-go-other-window)
-;;          ("M-g j" . dumb-jump-go)
-;;          ("M-g q" . dumb-jump-quick-look)
-;;          ;; ("M-g x" . dumb-jump-go-prefer-external)
-;;          ;; ("M-g z" . dumb-jump-go-prefer-external-other-window)
-;;          )
-;;   :config
-;;   (setq dumb-jump-selector 'helm)
-;;   (setq dumb-jump-prefer-searcher 'rg)
-;;   )
+;; Jump to definitions using ag
+(use-package dumb-jump
+  :bind (
+         ;; ("M-g o" . dumb-jump-go-other-window)
+         ("M-g j" . dumb-jump-go)
+         ("M-g q" . dumb-jump-quick-look)
+         )
+  :config
+  (setq dumb-jump-selector 'helm)
+  (setq dumb-jump-prefer-searcher 'ag)
+  )
 
 ;; ;; Line numbers
 ;; (use-package nlinum
@@ -1113,6 +1115,12 @@ one."
   ;;                     ?a ?o ?e ?u ?h ?t ?n ?s))
   ;; Set the background to gray to highlight the decision tree
   (setq avy-background nil)
+  )
+
+(use-package ace-window
+  :bind ("M-o" . ace-window)
+  :config
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   )
 
 ;; Use a sensible mechanism for making buffer names unique.
@@ -1257,10 +1265,10 @@ one."
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover)
 
-;; Temporarily "hide" other windows.
-(use-package zygospore
-  :bind ("M-o" . zygospore-toggle-delete-other-windows)
-  )
+;; ;; Temporarily "hide" other windows.
+;; (use-package zygospore
+;;   :bind ("M-o" . zygospore-toggle-delete-other-windows)
+;;   )
 
 ;; Undo/redo window configurations.
 (use-package winner
@@ -1309,13 +1317,13 @@ one."
   (winum-mode)
   )
 
-;; Move buffers around.
-(use-package buffer-move
-  :bind (("<C-S-up>"    . buf-move-up)
-         ("<C-S-down>"  . buf-move-down)
-         ("<C-S-left>"  . buf-move-left)
-         ("<C-S-right>" . buf-move-right)
-         ))
+;; ;; Move buffers around.
+;; (use-package buffer-move
+;;   :bind (("<s-up>"    . buf-move-up)
+;;          ("<s-down>"  . buf-move-down)
+;;          ("<s-left>"  . buf-move-left)
+;;          ("<s-right>" . buf-move-right)
+;;          ))
 
 ;; ;; Make currently focused window larger.
 ;; ;; This package is not actively maintained.
@@ -1368,6 +1376,9 @@ one."
   (setq magit-diff-refine-hunk `all)
   (setq magit-display-buffer-function
         #'magit-display-buffer-same-window-except-diff-v1)
+  :config
+  (define-key magit-status-mode-map (kbd "M-p") 'scroll-down-line-quick)
+  (define-key magit-status-mode-map (kbd "M-n") 'scroll-up-line-quick)
   )
 
 ;; Browse historic versions of a file.
@@ -1384,22 +1395,12 @@ one."
 (use-package projectile
   :defer 1
   :hook (prog-mode . projectile-mode)
-  :bind ("<f6>" . projectile-compile-project)
   :config
   (setq projectile-completion-system 'helm)
-  ;; Change mode line indicator
-  (setq projectile-mode-line '(:eval
-                               (if
-                                   (file-remote-p default-directory)
-                                   " Projectile"
-                                 (format " [%s]"
-                                         (projectile-project-name)))))
   )
 
 (use-package helm-projectile
-  :bind (("C-\"" . helm-projectile-recentf)
-         ("C-'"  . helm-projectile)
-         )
+  :bind ("C-'"   . helm-projectile)
   :config
   (helm-projectile-on))
 
@@ -1414,9 +1415,9 @@ one."
   (global-diff-hl-mode)
   :config
   (diff-hl-margin-mode)
-  (diff-hl-flydiff-mode) ;; No need to save before seeing diffs
-  (diff-hl-dired-mode)   ;; See diffs in Dired
-  ;; Refresh diffs after a Magit commit
+  ;; (diff-hl-flydiff-mode) ;; No need to save before seeing diffs.
+  (diff-hl-dired-mode)   ;; See diffs in Dired.
+  ;; Refresh diffs after a Magit commit.
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   )
 
@@ -1476,13 +1477,14 @@ one."
 ;; Note: list all snippets for current mode with M-x `yas-describe-tables'.
 (use-package yasnippet-snippets)
 (use-package yasnippet
-  :defer t
+  :requires yasnippet-snippets
   :diminish yas-minor-mode
-  :hook ((prog-mode . yas-minor-mode)
-         (text-mode . yas-minor-mode)
-         )
   :config
-  (yas-reload-all))
+  (yas-global-mode)
+  
+  (setq yas-triggers-in-field t) ; Enable nested triggering of snippets
+  (setq yas-verbosity 1) ;; No need to be so verbose
+  )
 
 ;;; Language packages
 
@@ -1500,21 +1502,21 @@ one."
   (setq cider-use-overlays nil)
   )
 
+;; Git
+
+(use-package gitignore-mode
+  :defer t)
+
 ;; Haskell
 
 (use-package haskell-mode
   :mode "\\.hs\\'"
-  :init
-  (add-hook 'haskell-mode-hook
-            (lambda ()
-              ;; (ghc-init)
-              (define-key haskell-mode-map (kbd "C-#")
-                'haskell-process-load-or-reload)
-              ;; Use hoogle in Haskell buffers.
-              ;; Supply prefix arg for full info (C-u C-c h)
-              (define-key haskell-mode-map (kbd "C-c h") 'haskell-hoogle)
-              ))
   :config
+  (define-key haskell-mode-map (kbd "C-#") 'haskell-process-load-or-reload)
+  ;; Use hoogle in Haskell buffers.
+  ;; Supply prefix arg for full info (C-u C-c h)
+  (define-key haskell-mode-map (kbd "C-c h") 'haskell-hoogle)
+
   (setq haskell-indentation-layout-offset 4
         haskell-indentation-left-offset   4
         haskell-indentation-ifte-offset   4
@@ -1534,27 +1536,27 @@ one."
 ;;   :config
 ;;   (add-to-list 'company-backends 'company-ghc))
 
-;; Haskell snippets
-(use-package haskell-snippets
-  :after yasnippet)
+;; ;; Haskell snippets
+;; (use-package haskell-snippets
+;;   :after yasnippet)
 
 ;; Javascript
 
 (use-package js2-mode
-  :mode "\\.js\\'")
+  :mode "\\.js\\'"
+  :config
+  (define-key js-mode-map (kbd "M-.") 'dumb-jump-go)
+  )
 
 ;; Javascript REPL
 (use-package nodejs-repl
   :defer t
-  :init
-  (add-hook 'js2-mode-hook
-            (lambda ()
-              (define-key js-mode-map (kbd "C-M-x")   'nodejs-repl-send-buffer)
-              (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
-              (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
-              (define-key js-mode-map
-                (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
-              )))
+  :config
+  (define-key js-mode-map (kbd "C-M-x")   'nodejs-repl-send-buffer)
+  (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
+  (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
+  (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
+  )
 
 ;; JSON
 
@@ -1573,6 +1575,9 @@ one."
 
 (use-package markdown-mode
   :mode "\\.md\\'"
+  :config
+  (define-key markdown-mode-map (kbd "M-p") 'scroll-down-line-quick)
+  (define-key markdown-mode-map (kbd "M-n") 'scroll-up-line-quick)
   )
 (use-package markdown-toc
   :defer t)
@@ -1588,10 +1593,10 @@ one."
 ;; Nim
 
 (use-package nim-mode
+  :hook (nim-mode . nimsuggest-mode)
   :init
   (setq nim-nimsuggest-path "~/.nim/bin/nimsuggest")
   ;; Currently nimsuggest doesn't support nimscript files, so only nim-mode...
-  :hook (nim-mode . nimsuggest-mode)
   :config
   (define-key nim-mode-map (kbd "RET") #'newline-and-indent)
   )
@@ -1603,6 +1608,8 @@ one."
   :diminish eldoc-mode
   :init
   (setq rust-format-on-save nil)
+  :config
+  (define-key rust-mode-map (kbd "C-c n") #'rust-format-buffer)
   )
 
 (use-package racer
@@ -1651,8 +1658,6 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   :mode "\\.yml\\'")
 
 ;;; Org Mode
-
-;; TODO: organize this section
 
 (use-package org
   :hook (org-mode . org-mode-hook-fun)
@@ -1710,6 +1715,13 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
   ;; Shortcuts/Keybindings
 
+  (defun org-done ()
+    "Change task status to DONE and archive it."
+    (interactive)
+    (org-todo 'done)
+    (org-archive-subtree)
+    )
+
   (defun org-refile-goto ()
     "Use org-refile to conveniently choose and go to a heading."
     (interactive)
@@ -1728,8 +1740,10 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
   ;; This binding conflicts with projectile so get rid of it
   (define-key org-mode-map (kbd "C-'")   nil)
+
   (define-key org-mode-map (kbd "C-S-n") 'org-move-subtree-down)
   (define-key org-mode-map (kbd "C-S-p") 'org-move-subtree-up)
+  (define-key org-mode-map (kbd "C-c t") 'org-done)
 
   (define-key org-mode-map (kbd "C-<")   'org-promote-subtree)
   (define-key org-mode-map (kbd "C->")   'org-demote-subtree)
@@ -1753,7 +1767,8 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (visual-line-mode) ;; Word-wrap
   (toggle-word-wrap t)
   (org-indent-mode) ;; Indented entries
-  (local-unset-key (kbd "C-,"))) ;; Unbind keys stolen by org-mode
+  (local-unset-key (kbd "C-,")) ;; Unbind keys stolen by org-mode
+  )
 
 ;;; Final
 
@@ -1798,13 +1813,18 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 (setq org-directory "~/Text/org")     ;; Default org directory
 
 ;; Initialize org files I want to display.
-(find-file user-todo-location)
-(split-window-right-focus)
-(find-file user-notes-location)
-(next-multiframe-window)
-(split-window-below-focus)
-(find-file user-physical-location)
-(other-window 1)
+(defun emacs-welcome()
+  "Display Emacs welcome screen."
+  (interactive)
+  (find-file user-todo-location)
+  (split-window-right-focus)
+  (find-file user-notes-location)
+  (next-multiframe-window)
+  (split-window-below-focus)
+  (find-file user-work-location)
+  (other-window 1)
+  )
+(emacs-welcome)
 
 (message "init.el finished loading successfully!")
 
