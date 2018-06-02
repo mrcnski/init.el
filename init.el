@@ -25,6 +25,7 @@
                                ;; restore after startup
                                (setq gc-cons-threshold (* 2 1000 1000))))
 (add-hook 'focus-out-hook 'garbage-collect)
+(run-with-idle-timer 5 t 'garbage-collect)
 
 ;;; User-Defined Variables
 
@@ -60,6 +61,7 @@
 ;; Add package sources (use package-refresh-contents)
 (unless (assoc-default "melpa" package-archives)
   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t))
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 ;;(package-refresh-contents)
 
 ;; Run auto-load functions specified by package authors.
@@ -270,7 +272,7 @@
 ;; Track recently-opened files
 (use-package recentf
   :config
-  (setq recentf-max-saved-items 1000)
+  (setq recentf-max-saved-items 10000)
   (recentf-mode t)
   )
 
@@ -419,12 +421,19 @@
 (global-set-key (kbd "s-o") 'helm-ag-pop-stack)
 
 ;; Reload the current buffer from disk.
-(global-set-key [f5]  'revert-buffer)
+(global-set-key [f5]  'save-revert-buffer)
 (global-set-key [f12] 'toggle-frame-fullscreen)
 
 ;; Actions to perform when saving.
 ;; (add-hook 'before-save-hook 'whitespace-cleanup)
 ;; (add-hook 'before-save-hook 'ispell-comments-and-strings)
+
+;; Save the buffer and revert it.
+(defun save-revert-buffer ()
+  "Save the buffer and then revert it."
+  (interactive)
+  (save-buffer)
+  (revert-buffer))
 
 ;; Automatically save on loss of focus.
 (defun save-all ()
@@ -477,12 +486,17 @@
   (split-window-right)
   (balance-windows)
   (other-window 1))
+(defun delete-window-balance ()
+  "Delete window and rebalance the remaining ones."
+  (interactive)
+  (delete-window)
+  (balance-windows))
 
 ;; Remap the default window-splitting commands to the ones above
 (global-set-key (kbd "C-x 2") 'split-window-below-focus)
 (global-set-key (kbd "C-x 3") 'split-window-right-focus)
 
-(global-set-key (kbd "C-0") 'delete-window)
+(global-set-key (kbd "C-0") 'delete-window-balance)
 (global-set-key (kbd "C-1") 'delete-other-windows)
 (global-set-key (kbd "C-2") 'split-window-below-focus)
 (global-set-key (kbd "C-3") 'split-window-right-focus)
@@ -1379,6 +1393,8 @@ one."
   :config
   (define-key magit-status-mode-map (kbd "M-p") 'scroll-down-line-quick)
   (define-key magit-status-mode-map (kbd "M-n") 'scroll-up-line-quick)
+  (define-key magit-stash-mode-map  (kbd "M-p") 'scroll-down-line-quick)
+  (define-key magit-stash-mode-map  (kbd "M-n") 'scroll-up-line-quick)
   )
 
 ;; Browse historic versions of a file.
@@ -1400,7 +1416,7 @@ one."
   )
 
 (use-package helm-projectile
-  :bind ("C-'"   . helm-projectile)
+  :bind ("s-'" . helm-projectile)
   :config
   (helm-projectile-on))
 
@@ -1667,44 +1683,64 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   :config
   ;; Settings
 
-  ;; The ellipsis to use in the org-mode outline
-  ;; (setq org-ellipsis "...")
-  ;; Try to keep cursor before ellipses
+  ;; The ellipsis to use in the org-mode outline.
+  (setq org-ellipsis " ...")
+  ;; Try to keep cursor before ellipses.
   (setq org-special-ctrl-a/e nil)
-  ;; Smart editing of invisible region around ellipses
+  ;; Smart editing of invisible region around ellipses.
   (setq org-catch-invisible-edits 'smart)
 
-  ;; All subtasks must be DONE before marking a task as DONE
+  ;; All subtasks must be DONE before marking a task as DONE.
   (setq org-enforce-todo-dependencies t)
   (setq org-log-done (quote time))       ;; Log time a task was set to DONE
   (setq org-log-redeadline (quote time)) ;; Log time a task's deadline changed
   (setq org-log-reschedule (quote time)) ;; Log time a task was rescheduled
 
+  ;; M-RET should not split the heading if point is not at the end of a line.
+  (setq org-M-RET-may-split-line nil)
   (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
 
-  ;; Custom to-do states
+  ;; Custom to-do states.
   (setq org-todo-keywords
         '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
           (sequence "|" "CANCELED(x)")))
 
-  ;; Set location of agenda files
-  (setq org-agenda-files '("~/Text/org/todo.org"))
+  ;; Refresh org-agenda after changing an item status.
+  ;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
+  ;; (defadvice org-schedule (after refresh-agenda activate)
+  ;;   "Refresh org-agenda."
+  ;;   (org-agenda-refresh))
+
+  ;; (defun org-agenda-refresh ()
+  ;;   "Refresh all org-agenda buffers."
+  ;;   (interactive)
+  ;;   (org-agenda-maybe-redo)
+  ;;   (balance-windows)
+  ;;   )
+
+  ;; Set location of agenda files.
+  (setq org-agenda-files (list user-todo-location
+                               user-work-location))
+  ;; Stop org-agenda from messing up my windows!!
+  (setq org-agenda-window-setup 'current-window)
+  ;; Start org-agenda from the current day.
+  (setq org-agenda-start-on-weekday nil)
 
   ;; Org-refile settings
 
-  ;; `org-refile' notes to the top of the list
+  ;; `org-refile' notes to the top of the list.
   (setq org-reverse-note-order t)
   ;; Use headline paths (level1/level2/...)
   (setq org-refile-use-outline-path t)
-  ;; Go down in steps when completing a path
+  ;; Go down in steps when completing a path.
   (setq org-outline-path-complete-in-steps nil)
   (setq org-refile-targets '((org-agenda-files . (:maxlevel . 9))
-                             ("~/Text/org/notes.org" . (:maxlevel . 9))))
+                             (user-notes-location . (:maxlevel . 9))))
   ;; Jump to headings with completion.
   (setq org-goto-interface 'outline-path-interface
         org-goto-max-level 10)
 
-  ;; org-capture template
+  ;; org-capture template.
   (defvar org-capture-templates
     '(("t" "My TODO task format." entry
        (file+headline "todo.org" "Todo List")
@@ -1728,7 +1764,7 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
     (let ((current-prefix-arg '(4))) (call-interactively 'org-refile))
     )
 
-  ;; org-capture with template as default behavior
+  ;; org-capture with template as default behavior.
   (defun org-task-capture ()
     "Capture a task with my todo template."
     (interactive)
@@ -1738,17 +1774,21 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
     (interactive)
     (org-capture nil "n"))
 
-  ;; This binding conflicts with projectile so get rid of it
-  (define-key org-mode-map (kbd "C-'")   nil)
+  (defun org-meta-return-end ()
+    "Go to end of visual line before calling org-meta-return."
+    (interactive)
+    (end-of-visual-line)
+    (org-meta-return))
 
-  (define-key org-mode-map (kbd "C-S-n") 'org-move-subtree-down)
-  (define-key org-mode-map (kbd "C-S-p") 'org-move-subtree-up)
+  (define-key org-mode-map (kbd "<M-return>") 'org-meta-return-end)
+  (define-key org-mode-map (kbd "C-S-n") 'org-metadown)
+  (define-key org-mode-map (kbd "C-S-p") 'org-metaup)
+  (define-key org-mode-map (kbd "C-<")   'org-shiftmetaleft)
+  (define-key org-mode-map (kbd "C->")   'org-shiftmetaright)
+
   (define-key org-mode-map (kbd "C-c t") 'org-done)
-
-  (define-key org-mode-map (kbd "C-<")   'org-promote-subtree)
-  (define-key org-mode-map (kbd "C->")   'org-demote-subtree)
   (define-key org-mode-map (kbd "s-;")   'org-refile-goto)
-  (define-key org-mode-map (kbd "s-'")   'org-refile)
+  (define-key org-mode-map (kbd "s-:")   'org-refile)
 
   (global-set-key (kbd "C-c l") 'org-store-link)
   (global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda
@@ -1821,7 +1861,7 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (find-file user-notes-location)
   (next-multiframe-window)
   (split-window-below-focus)
-  (find-file user-work-location)
+  (org-agenda-list)
   (other-window 1)
   )
 (emacs-welcome)
