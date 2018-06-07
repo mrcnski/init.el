@@ -32,6 +32,7 @@
 (defvar init-file-location  (concat user-emacs-directory "init.el"))
 (defvar scratchpad-location "~/Text/scratchpad.txt")
 
+(defvar user-org-directory     "~/Text/org")
 (defvar user-physical-location "~/Text/org/physical.org")
 (defvar user-notes-location    "~/Text/org/notes.org")
 (defvar user-todo-location     "~/Text/org/todo.org")
@@ -316,6 +317,7 @@
 (setq-default indent-tabs-mode nil
               tab-width 4
               fill-column 80
+              indicate-empty-lines nil ;; Highlight end of buffer.
               )
 
 (setq x-select-enable-clipboard t
@@ -762,7 +764,7 @@ one."
 ;;; Visual settings
 
 ;; set transparency (cool but distracting)
-;; (set-frame-parameter (selected-frame) 'alpha '(98))
+;; (set-frame-parameter (selected-frame) 'alpha '(95))
 (set-frame-parameter (selected-frame) 'alpha '(100))
 
 ;; Load Themes
@@ -819,7 +821,6 @@ one."
               dired-listing-switches "-alhv"
               dired-dwim-target t            ;; Try suggesting dired targets
               dired-auto-revert-buffer t     ;; Update buffer when visiting
-              indicate-empty-lines nil       ;; Highlight end of buffer?
               )
 
 ;; Extensions to Dired
@@ -1380,6 +1381,8 @@ one."
 (use-package evil-nerd-commenter
   :bind ("M-;" . evilnc-comment-or-uncomment-lines))
 
+(use-package powerthesaurus)
+
 ;;; Git packages
 
 ;; Git client in Emacs.
@@ -1395,6 +1398,10 @@ one."
   (define-key magit-status-mode-map (kbd "M-n") 'scroll-up-line-quick)
   (define-key magit-stash-mode-map  (kbd "M-p") 'scroll-down-line-quick)
   (define-key magit-stash-mode-map  (kbd "M-n") 'scroll-up-line-quick)
+  (define-key magit-revision-mode-map (kbd "M-p") 'scroll-down-line-quick)
+  (define-key magit-revision-mode-map (kbd "M-n") 'scroll-up-line-quick)
+  (define-key magit-log-mode-map (kbd "M-p") 'scroll-down-line-quick)
+  (define-key magit-log-mode-map (kbd "M-n") 'scroll-up-line-quick)
   )
 
 ;; Browse historic versions of a file.
@@ -1681,10 +1688,10 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   :diminish org-indent-mode
 
   :config
-  ;; Settings
+  ;;; Settings
 
   ;; The ellipsis to use in the org-mode outline.
-  (setq org-ellipsis " ...")
+  (setq org-ellipsis "...")
   ;; Try to keep cursor before ellipses.
   (setq org-special-ctrl-a/e nil)
   ;; Smart editing of invisible region around ellipses.
@@ -1693,8 +1700,8 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   ;; All subtasks must be DONE before marking a task as DONE.
   (setq org-enforce-todo-dependencies t)
   (setq org-log-done (quote time))       ;; Log time a task was set to DONE
-  (setq org-log-redeadline (quote time)) ;; Log time a task's deadline changed
-  (setq org-log-reschedule (quote time)) ;; Log time a task was rescheduled
+  (setq org-log-redeadline nil)
+  (setq org-log-reschedule nil)
 
   ;; M-RET should not split the heading if point is not at the end of a line.
   (setq org-M-RET-may-split-line nil)
@@ -1711,12 +1718,13 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   ;;   "Refresh org-agenda."
   ;;   (org-agenda-refresh))
 
-  ;; (defun org-agenda-refresh ()
-  ;;   "Refresh all org-agenda buffers."
-  ;;   (interactive)
-  ;;   (org-agenda-maybe-redo)
-  ;;   (balance-windows)
-  ;;   )
+  (defun org-agenda-refresh ()
+    "Refresh all org-agenda buffers."
+    (interactive)
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (derived-mode-p 'org-agenda-mode)
+          (org-agenda-maybe-redo)))))
 
   ;; Set location of agenda files.
   (setq org-agenda-files (list user-todo-location
@@ -1757,6 +1765,12 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
     (org-todo 'done)
     (org-archive-subtree)
     )
+  (defun org-agenda-done ()
+    "In org-agenda, change task status to DONE and archive it."
+    (interactive)
+    (org-agenda-todo 'done)
+    (org-agenda-archive)
+    )
 
   (defun org-refile-goto ()
     "Use org-refile to conveniently choose and go to a heading."
@@ -1780,15 +1794,29 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
     (end-of-visual-line)
     (org-meta-return))
 
+  (defun mouse-org-cycle (@click)
+    (interactive "e")
+    (let ((p1 (posn-point (event-start @click))))
+      (goto-char p1)
+      (call-interactively 'org-cycle)
+      )
+    )
+
   (define-key org-mode-map (kbd "<M-return>") 'org-meta-return-end)
   (define-key org-mode-map (kbd "C-S-n") 'org-metadown)
   (define-key org-mode-map (kbd "C-S-p") 'org-metaup)
   (define-key org-mode-map (kbd "C-<")   'org-shiftmetaleft)
   (define-key org-mode-map (kbd "C->")   'org-shiftmetaright)
+  (define-key org-mode-map (kbd "<mouse-3>") 'mouse-org-cycle)
 
   (define-key org-mode-map (kbd "C-c t") 'org-done)
   (define-key org-mode-map (kbd "s-;")   'org-refile-goto)
   (define-key org-mode-map (kbd "s-:")   'org-refile)
+
+  (add-hook 'org-agenda-mode-hook
+   (lambda ()
+     (define-key org-agenda-mode-map (kbd "C-c t") 'org-agenda-done)
+     ))
 
   (global-set-key (kbd "C-c l") 'org-store-link)
   (global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda
@@ -1808,6 +1836,8 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (toggle-word-wrap t)
   (org-indent-mode) ;; Indented entries
   (local-unset-key (kbd "C-,")) ;; Unbind keys stolen by org-mode
+  ;; Add a buffer-local hook.
+  (add-hook 'after-save-hook 'org-agenda-refresh nil 'make-it-local)
   )
 
 ;;; Final
@@ -1850,7 +1880,7 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   ))
 
 ;; Set final variables.
-(setq org-directory "~/Text/org")     ;; Default org directory
+(setq org-directory user-org-directory)  ;; Default org directory
 
 ;; Initialize org files I want to display.
 (defun emacs-welcome()
