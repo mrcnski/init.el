@@ -358,6 +358,10 @@
       ;; (setq max-mini-window-height 0.33)
       ;; Move point to beginning or end of buffer when scrolling
       scroll-error-top-bottom t
+      mouse-wheel-scroll-amount '(5
+                                  ((shift)
+                                   . 1)
+                                  ((control)))
 
       ;; Change window name to be more descriptive
       frame-title-format
@@ -398,6 +402,7 @@
 (add-to-list 'auto-mode-alist '("\\.hdl\\'"  . c-mode))
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
+(add-to-list 'auto-mode-alist '("\\.pdf\\'"  . pdf-view-mode))
 
 ;;; My Functions and Shortcuts/Keybindings
 
@@ -788,7 +793,7 @@ one."
   (cond
    ;; ((font-exists-p "Iosevka")
    ;;  (set-face-attribute
-   ;;   'default nil :font "Iosevka:weight=Regular" :height 120)
+   ;;   'default nil :font "Iosevka:weight=Thin" :height 120)
    ;;  (setq-default line-spacing 0)
    ;;  )
    ((font-exists-p "Hack")
@@ -932,9 +937,8 @@ one."
     (goto-char (point-max)))
   )
 
-;; Generate flames (use `flame-insert`).
-(use-package flame
-  :defer t)
+(use-package pdf-tools
+  )
 
 ;; ;; Key chords
 ;; (use-package key-chord
@@ -1225,7 +1229,8 @@ one."
 ;; Fontify symbols representing faces with that face.
 (use-package fontify-face
   :diminish fontify-face-mode
-  :defer t)
+  :defer t
+  )
 
 ;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode
@@ -1724,7 +1729,8 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer
         (when (derived-mode-p 'org-agenda-mode)
-          (org-agenda-maybe-redo)))))
+          (org-agenda-maybe-redo)
+          ))))
 
   ;; Set location of agenda files.
   (setq org-agenda-files (list user-todo-location
@@ -1751,8 +1757,8 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   ;; org-capture template.
   (defvar org-capture-templates
     '(("t" "My TODO task format." entry
-       (file+headline "todo.org" "Todo List")
-       "* TODO %?\nSCHEDULED: %t")
+       (file+headline "todo.org" "General")
+       "* %?\nSCHEDULED: %t")
       ("n" "My note format." entry
        (file "notes.org")
        "* %?")))
@@ -1807,6 +1813,7 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (define-key org-mode-map (kbd "C-S-p") 'org-metaup)
   (define-key org-mode-map (kbd "C-<")   'org-shiftmetaleft)
   (define-key org-mode-map (kbd "C->")   'org-shiftmetaright)
+
   (define-key org-mode-map (kbd "<mouse-3>") 'mouse-org-cycle)
 
   (define-key org-mode-map (kbd "C-c t") 'org-done)
@@ -1814,9 +1821,11 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (define-key org-mode-map (kbd "s-:")   'org-refile)
 
   (add-hook 'org-agenda-mode-hook
-   (lambda ()
-     (define-key org-agenda-mode-map (kbd "C-c t") 'org-agenda-done)
-     ))
+            (lambda ()
+              (define-key org-agenda-mode-map (kbd "C-c t") 'org-agenda-done)
+              (visual-line-mode)
+              (toggle-word-wrap t)
+              ))
 
   (global-set-key (kbd "C-c l") 'org-store-link)
   (global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda
@@ -1831,7 +1840,8 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 ;; Open .org files in org-mode
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
-(defun org-mode-hook-fun()
+(defun org-mode-hook-fun ()
+  "Initialize `org-mode'."
   (visual-line-mode) ;; Word-wrap
   (toggle-word-wrap t)
   (org-indent-mode) ;; Indented entries
@@ -1889,10 +1899,9 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (find-file user-todo-location)
   (split-window-right-focus)
   (find-file user-notes-location)
-  (next-multiframe-window)
-  (split-window-below-focus)
-  (org-agenda-list)
   (other-window 1)
+  (split-window-right-focus)
+  (org-agenda-list)
   )
 (emacs-welcome)
 
