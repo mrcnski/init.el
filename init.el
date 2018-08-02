@@ -30,13 +30,13 @@
 ;;; User-Defined Variables
 
 (defvar init-file-location  (concat user-emacs-directory "init.el"))
-(defvar scratchpad-location "~/Text/scratchpad.txt")
+(defvar scratchpad-location "~/Dropbox/Text/scratchpad.txt")
 
-(defvar user-org-directory     "~/Text/org")
-(defvar user-physical-location "~/Text/org/physical.org")
-(defvar user-notes-location    "~/Text/org/notes.org")
-(defvar user-todo-location     "~/Text/org/todo.org")
-(defvar user-work-location     "~/Text/org/work.org")
+(defvar user-org-directory     "~/Dropbox/Text/org")
+(defvar user-physical-location "~/Dropbox/Text/org/physical.org")
+(defvar user-notes-location    "~/Dropbox/Text/org/notes.org")
+(defvar user-todo-location     "~/Dropbox/Text/org/todo.org")
+(defvar user-work-location     "~/Dropbox/Text/org/work.org")
 
 (defvar highlight-delay .03)
 
@@ -92,11 +92,6 @@
 
 ;; Find bugs in Emacs configuration.
 (use-package bug-hunter
-  :defer t)
-
-;; Emacs startup profiler.
-;; Breaks on my init file.
-(use-package esup
   :defer t)
 
 ;; Diminish modeline clutter.
@@ -467,7 +462,7 @@
 (defun helm-projectile-ag-inexact ()
   "Run helm-projectile-ag case-insensitive and without word boundaries."
   (interactive)
-  (setq helm-ag-base-command "ag --nocolor --nogroup --ignore-case")
+  (setq helm-ag-base-command "ag --hidden --nocolor --nogroup --ignore-case")
   (setq helm-ag-insert-at-point nil)
   (helm-projectile-ag)
   )
@@ -475,7 +470,7 @@
   "Run helm-projectile-ag case-sensitive and with word boundaries."
   (interactive)
   (setq helm-ag-base-command
-        "ag --nocolor --nogroup --word-regexp --case-sensitive")
+        "ag --hidden --nocolor --nogroup --word-regexp --case-sensitive")
   (setq helm-ag-insert-at-point 'symbol)
   (helm-projectile-ag)
   )
@@ -828,8 +823,8 @@ one."
               dired-auto-revert-buffer t     ;; Update buffer when visiting
               )
 
-;; Extensions to Dired
-(use-package dired+)
+;; ;; Extensions to Dired
+;; (use-package dired+)
 
 ;; Colorify files in dired based on type
 (use-package diredful
@@ -1018,34 +1013,6 @@ one."
         )
   )
 
-;; Add indicators for position in buffer and end of buffer.
-;; Only load this for graphical displays (i.e. not the terminal).
-(when (display-graphic-p)
-  (use-package indicators
-    :diminish indicators-mode
-    :hook ((prog-mode . new-indicators)
-           (conf-mode . new-indicators)
-           (text-mode . new-indicators)
-           )
-    :config
-    (defun new-indicators ()
-      "Create new indicators in the current buffer."
-      (interactive)
-
-      ;; ;; show an arrow at the end of buffer using the default fringe face
-      ;; (ind-create-indicator 'point-max
-      ;;                       :managed t
-      ;;                       :relative nil
-      ;;                       :fringe 'left-fringe
-      ;;                       :bitmap 'right-arrow
-      ;;                       :face 'fringe)
-
-      ;; show relative position in the file (a.k.a. scroll bar)
-      (ind-create-indicator 'point :managed t)
-      )
-    )
-  )
-
 ;; Copy selected region to be pasted into Slack/Github/etc.
 (use-package copy-as-format
   :defer t)
@@ -1100,7 +1067,8 @@ one."
 ;; Automatically clean up extraneous whitespace
 (use-package ws-butler
   :diminish ws-butler-mode
-  :hook ((prog-mode . ws-butler-mode)
+  :hook (
+         (prog-mode . ws-butler-mode)
          ;; (text-mode . ws-butler-mode)
          ))
 
