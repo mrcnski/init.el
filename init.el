@@ -401,10 +401,12 @@
 
 ;;; My Functions and Shortcuts/Keybindings
 
-(bind-keys*
+;; (bind-keys*
  ;; ("M-n" . scroll-up-line-quick)
  ;; ("M-p" . scroll-down-line-quick)
- )
+;; )
+
+(global-set-key (kbd "M-o") 'other-window)
 
 ;; Set up keys using super. s-a, s-s, s-x, s-c, and s-v correspond to
 ;; select-all, save, cut, copy, and paste, which I've left for
@@ -1104,11 +1106,12 @@ one."
   (setq avy-background nil)
   )
 
-(use-package ace-window
-  :bind ("M-o" . ace-window)
-  :config
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-  )
+;; Select from available windows using a letter key.
+;; (use-package ace-window
+;;   :bind ("M-o" . ace-window)
+;;   :config
+;;   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+;;   )
 
 ;; Use a sensible mechanism for making buffer names unique.
 (require 'uniquify)
@@ -1356,7 +1359,7 @@ one."
 
 (use-package powerthesaurus)
 
-;;; Git packages
+;;; Git packages.
 
 ;; Git client in Emacs.
 (use-package magit
@@ -1385,7 +1388,12 @@ one."
 (use-package git-link
   :defer t)
 
-;;; Project packages
+;;; Project packages.
+
+(use-package wakatime-mode
+  :config
+  (global-wakatime-mode)
+  )
 
 ;; Project manager.
 (use-package projectile
@@ -1677,7 +1685,8 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (setq org-log-reschedule nil)
 
   ;; M-RET should not split the heading if point is not at the end of a line.
-  (setq org-M-RET-may-split-line nil)
+  ;; (setq org-M-RET-may-split-line nil)
+
   (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
 
   ;; Custom to-do states.
@@ -1816,6 +1825,13 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (local-unset-key (kbd "C-,")) ;; Unbind keys stolen by org-mode
   ;; Add a buffer-local hook.
   (add-hook 'after-save-hook 'org-agenda-refresh nil 'make-it-local)
+  )
+
+;; Export org to Reveal.js.
+(use-package ox-reveal
+  :config
+  (setq org-reveal-hlevel 1)
+  (setq org-reveal-title-slide "<h1>%t<h2><br>%a<br><br>%d")
   )
 
 ;;; Final
