@@ -34,6 +34,7 @@
 
 (defvar user-org-directory     "~/Dropbox/Text/org")
 (defvar user-physical-location "~/Dropbox/Text/org/physical.org")
+(defvar user-dreams-location   "~/Dropbox/Text/org/dreams.org")
 (defvar user-notes-location    "~/Dropbox/Text/org/notes.org")
 (defvar user-todo-location     "~/Dropbox/Text/org/todo.org")
 (defvar user-work-location     "~/Dropbox/Text/org/work.org")
@@ -402,8 +403,8 @@
 ;;; My Functions and Shortcuts/Keybindings
 
 ;; (bind-keys*
- ;; ("M-n" . scroll-up-line-quick)
- ;; ("M-p" . scroll-down-line-quick)
+;; ("M-n" . scroll-up-line-quick)
+;; ("M-p" . scroll-down-line-quick)
 ;; )
 
 (global-set-key (kbd "M-o") 'other-window)
@@ -778,6 +779,7 @@ one."
 
 ;; Nimbus is my personal theme, available on Melpa
 (use-package nimbus-theme)
+;; (use-package zerodark-theme)
 
 ;; Set font only if we're not in the terminal
 (when (display-graphic-p)
@@ -837,14 +839,20 @@ one."
 (require 'dired-x)
 (global-set-key (kbd "s-d") 'dired-jump)
 
-;; Prevent certain files from showing up.
-;; Use C-x M-o to show omitted files.
-(add-hook 'dired-mode-hook (lambda () (dired-omit-mode)))
+(add-hook 'dired-mode-hook (lambda ()
+                             ;; Prevent certain files from showing up.
+                             ;; Use C-x M-o to show omitted files.
+                             (dired-omit-mode)
+                             ;; Hide details.
+                             (dired-hide-details-mode)
+                             ))
 (setq dired-omit-files (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
 
 ;; Allow changing file permissions in WDired
 ;; Notes: WDired can be enabled with C-x C-q and compiled with C-c C-c
 (setq wdired-allow-to-change-permissions t)
+
+
 
 ;;; ERC settings
 
@@ -934,8 +942,7 @@ one."
     (goto-char (point-max)))
   )
 
-(use-package pdf-tools
-  )
+(use-package pdf-tools)
 
 ;; ;; Key chords
 ;; (use-package key-chord
@@ -1014,6 +1021,34 @@ one."
         olivetti-body-width     .9
         )
   )
+
+;; ;; Add indicators for position in buffer and end of buffer.
+;; ;; Only load this for graphical displays (i.e. not the terminal).
+;; (when (display-graphic-p)
+;;   (use-package indicators
+;;     :diminish indicators-mode
+;;     :hook ((prog-mode . new-indicators)
+;;            (conf-mode . new-indicators)
+;;            (text-mode . new-indicators)
+;;            )
+;;     :config
+;;     (defun new-indicators ()
+;;       "Create new indicators in the current buffer."
+;;       (interactive)
+
+;;       ;; ;; show an arrow at the end of buffer using the default fringe face
+;;       ;; (ind-create-indicator 'point-max
+;;       ;;                       :managed t
+;;       ;;                       :relative nil
+;;       ;;                       :fringe 'left-fringe
+;;       ;;                       :bitmap 'right-arrow
+;;       ;;                       :face 'fringe)
+
+;;       ;; show relative position in the file (a.k.a. scroll bar)
+;;       (ind-create-indicator 'point :managed t)
+;;       )
+;;     )
+;;   )
 
 ;; Copy selected region to be pasted into Slack/Github/etc.
 (use-package copy-as-format
@@ -1214,9 +1249,9 @@ one."
   :bind ("s-r" . rainbow-blocks-mode)
   )
 
-;; Highlight delimiters with colors depending on depth.
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+;; ;; Highlight delimiters with colors depending on depth.
+;; (use-package rainbow-delimiters
+;;   :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; Highlight numbers in code.
 (use-package highlight-numbers
@@ -1263,7 +1298,8 @@ one."
 
 ;; Undo/redo window configurations.
 (use-package winner
-  :bind (("C-c C-," . winner-undo)
+  :bind (
+         ("C-c C-," . winner-undo)
          ("C-c C-." . winner-redo)
          )
   :config (winner-mode 1))
@@ -1678,6 +1714,9 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   ;; Smart editing of invisible region around ellipses.
   (setq org-catch-invisible-edits 'smart)
 
+  ;; Tags
+  (setq org-tags-column 0)
+
   ;; All subtasks must be DONE before marking a task as DONE.
   (setq org-enforce-todo-dependencies t)
   (setq org-log-done (quote time))       ;; Log time a task was set to DONE
@@ -1711,7 +1750,8 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
   ;; Set location of agenda files.
   (setq org-agenda-files (list user-todo-location
-                               user-work-location))
+                               ;; user-work-location
+                               ))
   ;; Stop org-agenda from messing up my windows!!
   (setq org-agenda-window-setup 'current-window)
   ;; Start org-agenda from the current day.
@@ -1726,7 +1766,9 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   ;; Go down in steps when completing a path.
   (setq org-outline-path-complete-in-steps nil)
   (setq org-refile-targets '((org-agenda-files . (:maxlevel . 9))
-                             (user-notes-location . (:maxlevel . 9))))
+                             (user-notes-location . (:maxlevel . 9))
+                             (user-dreams-location . (:maxlevel . 9))
+                             ))
   ;; Jump to headings with completion.
   (setq org-goto-interface 'outline-path-interface
         org-goto-max-level 10)
