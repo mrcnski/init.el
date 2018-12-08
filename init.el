@@ -1,6 +1,6 @@
 ;;; .emacs --- Emacs configuration file
 ;;
-;; Copyright (C) 2017-2018 Marcin Swieczkowski
+;; Copyright (C) 2017-2019 Marcin Swieczkowski
 ;;
 ;;; Commentary:
 ;;
@@ -15,8 +15,6 @@
 ;; - Use restart-emacs to restart after making changes.
 
 ;;; Code:
-
-;;; Initialize initialization.
 
 ;; First things first, increase GC threshold to speed up startup.
 ;; Reset the GC threshold after initialization, and GC whenever we tab out.
