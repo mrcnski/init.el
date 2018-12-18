@@ -988,6 +988,10 @@ one."
   (setq eyebrowse-switch-back-and-forth nil)
   (setq eyebrowse-new-workspace t)
   (setq eyebrowse-close-window-config-prompt t)
+
+  (setq eyebrowse-mode-line-separator " ")
+  (setq eyebrowse-mode-line-left-delimiter "[ ")
+  (setq eyebrowse-mode-line-right-delimiter " ]")
   )
 
 ;; Fix the capitalization commands.
@@ -1951,34 +1955,69 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
 ;; Set mode-line format
 ;; This should run after (winum-mode)
+
+;; Do some preparation for total line counting.
+;; From https://stackoverflow.com/a/8191130.
+(defvar mode-line-buffer-line-count nil)
+(make-variable-buffer-local 'mode-line-buffer-line-count)
+
+(defun mode-line-count-lines ()
+  "Count the total number of lines in the current buffer."
+  (setq mode-line-buffer-line-count
+        (int-to-string (count-lines (point-min) (point-max)))))
+
+(add-hook 'find-file-hook 'mode-line-count-lines)
+(add-hook 'after-save-hook 'mode-line-count-lines)
+(add-hook 'after-revert-hook 'mode-line-count-lines)
+(add-hook 'dired-after-readin-hook 'mode-line-count-lines)
+(add-hook 'after-change-major-mode-hook 'mode-line-count-lines)
+
+;; Do some preparation for active window detection.
+(defvar mode-line-selected-window nil)
+
+(defun mode-line-record-selected-window ()
+  "Record the current window as selected."
+  (setq mode-line-selected-window (selected-window)))
+(add-hook 'post-command-hook 'mode-line-record-selected-window)
+
+(defun mode-line-update-all ()
+  "Update all mode lines."
+  (force-mode-line-update t))
+(add-hook 'buffer-list-update-hook 'mode-line-update-all)
+
+;; Set the mode-line
 (setq-default
  mode-line-format
  (list
-  " "
-  '(:eval (winum-get-number-string))
-  " "
+  '(:eval (let ((str (concat " [" (winum-get-number-string) "] ")))
+            (if (eq mode-line-selected-window (selected-window))
+                (propertize str
+                            'face '(:weight bold)
+                            'help-echo str)
+              str)))
   'mode-line-modified
   " "
-  ;; '(:eval (when buffer-file-name
-  ;;           (concat (file-name-nondirectory
-  ;;                    (directory-file-name default-directory))
-  ;;                   " | "
-  ;;                   )))
   '(:eval (propertize "%b"
                       'face '(:weight bold)
                       'help-echo (buffer-file-name)))
-  " - "
-  "%02l:%02c"
-  " - "
+  " [%I]"
   '(:eval (propertize "[%m]"
                       ;; 'face '(:weight bold)
                       'help-echo buffer-file-coding-system))
-
   ;; is this buffer read-only?
   '(:eval (when buffer-read-only
-            (concat " - "  (propertize "RO"
-                                       'face 'font-lock-preprocessor-face
-                                       'help-echo "Buffer is read-only"))))
+            (propertize " RO"
+                        'face 'font-lock-preprocessor-face
+                        'help-echo "Buffer is read-only")))
+  " - "
+  '(:eval (when line-number-mode
+            (let ((str "%l:%c"))
+              (when (and (not (buffer-modified-p)) mode-line-buffer-line-count)
+                (setq str (concat str " (" mode-line-buffer-line-count ")")))
+              str)))
+  '(:eval
+    (when mark-active
+      (concat " [" (number-to-string (abs (- (point) (mark)))) "]")))
   " - "
   'mode-line-misc-info
   ;; " "
