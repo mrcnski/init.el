@@ -992,6 +992,8 @@ one."
   (setq eyebrowse-mode-line-separator " ")
   (setq eyebrowse-mode-line-left-delimiter "[ ")
   (setq eyebrowse-mode-line-right-delimiter " ]")
+
+  (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold nil)
   )
 
 ;; Fix the capitalization commands.
@@ -1953,10 +1955,10 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
 ;;; Final
 
-;; Set mode-line format
-;; This should run after (winum-mode)
+;; Set mode-line format.
+;; This should run after (winum-mode).
 
-;; Do some preparation for total line counting.
+;; Count total lines in buffer.
 ;; From https://stackoverflow.com/a/8191130.
 (defvar mode-line-buffer-line-count nil)
 (make-variable-buffer-local 'mode-line-buffer-line-count)
@@ -1972,7 +1974,8 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 (add-hook 'dired-after-readin-hook 'mode-line-count-lines)
 (add-hook 'after-change-major-mode-hook 'mode-line-count-lines)
 
-;; Do some preparation for active window detection.
+;; Active window detection.
+;; From https://emacs.stackexchange.com/a/26345.
 (defvar mode-line-selected-window nil)
 
 (defun mode-line-record-selected-window ()
@@ -1985,50 +1988,66 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (force-mode-line-update t))
 (add-hook 'buffer-list-update-hook 'mode-line-update-all)
 
+;; For right-aligning.
+;; From https://stackoverflow.com/a/22971471.
+(defun mode-line-fill (reserve)
+  "Return empty space leaving RESERVE space on the right."
+  (unless reserve
+    (setq reserve 20))
+  (when (and window-system (eq 'right (get-scroll-bar-mode)))
+    (setq reserve (- reserve 3)))
+  (propertize
+   " "
+   'display `((space :align-to (- (+ right right-fringe right-margin) ,reserve)))
+   ))
+
 ;; Set the mode-line
 (setq-default
  mode-line-format
- (list
-  '(:eval (let ((str (concat " [" (winum-get-number-string) "] ")))
-            (if (eq mode-line-selected-window (selected-window))
-                (propertize str
-                            'face '(:weight bold)
-                            'help-echo str)
-              str)))
-  'mode-line-modified
-  " "
-  '(:eval (propertize "%b"
-                      'face '(:weight bold)
-                      'help-echo (buffer-file-name)))
-  " [%I]"
-  '(:eval (propertize "[%m]"
-                      ;; 'face '(:weight bold)
-                      'help-echo buffer-file-coding-system))
-  ;; is this buffer read-only?
-  '(:eval (when buffer-read-only
-            (propertize " RO"
-                        'face 'font-lock-preprocessor-face
-                        'help-echo "Buffer is read-only")))
-  " - "
-  '(:eval (when line-number-mode
-            (let ((str "%l:%c"))
-              (when (and (not (buffer-modified-p)) mode-line-buffer-line-count)
-                (setq str (concat str " (" mode-line-buffer-line-count ")")))
-              str)))
-  '(:eval
-    (when mark-active
-      (concat " [" (number-to-string (abs (- (point) (mark)))) "]")))
-  " - "
-  'mode-line-misc-info
-  ;; " "
-  ;; '(:eval (propertize (format-time-string "%H:%M")))
-  'mode-line-end-spaces
-  ))
+ '((:eval
+    (list
+     " ["
+     '(:eval (winum-get-number-string))
+     "] "
+     'mode-line-modified
+     " "
+     '(:eval (propertize "%b"
+                         'face '(:underline t)
+                         'help-echo (buffer-file-name)))
+     " "
+     '(:eval (when buffer-file-name "[%I]"))
+     '(:eval (when (not (string-equal major-mode 'org-agenda-mode))
+               (propertize "[%m] "
+                           ;; 'face '(:weight bold)
+                           'help-echo (format "%s" major-mode)
+                           )))
+     '(:eval (when buffer-read-only
+               (propertize "RO "
+                           'face 'font-lock-preprocessor-face
+                           'help-echo "Buffer is read-only")))
+     "- "
+     '(:eval (when line-number-mode
+               (let ((str "%l:%C"))
+                 (when (and mode-line-buffer-line-count buffer-file-name)
+                   (setq str (concat str " ("))
+                   (when (buffer-modified-p)
+                     (setq str (concat str "*")))
+                   (setq str (concat str mode-line-buffer-line-count ")"))
+                   )
+                 str)))
+     '(:eval
+       (when mark-active
+         (concat " <" (number-to-string (abs (- (point) (mark)))) ">")))
+     " "
 
-;; Set final variables.
-(setq org-directory user-org-directory)  ;; Default org directory
+     '(:eval (mode-line-fill (+ 1 (length (substring-no-properties
+                                           (eyebrowse-mode-line-indicator))))))
+     '(:eval (eyebrowse-mode-line-indicator))
+     ;; " "
+     ;; '(:eval (propertize (format-time-string "%H:%M")))
+     ))))
 
-;; Initialize org files I want to display.
+;; Display important org files on startup.
 (defun emacs-welcome()
   "Display Emacs welcome screen."
   (interactive)
