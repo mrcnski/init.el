@@ -114,7 +114,7 @@
 
 ;; Rebind tab to run persistent action.
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
-;; Make TAB work in terminal.
+;; Alternate TAB key that works in terminal.
 (define-key helm-map (kbd "C-i")   'helm-execute-persistent-action)
 (define-key helm-map (kbd "C-z")   'helm-select-action) ;; list actions using C-z
 (define-key helm-map (kbd "M-x")   'helm-select-action)
@@ -346,15 +346,13 @@
       ;; (setq max-mini-window-height 0.33)
       ;; Move point to beginning or end of buffer when scrolling
       scroll-error-top-bottom t
-      mouse-wheel-scroll-amount '(5
-                                  ((shift)
-                                   . 1)
-                                  ((control)))
+      mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
 
       ;; Change window name to be more descriptive
-      frame-title-format
-      '("Emacs - " (buffer-file-name "%f"
-                                     (dired-directory dired-directory "%b")))
+      frame-title-format '((:eval (when (and (buffer-modified-p) buffer-file-name) "*"))
+                           "Emacs - "
+                           (buffer-file-name
+                            "%f" (dired-directory dired-directory "%b")))
 
       ;; Language-specific settings?
       c-default-style "stroustrup"
@@ -769,25 +767,25 @@ one."
   "Clear existing theme settings instead of layering them"
   (mapc #'disable-theme custom-enabled-themes))
 
-;; Nimbus is my personal theme, available on Melpa
+;; Nimbus is my personal theme, available on Melpa.
 (use-package nimbus-theme)
 ;; (use-package zerodark-theme)
 ;; (use-package zeno-theme)
 
-;; Set font only if we're not in the terminal
+;; Set font only if we're not in the terminal.
 (when (display-graphic-p)
-  ;; Function for checking font existence
+  ;; Function for checking font existence.
   (defun font-exists-p (font)
     "Check if FONT exists."
     (if (null (x-list-fonts font)) nil t))
 
-  ;; Set font
+  ;; Set font.
   (cond
-   ;; ((font-exists-p "Iosevka")
-   ;;  (set-face-attribute
-   ;;   'default nil :font "Iosevka:weight=Thin" :height 120)
-   ;;  (setq-default line-spacing 0)
-   ;;  )
+   ((font-exists-p "Iosevka")
+    (set-face-attribute
+     'default nil :font "Iosevka:weight=Regular" :height 120)
+    (setq-default line-spacing 0)
+    )
    ((font-exists-p "Hack")
     (set-face-attribute
      'default nil :font "Hack:weight=Regular" :height 120)
@@ -1010,6 +1008,7 @@ one."
 
 ;; Dim surrounding paragraphs.
 (use-package focus
+  :bind (("s-f" . focus-mode))
   )
 
 ;; Mode for writing.
@@ -1017,7 +1016,7 @@ one."
   :bind ("s-m" . olivetti-mode)
   :init
   (setq olivetti-hide-mode-line t
-        olivetti-body-width     .9
+        olivetti-body-width     0.9
         )
   )
 
@@ -1192,14 +1191,15 @@ one."
   (add-hook 'emacs-lisp-mode-hook 'c-whitespace-mode)
   (add-hook 'nim-mode-hook 'c-whitespace-mode)
 
-  (defun rust-whitespace-mode ()
-    "Set whitespace column for rust-mode and turn on `whitespace-mode'."
+  (defun 100-whitespace-mode ()
+    "Set whitespace column at 100 and turn on `whitespace-mode'."
     (setq whitespace-line-column 100
           fill-column 100
           )
     (whitespace-mode)
     )
-  (add-hook 'rust-mode-hook 'rust-whitespace-mode)
+  (add-hook 'rust-mode-hook '100-whitespace-mode)
+  (add-hook 'python-mode-hook '100-whitespace-mode)
   )
 
 ;; Multiple cursors.
@@ -1208,6 +1208,7 @@ one."
   (global-set-key (kbd "C-{") 'mc/mark-previous-like-this)
   (global-set-key (kbd "C-}") 'mc/mark-next-like-this)
   (define-key mc/keymap (kbd "<return>") nil)
+  ;; Add cursors with the mouse!
   (global-unset-key (kbd "M-<down-mouse-1>"))
   (global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 
@@ -1243,14 +1244,14 @@ one."
   :defer t
   )
 
-;; Highlight blocks based on depth.
-(use-package rainbow-blocks
-  :bind ("s-r" . rainbow-blocks-mode)
-  )
+;; ;; Highlight blocks based on depth. Buggy.
+;; (use-package rainbow-blocks
+;;   :bind ("s-r" . rainbow-blocks-mode)
+;;   )
 
-;; ;; Highlight delimiters with colors depending on depth.
-;; (use-package rainbow-delimiters
-;;   :hook (prog-mode . rainbow-delimiters-mode))
+;; Highlight delimiters with colors depending on depth.
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; Highlight numbers in code.
 (use-package highlight-numbers
@@ -1510,7 +1511,7 @@ one."
   :diminish yas-minor-mode
   :config
   (yas-global-mode)
-  
+
   (setq yas-triggers-in-field t) ; Enable nested triggering of snippets
   (setq yas-verbosity 1) ;; No need to be so verbose
   )
@@ -1695,6 +1696,9 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
   :config
   ;;; Settings
+
+  ;; Default org directory.
+  (setq org-directory user-org-directory)
 
   ;; The ellipsis to use in the org-mode outline.
   (setq org-ellipsis "...")
