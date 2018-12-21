@@ -1475,33 +1475,17 @@ one."
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors)
   :config
-  (setq flycheck-check-syntax-automatically '(mode-enabled save))
+  (setq flycheck-check-syntax-automatically '(idle-change mode-enabled save))
   ;; (setq flycheck-check-syntax-automatically nil)
 
-  (setq sentence-end-double-space nil) ;; Stupid check
-  ;; Disable checkers that don't work correctly
+  (setq sentence-end-double-space nil) ;; Stupid check.
+  ;; Disable checkers.
   (setq-default flycheck-disabled-checkers '(rust rust-cargo rust-clippy))
   ;; (setq-default flycheck-disabled-checkers '(rust))
 
-  ;; Proselint
-  ;; Not available on MELPA yet.
-  (flycheck-define-checker proselint
-    "A linter for prose."
-    :command ("proselint" source-inplace)
-    :error-patterns
-    ((warning line-start (file-name) ":" line ":" column ": "
-              (id (one-or-more (not (any " "))))
-              (message (one-or-more not-newline)
-                       (zero-or-more "\n" (any " ") (one-or-more not-newline)))
-              line-end))
-    :modes (text-mode markdown-mode))
-  (add-to-list 'flycheck-checkers 'proselint)
-  )
-
-;; English language lints.
-(use-package flycheck-vale
-  :config
-  (flycheck-vale-setup)
+  (flycheck-add-mode 'proselint 'text-mode)
+  (flycheck-add-mode 'proselint 'org-mode)
+  (flycheck-add-next-checker 'markdown-mdl 'proselint)
   )
 
 ;; Elisp package lints.
