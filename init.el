@@ -1,4 +1,4 @@
-;;; .emacs --- Emacs configuration file
+;;; .emacs --- Emacs configuration file.
 ;;
 ;; Copyright (C) 2017-2019 Marcin Swieczkowski
 ;;
@@ -92,6 +92,9 @@
 ;; Find bugs in Emacs configuration.
 (use-package bug-hunter
   :defer t)
+
+;; Show more error info.
+(setq debug-on-error t)
 
 ;; Diminish modeline clutter.
 (use-package diminish)
@@ -248,13 +251,10 @@
 ;; the same file.
 (setq switch-to-buffer-preserve-window-point t)
 
-;; Fix cursor movement lag
-(setq auto-window-vscroll nil)
-
-;; Replace yes/no prompts with y/n
+;; Replace yes/no prompts with y/n.
 (fset 'yes-or-no-p 'y-or-n-p)
 
-;; Keep directories clean
+;; Keep directories clean.
 (use-package no-littering
   :config
   (require 'recentf)
@@ -264,14 +264,14 @@
         `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
   )
 
-;; Track recently-opened files
+;; Track recently-opened files.
 (use-package recentf
   :config
   (setq recentf-max-saved-items 10000)
   (recentf-mode t)
   )
 
-;; Turn on blinking/flashing cursor
+;; Turn on blinking/flashing cursor.
 (blink-cursor-mode 1)
 (when (display-graphic-p)
   (setq-default cursor-type 'box))
@@ -287,7 +287,7 @@
 (toggle-frame-maximized) ;; Maximize!
 ;; (toggle-frame-fullscreen) ;; Maximize MORE
 
-;; Enable popup tooltips, use emacs tooltip implementation
+;; Enable popup tooltips, use emacs tooltip implementation.
 (tooltip-mode nil)
 (setq x-gtk-use-system-tooltips nil)
 
@@ -305,7 +305,7 @@
 (setq-default indent-tabs-mode nil
               tab-width 4
               fill-column 80
-              indicate-empty-lines nil ;; Highlight end of buffer.
+              indicate-empty-lines nil ;; Highlight end of buffer?
               )
 
 (setq x-select-enable-clipboard t
@@ -314,8 +314,8 @@
       apropos-do-all t
       mouse-yank-at-point t
       kill-ring-max 1000
-      require-final-newline t    ;; Ensure that files end with a newline
-      next-line-add-newlines t   ;; add newline at end of buffer with C-n
+      require-final-newline t    ;; Ensure that files end with a newline.
+      next-line-add-newlines t   ;; Add newline at end of buffer with C-n.
       visible-bell t
       ring-bell-function 'ignore
       load-prefer-newer t
@@ -487,7 +487,7 @@
   (delete-window)
   (balance-windows))
 
-;; Remap the default window-splitting commands to the ones above
+;; Remap the default window-splitting commands to the ones above.
 (global-set-key (kbd "C-x 2") 'split-window-below-focus)
 (global-set-key (kbd "C-x 3") 'split-window-right-focus)
 
@@ -502,7 +502,7 @@
 
 (define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
 
-;; narrow/widen easily
+;; Narrow/widen easily.
 (defun narrow-dwim ()
   "Widen if currently narrowed, else narrow to function."
   (interactive)
@@ -511,7 +511,7 @@
    (t (narrow-to-defun))))
 (global-set-key (kbd "C-(") 'narrow-dwim)
 
-;; code folding
+;; Code folding.
 (require 'hideshow)
 (diminish 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
@@ -523,11 +523,11 @@
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-;; Zoom in/out
+;; Zoom in/out.
 (global-set-key (kbd "M-+") 'text-scale-increase)
 (global-set-key (kbd "M--") 'text-scale-decrease)
 
-;; Easily open info-display-manual
+;; Easily open info-display-manual.
 (global-set-key (kbd "C-h I") 'info-display-manual)
 
 (defun indent-buffer ()
@@ -548,7 +548,7 @@ another window."
   )
 (global-set-key (kbd "C-c h") 'region-history-other)
 
-;; Delete current buffer file
+;; Delete current buffer file.
 (defun delete-current-buffer-file ()
   "Remove file connected to current buffer and kill buffer."
   (interactive)
@@ -564,7 +564,7 @@ another window."
 
 (global-set-key (kbd "C-c k") 'delete-current-buffer-file)
 
-;; Rename current buffer file
+;; Rename current buffer file.
 (defun rename-current-buffer-file ()
   "Renames current buffer and file it is visiting."
   (interactive)
@@ -584,7 +584,7 @@ another window."
 
 (global-set-key (kbd "C-c r") 'rename-current-buffer-file)
 
-;; Select the current line
+;; Select the current line.
 (defun select-current-line ()
   "Select the current line."
   (interactive)
@@ -645,7 +645,6 @@ every line included in the region."
     (transpose-lines 1)
     (forward-line -1)
     (move-to-column col)))
-
 (defun move-line-up ()
   "Move the current line up, preserving the cursor position."
   (interactive)
@@ -834,16 +833,14 @@ one."
                              ;; Prevent certain files from showing up.
                              ;; Use C-x M-o to show omitted files.
                              (dired-omit-mode)
-                             ;; Hide details.
+                             ;; Hide details by default.
                              (dired-hide-details-mode)
                              ))
 (setq dired-omit-files (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
 
 ;; Allow changing file permissions in WDired
-;; Notes: WDired can be enabled with C-x C-q and compiled with C-c C-c
+;; Note: WDired can be entered with C-x C-q and changes saved with C-c C-c.
 (setq wdired-allow-to-change-permissions t)
-
-
 
 ;;; ERC settings
 
@@ -882,7 +879,6 @@ one."
       eshell-scroll-to-bottom-on-output nil
       )
 
-;; Use helm to list eshell history
 (add-hook 'eshell-mode-hook
           #'(lambda ()
               (define-key eshell-mode-map (kbd "M-n") 'scroll-up-line-quick)
@@ -892,12 +888,13 @@ one."
               (define-key eshell-mode-map (kbd "M-.")
                 'eshell-next-matching-input-from-input)
 
+              ;; Use helm to list eshell history.
               (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)
               (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
               (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
               ))
 
-;; Open a new eshell buffer
+;; Open a new eshell buffer.
 (defun eshell-new ()
   "Open a new eshell buffer."
   (interactive)
@@ -945,7 +942,7 @@ one."
 ;;   (key-chord-define-global "jx" 'helm-mini)
 ;;   )
 
-;; Text separated by more than one space doesn't move
+;; Text separated by more than one space doesn't move.
 (use-package dynamic-spaces
   :config
   (dynamic-spaces-global-mode))
@@ -1022,6 +1019,7 @@ one."
 
 ;; ;; Add indicators for position in buffer and end of buffer.
 ;; ;; Only load this for graphical displays (i.e. not the terminal).
+;; ;; Buggy.
 ;; (when (display-graphic-p)
 ;;   (use-package indicators
 ;;     :diminish indicators-mode
@@ -1052,10 +1050,7 @@ one."
 (use-package copy-as-format
   :defer t)
 
-;; Generate filler text.
-(use-package lorem-ipsum)
-
-;; Jump to definitions using ag
+;; Jump to definitions using ag.
 (use-package dumb-jump
   :bind (
          ;; ("M-g o" . dumb-jump-go-other-window)
@@ -1067,7 +1062,7 @@ one."
   (setq dumb-jump-prefer-searcher 'ag)
   )
 
-;; ;; Line numbers
+;; ;; Line numbers.
 ;; (use-package nlinum
 ;;   :hook ((prog-mode . nlinum-mode)
 ;;          (conf-mode . nlinum-mode)
@@ -1077,19 +1072,19 @@ one."
 ;;   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
 ;;   (setq nlinum-highlight-current-line t)
 ;;   )
-;; ;; Fix line numbers occasionally not appearing
+;; ;; Fix line numbers occasionally not appearing.
 ;; (use-package nlinum-hl)
 
-;; Show info about the current region
+;; Show info about the current region.
 ;; (use-package region-state
 ;;   :config (region-state-mode))
 
-;; ;; Display current function in mode line
+;; ;; Display current function in mode line. Sometimes doesn't work.
 ;; (use-package which-func
 ;;   :config
 ;;   (which-function-mode 1))
 
-;; Highlight indentation
+;; Highlight indentation.
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
@@ -1099,7 +1094,7 @@ one."
         )
   )
 
-;; Automatically clean up extraneous whitespace
+;; Automatically clean up extraneous whitespace.
 (use-package ws-butler
   :diminish ws-butler-mode
   :hook (
@@ -1112,10 +1107,10 @@ one."
 ;; (use-package save-visited-files
 ;;   :config (turn-on-save-visited-files-mode))
 
-;; Avy mode (jump to a char/word using a decision tree)
+;; Avy mode (jump to a char/word using a decision tree).
 (use-package avy
   :init
-  ;; Jump to the end of a line using avy's decision tree
+  ;; Jump to the end of a line using avy's decision tree.
   (defun avy-goto-line-end ()
     "Jump to a line using avy and go to the end of the line."
     (interactive)
@@ -1128,14 +1123,15 @@ one."
          ;; ("C->" . avy-goto-word-1)
          )
   :config
-  ;; Use more characters (and better ones) in the decision tree
+  ;; Use more characters (and better ones) in the decision tree.
   ;; QWERTY keys
   (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
                       ?w ?e ?r ?u ?i ?o))
   ;; DVORAK keys
   ;; (setq avy-keys '(?p ?g ?c ?r
   ;;                     ?a ?o ?e ?u ?h ?t ?n ?s))
-  ;; Set the background to gray to highlight the decision tree
+
+  ;; Set the background to gray to highlight the decision tree?
   (setq avy-background nil)
   )
 
@@ -1158,6 +1154,7 @@ one."
   (save-place-mode 1)
   )
 
+;; ;; Toggle the mode-line to save space.
 ;; (use-package hide-mode-line
 ;;   :config
 ;;   (defun hide-mode-line-toggle ()
@@ -1460,9 +1457,10 @@ one."
   :init
   (global-diff-hl-mode)
   :config
-  (diff-hl-margin-mode)
+  (diff-hl-margin-mode) ;; Show diffs in margin.
   ;; (diff-hl-flydiff-mode) ;; No need to save before seeing diffs.
   (diff-hl-dired-mode)   ;; See diffs in Dired.
+
   ;; Refresh diffs after a Magit commit.
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   )
@@ -1500,7 +1498,7 @@ one."
   :hook (after-init . global-company-mode)
   :init
   (setq company-idle-delay nil)
-  (setq company-tooltip-align-annotations t) ;; align tooltips to right border
+  (setq company-tooltip-align-annotations t) ;; Align tooltips to right border.
   )
 
 ;; Yasnippet.
@@ -1712,7 +1710,7 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
   ;; All subtasks must be DONE before marking a task as DONE.
   (setq org-enforce-todo-dependencies t)
-  (setq org-log-done (quote time)) ;; Log time a task was set to DONE
+  (setq org-log-done (quote time)) ;; Log time a task was set to DONE.
   (setq org-log-redeadline nil)
   (setq org-log-reschedule nil)
 
