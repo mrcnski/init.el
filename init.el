@@ -1998,10 +1998,21 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
      'mode-line-modified
      " "
      '(:eval (propertize "%b"
-                         'face '(:underline t)
+                         'face '(:weight bold)
                          'help-echo (buffer-file-name)))
+     '(:eval (when line-number-mode ":%l:%C"))
      " "
-     '(:eval (when buffer-file-name "[%I]"))
+     '(:eval (when (and line-number-mode mode-line-buffer-line-count buffer-file-name)
+               (let ((str "["))
+                 (when (buffer-modified-p)
+                   (setq str (concat str "*")))
+                 (setq str (concat str mode-line-buffer-line-count "]"))
+                 str)))
+     '(:eval (when buffer-file-name (let ((str "["))
+                                      (when (buffer-modified-p)
+                                        (setq str (concat str "*")))
+                                      (setq str (concat str "%I]"))
+                                      str)))
      '(:eval (when (not (string-equal major-mode 'org-agenda-mode))
                (propertize "[%m] "
                            ;; 'face '(:weight bold)
@@ -2011,29 +2022,23 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
                (propertize "RO "
                            'face 'font-lock-preprocessor-face
                            'help-echo "Buffer is read-only")))
-     "- "
-     '(:eval (when line-number-mode
-               (let ((str "%l:%C"))
-                 (when (and mode-line-buffer-line-count buffer-file-name)
-                   (setq str (concat str " ("))
-                   (when (buffer-modified-p)
-                     (setq str (concat str "*")))
-                   (setq str (concat str mode-line-buffer-line-count ")"))
-                   )
-                 str)))
      '(:eval
        (when mark-active
-         (concat " <" (number-to-string (abs (- (point) (mark)))) ">")))
+         (concat "{" (number-to-string (abs (- (point) (mark)))) "}")))
      " "
 
-     '(:eval (mode-line-fill (+ 1 (length (substring-no-properties
-                                           (eyebrowse-mode-line-indicator))))))
-     '(:eval (eyebrowse-mode-line-indicator))
+     '(:eval (when (fboundp 'eyebrowse-mode-line-indicator)
+               (concat
+                (mode-line-fill (+ 1 (length (substring-no-properties
+                                              (eyebrowse-mode-line-indicator)))))
+                (eyebrowse-mode-line-indicator))))
      ;; " "
      ;; '(:eval (propertize (format-time-string "%H:%M")))
      ))))
 
-;; Display important org files on startup.
+;; Misc
+
+;; Display notes.org and Org Agenda on startup.
 (defun emacs-welcome()
   "Display Emacs welcome screen."
   (interactive)
