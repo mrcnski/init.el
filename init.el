@@ -1687,6 +1687,16 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
 ;;; Org Mode
 
+(defun org-mode-hook-fun ()
+  "Initialize `org-mode'."
+  (visual-line-mode) ;; Word-wrap
+  (toggle-word-wrap t)
+  (org-indent-mode) ;; Indented entries
+  (local-unset-key (kbd "C-,")) ;; Unbind keys stolen by org-mode
+  ;; Add a buffer-local hook.
+  ;; (add-hook 'after-save-hook 'org-agenda-refresh nil 'make-it-local)
+  )
+
 (use-package org
   :hook (org-mode . org-mode-hook-fun)
   :diminish visual-line-mode
@@ -1701,7 +1711,7 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   ;; The ellipsis to use in the org-mode outline.
   (setq org-ellipsis "...")
   ;; Try to keep cursor before ellipses.
-  (setq org-special-ctrl-a/e nil)
+  (setq org-special-ctrl-a/e t)
   ;; Smart editing of invisible region around ellipses.
   (setq org-catch-invisible-edits 'smart)
 
@@ -1726,9 +1736,9 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 
   ;; Refresh org-agenda after changing an item status.
   ;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
-  ;; (defadvice org-schedule (after refresh-agenda activate)
-  ;;   "Refresh org-agenda."
-  ;;   (org-agenda-refresh))
+  (defadvice org-schedule (after refresh-agenda activate)
+    "Refresh org-agenda."
+    (org-agenda-refresh))
 
   ;; Set location of agenda files.
   (setq org-agenda-files (list user-todo-location
@@ -1775,8 +1785,13 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (defun org-agenda-done ()
     "In org-agenda, change task status to DONE and archive it."
     (interactive)
-    (org-agenda-todo 'done)
-    (org-agenda-archive)
+    (let ((heading (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+      (cond ((string-match "\\[\\(.*\\)\\]" heading)
+             (org-agenda-schedule nil (match-string 1 heading)))
+            (t
+             (org-agenda-todo 'done)
+             (org-agenda-archive)
+             )))
     )
 
   (defun org-refile-goto ()
@@ -1814,6 +1829,7 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (define-key org-mode-map (kbd "C-S-p") 'org-metaup)
   (define-key org-mode-map (kbd "C-<")   'org-shiftmetaleft)
   (define-key org-mode-map (kbd "C->")   'org-shiftmetaright)
+  (define-key org-mode-map (kbd "M-m")   'org-beginning-of-line)
 
   (define-key org-mode-map (kbd "<mouse-3>") 'mouse-org-cycle)
 
@@ -1824,6 +1840,7 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   (add-hook 'org-agenda-mode-hook
             (lambda ()
               (define-key org-agenda-mode-map (kbd "C-c t") 'org-agenda-done)
+              (define-key org-agenda-mode-map (kbd "d")     'org-agenda-done)
               (visual-line-mode)
               (toggle-word-wrap t)
               ))
@@ -1914,23 +1931,12 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
     ))
 
 (defun org-agenda-refresh ()
-  "Refresh all org-agenda buffers."
-  (interactive)
+  "Refresh all `org-agenda' buffers."
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (when (derived-mode-p 'org-agenda-mode)
         (org-agenda-maybe-redo)
         ))))
-
-(defun org-mode-hook-fun ()
-  "Initialize `org-mode'."
-  (visual-line-mode) ;; Word-wrap
-  (toggle-word-wrap t)
-  (org-indent-mode) ;; Indented entries
-  (local-unset-key (kbd "C-,")) ;; Unbind keys stolen by org-mode
-  ;; Add a buffer-local hook.
-  ;; (add-hook 'after-save-hook 'org-agenda-refresh nil 'make-it-local)
-  )
 
 ;; Export org to Reveal.js.
 (use-package ox-reveal
