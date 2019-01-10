@@ -1,4 +1,4 @@
-;;; .emacs --- Emacs configuration file.
+;;; init.el --- Emacs configuration file.
 ;;
 ;; Copyright (C) 2017-2019 Marcin Swieczkowski
 ;;
@@ -58,11 +58,10 @@
 (require 'package)
 ;; Explicitly enable packages.
 (setq package-enable-at-startup nil)
-;; Add package sources (use package-refresh-contents)
+;; Add package sources.
 (unless (assoc-default "melpa" package-archives)
   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t))
 (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
-;;(package-refresh-contents)
 
 ;; Run auto-load functions specified by package authors.
 (package-initialize)
@@ -94,7 +93,7 @@
   :defer t)
 
 ;; Show more error info.
-(setq debug-on-error t)
+;; (setq debug-on-error nil)
 
 ;; Diminish modeline clutter.
 (use-package diminish)
@@ -180,7 +179,7 @@
 (use-package helm-describe-modes
   :bind ("C-h m" . helm-describe-modes))
 
-;;; Helm-swoop
+;;; Helm-swoop.
 (use-package helm-swoop
   :bind (("C-;" . helm-swoop-without-pre-input)
          ("C-:" . helm-multi-swoop-all))
@@ -191,22 +190,22 @@
   (define-key helm-multi-swoop-map  (kbd "C-r") 'helm-previous-line)
   (define-key helm-multi-swoop-map  (kbd "C-s") 'helm-next-line)
 
-  ;; When doing isearch, hand the word over to helm-swoop
+  ;; When doing isearch, hand the word over to helm-swoop.
   (define-key isearch-mode-map (kbd "C-;") 'helm-swoop-from-isearch)
-  ;; From helm-swoop to helm-multi-swoop-all
+  ;; From helm-swoop to helm-multi-swoop-all.
   (define-key helm-swoop-map   (kbd "C-;") 'helm-multi-swoop-all-from-helm-swoop)
 
-  (setq helm-swoop-speed-or-color t) ;; Show syntax highlighting in results
+  (setq helm-swoop-speed-or-color t) ;; Show syntax highlighting in results.
   )
 
 ;; ggtags with helm
 (use-package helm-gtags
   :diminish helm-gtags-mode
   :init
-  ;; Enable helm-gtags-mode
-  (add-hook 'c-mode-hook      'helm-gtags-mode)
-  (add-hook 'c++-mode-hook    'helm-gtags-mode)
-  (add-hook 'asm-mode-hook    'helm-gtags-mode)
+  ;; Enable helm-gtags-mode.
+  (add-hook 'c-mode-hook   'helm-gtags-mode)
+  (add-hook 'c++-mode-hook 'helm-gtags-mode)
+  (add-hook 'asm-mode-hook 'helm-gtags-mode)
 
   :config
   (setq
@@ -229,12 +228,12 @@
       (helm-gtags-dwim)
       ))
 
-  (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
+  (define-key helm-gtags-mode-map (kbd "M-,")   'helm-gtags-pop-stack)
   (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
   (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
   )
 
-;; ag with helm
+;; ag with helm.
 (use-package helm-ag
   :init
   (setq helm-ag-insert-at-point 'symbol)
@@ -275,10 +274,10 @@
 (blink-cursor-mode 1)
 (when (display-graphic-p)
   (setq-default cursor-type 'box))
-;; Stretch cursor to be as wide as the character at point
+;; Stretch cursor to be as wide as the character at point.
 (setq x-stretch-cursor 1)
 
-;; Disable scroll bars and the tool bar
+;; Disable scroll bars and the tool bar.
 (when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
 (when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
@@ -415,32 +414,29 @@
 (global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
 (global-set-key (kbd "s-o") 'helm-ag-pop-stack)
 
-;; Reload the current buffer from disk.
-(global-set-key [f5]  'save-revert-buffer)
 (global-set-key [f12] 'toggle-frame-fullscreen)
 
 ;; Actions to perform when saving.
 ;; (add-hook 'before-save-hook 'whitespace-cleanup)
 ;; (add-hook 'before-save-hook 'ispell-comments-and-strings)
 
-;; Save the buffer and revert it.
+;; Save the buffer and revert it (reload from disk).
 (defun save-revert-buffer ()
   "Save the buffer and then revert it."
   (interactive)
   (save-buffer)
   (revert-buffer))
+(global-set-key [f5]  'save-revert-buffer)
 
-;; Automatically save on loss of focus.
 (defun save-all ()
   "Save all file-visiting buffers without prompting."
   (interactive)
   (save-some-buffers t) ;; Do not prompt for confirmation.
   )
+(global-set-key (kbd "C-x s") 'save-all)
 
 ;; Automatically save all file-visiting buffers when Emacs loses focus.
 (add-hook 'focus-out-hook 'save-all)
-;; (add-hook 'focus-out-hook 'balance-windows)
-(global-set-key (kbd "C-x s") 'save-all)
 
 (defun goto-line-show ()
   "Show line numbers temporarily, while prompting for the line number input."
@@ -497,7 +493,6 @@
 (global-set-key (kbd "C-3") 'split-window-right-focus)
 
 (global-set-key (kbd "C-j") 'indent-new-comment-line)
-;; (global-set-key (kbd "M-$") 'ispell-buffer)
 (global-set-key (kbd "M-SPC") 'cycle-spacing)
 
 (define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
@@ -527,15 +522,11 @@
 (global-set-key (kbd "M-+") 'text-scale-increase)
 (global-set-key (kbd "M--") 'text-scale-decrease)
 
-;; Easily open info-display-manual.
-(global-set-key (kbd "C-h I") 'info-display-manual)
-
 (defun indent-buffer ()
   "Indent the whole buffer."
   (interactive)
   (indent-region (point-min) (point-max))
   )
-
 (global-set-key (kbd "C-c n") 'indent-buffer)
 ;; (add-hook 'before-save-hook 'indent-buffer)
 
@@ -755,15 +746,15 @@ one."
 
 ;;; Visual settings
 
-;; set transparency (cool but distracting)
-;; (set-frame-parameter (selected-frame) 'alpha '(95))
-(set-frame-parameter (selected-frame) 'alpha '(100))
+;; Set transparency.
+(set-frame-parameter (selected-frame) 'alpha '(98))
+;; (set-frame-parameter (selected-frame) 'alpha '(100))
 
 ;; Load Themes
 ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 
 (defadvice load-theme (before clear-previous-themes activate)
-  "Clear existing theme settings instead of layering them"
+  "Clear existing theme settings instead of layering them."
   (mapc #'disable-theme custom-enabled-themes))
 
 ;; Nimbus is my personal theme, available on Melpa.
@@ -855,10 +846,10 @@ one."
         ("mozilla.org" "#rust")))
 ;; (erc :server "irc.mozilla.org" :port 6667 :nick "m-cat")
 
-;; Notify in minibuffer when private messaged
+;; Notify in minibuffer when private messaged.
 (setq erc-echo-notices-in-minibuffer-flag t)
 
-;; Match keywords, highlight pals, ignore fools
+;; Match keywords, highlight pals, ignore fools.
 (require 'erc-match)
 (setq erc-keywords '("rust"))
 (setq erc-pals  '())
@@ -930,17 +921,10 @@ one."
     (goto-char (point-max)))
   )
 
-(use-package pdf-tools)
-
-;; ;; Key chords
-;; (use-package key-chord
-;;   :init
-;;   (key-chord-mode 1)
-;;   (setq key-chord-one-key-delay .25)
-;;   (setq key-chord-two-keys-delay .15)
-
-;;   (key-chord-define-global "jx" 'helm-mini)
-;;   )
+;; View PDF files in Emacs.
+(use-package pdf-tools
+  :config
+  (pdf-loader-install))
 
 ;; Text separated by more than one space doesn't move.
 (use-package dynamic-spaces
@@ -1002,11 +986,6 @@ one."
 ;; Show unused keys.
 (use-package free-keys
   :defer t)
-
-;; Dim surrounding paragraphs.
-(use-package focus
-  :bind (("s-f" . focus-mode))
-  )
 
 ;; Mode for writing.
 (use-package olivetti
@@ -1075,10 +1054,6 @@ one."
 ;; ;; Fix line numbers occasionally not appearing.
 ;; (use-package nlinum-hl)
 
-;; Show info about the current region.
-;; (use-package region-state
-;;   :config (region-state-mode))
-
 ;; ;; Display current function in mode line. Sometimes doesn't work.
 ;; (use-package which-func
 ;;   :config
@@ -1102,13 +1077,19 @@ one."
          (text-mode . ws-butler-mode)
          ))
 
-;; ;; Save open files across Emacs sessions.
-;; ;; I use this instead of Desktop.el which saves the entire session.
+;; Save open files across Emacs sessions.
+;; I use this instead of Desktop.el, which saves the entire session, as often
+;; I want to start Emacs with fresh settings.
 ;; (use-package save-visited-files
 ;;   :config (turn-on-save-visited-files-mode))
 
 ;; Avy mode (jump to a char/word using a decision tree).
 (use-package avy
+  :bind (("C-," . avy-goto-line-end)
+         ;; ("C-<" . avy-goto-char-in-line)
+         ("C-." . avy-goto-char)
+         ;; ("C->" . avy-goto-word-1)
+         )
   :init
   ;; Jump to the end of a line using avy's decision tree.
   (defun avy-goto-line-end ()
@@ -1117,13 +1098,9 @@ one."
     (avy-goto-line)
     (end-of-line)
     )
-  :bind (("C-," . avy-goto-line-end)
-         ;; ("C-<" . avy-goto-char-in-line)
-         ("C-." . avy-goto-char)
-         ;; ("C->" . avy-goto-word-1)
-         )
   :config
   ;; Use more characters (and better ones) in the decision tree.
+
   ;; QWERTY keys
   (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
                       ?w ?e ?r ?u ?i ?o))
@@ -1135,13 +1112,6 @@ one."
   (setq avy-background nil)
   )
 
-;; Select from available windows using a letter key.
-;; (use-package ace-window
-;;   :bind ("M-o" . ace-window)
-;;   :config
-;;   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-;;   )
-
 ;; Use a sensible mechanism for making buffer names unique.
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward
@@ -1149,7 +1119,6 @@ one."
 
 ;; Automatically save place in each file.
 (use-package saveplace
-  :defer 1
   :config
   (save-place-mode 1)
   )
@@ -1171,7 +1140,6 @@ one."
 
 ;; Highlight the parts of lines that exceed column 80.
 (use-package whitespace
-  :defer 2
   :diminish whitespace-mode
   :config
   (setq whitespace-style '(face empty tabs lines-tail trailing))
@@ -1318,10 +1286,6 @@ one."
   (setq which-key-sort-order 'which-key-key-order-alpha)
   (setq which-key-sort-uppercase-first nil))
 
-;; Auto-focus help buffers and allow exiting with C-g.
-(use-package popwin
-  :config (popwin-mode 1))
-
 ;; Switch windows more easily.
 (use-package winum
   :init
@@ -1391,7 +1355,8 @@ one."
   :bind ("M-;" . evilnc-comment-or-uncomment-lines))
 
 ;; Synonym lookup.
-(use-package powerthesaurus)
+(use-package powerthesaurus
+  :defer t)
 
 ;; Imagemagick wrapper.
 (use-package blimp
@@ -1428,11 +1393,6 @@ one."
   :defer t)
 
 ;;; Project packages.
-
-(use-package wakatime-mode
-  :config
-  (global-wakatime-mode)
-  )
 
 ;; Project manager.
 (use-package projectile
@@ -1502,7 +1462,7 @@ one."
   )
 
 ;; Yasnippet.
-;; Note: list all snippets for current mode with M-x `yas-describe-tables'.
+;; NOTE: list all snippets for current mode with M-x `yas-describe-tables'.
 (use-package yasnippet-snippets)
 (use-package yasnippet
   :requires yasnippet-snippets
@@ -1555,7 +1515,7 @@ one."
   :hook (flycheck-mode . flycheck-haskell-setup))
 
 ;; ;; Completions for Haskell
-;; ;; TODO: doesn't get loaded...
+;; ;; FIXME: Doesn't get loaded...
 ;; (use-package company-ghc
 ;;   :after company
 ;;   :init
@@ -1646,8 +1606,6 @@ one."
          (racer-mode . eldoc-mode)
          )
   :init
-  (setq racer-rust-src-path "/Users/marcin/.rustup/toolchains/\
-stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
   :config
   (define-key racer-mode-map (kbd "<mouse-2>") 'mouse-find-definition)
   (define-key racer-mode-map (kbd "<mouse-3>") 'pop-tag-mark)
@@ -1668,11 +1626,6 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
 ;;          (toml-mode . cargo-minor-mode)
 ;;          )
 ;;   )
-
-;; Doesn't work, json-read-error
-;; (use-package flycheck-rust
-;;   :init
-;;   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
 ;; TOML
 
@@ -1993,7 +1946,7 @@ stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/")
    'display `((space :align-to (- (+ right right-fringe right-margin) ,reserve)))
    ))
 
-;; Set the mode-line
+;; Set the mode-line.
 (setq-default
  mode-line-format
  '((:eval
