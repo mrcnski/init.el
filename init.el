@@ -756,9 +756,7 @@ indentation."
 
 (add-hook 'dired-mode-hook
           #'(lambda ()
-              ;; Make C-l go up a directory in dired
-              (define-key dired-mode-map (kbd "C-l") 'dired-up-directory)
-              (define-key dired-mode-map (kbd "s-l") 'dired-up-directory)
+              ;; Create new file.
               (define-key dired-mode-map "f"         'helm-find-files)
               ))
 
@@ -782,11 +780,6 @@ indentation."
 (use-package diredfl
   :config (diredfl-global-mode))
 
-;; Colorify files in dired based on type.
-;; Use `diredful-add' and `diredful-edit' to make changes.
-(use-package diredful
-  :config (diredful-mode))
-
 ;; Expanded dired
 ;; Enables jumping to the current directory in dired (default: C-x C-j).
 (require 'dired-x)
@@ -805,8 +798,15 @@ indentation."
 ;; NOTE: WDired can be entered with C-x C-q and changes saved with C-c C-c.
 (setq wdired-allow-to-change-permissions t)
 
-;;; ERC settings
+;;; ibuffer settings
 
+;; Don't show filter groups if there are no buffers in that group.
+(setq ibuffer-show-empty-filter-groups nil)
+
+;; Don't ask for confirmation to delete marked buffers.
+(setq ibuffer-expert t)
+
+;;; ERC settings
 
 (setq erc-autojoin-channels-alist
       '(("freenode.net" "#emacs")
@@ -868,10 +868,6 @@ indentation."
 (use-package eshell-up
   :defer 2
   :config (setq eshell-up-print-parent-dir nil))
-
-;; Open certain programs from eshell in a term buffer
-(add-hook 'eshell-load-hook #'(add-to-list 'eshell-visual-commands "ghci"))
-
 
 ;;; Load packages
 
