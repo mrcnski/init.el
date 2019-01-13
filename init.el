@@ -813,6 +813,10 @@ indentation."
 ;; ;; Extensions to Dired. Includes more dired colors.
 ;; (use-package dired+)
 
+;; More dired colors.
+(use-package diredfl
+  :config (diredfl-global-mode))
+
 ;; Colorify files in dired based on type.
 ;; Use `diredful-add' and `diredful-edit' to make changes.
 (use-package diredful
@@ -889,9 +893,6 @@ indentation."
 (global-set-key [f1] 'projectile-run-eshell)
 (global-set-key [f2] 'eshell-new)
 
-;; Add z to eshell
-;; Jumps to most recently visited directories
-(use-package eshell-z)
 ;; Add z to eshell.
 ;; Jumps to most recently visited directories.
 (use-package eshell-z
@@ -931,16 +932,11 @@ indentation."
 (use-package make-color
   :defer t)
 
-;; ;; Go to last change without undoing it
-;; (use-package goto-last-change
-;;   :bind ("C-?" . goto-last-change)
-;;   )
-
 ;; Workspaces
 (use-package eyebrowse
+  :demand t ;; To prevent mode-line display errors.
   :bind (("s-," . eyebrowse-prev-window-config)
          ("s-." . eyebrowse-next-window-config)
-         ;; ("C-\"" . eyebrowse-create-window-config)
          ("s-0" . eyebrowse-switch-to-window-config-0)
          ("s-1" . eyebrowse-switch-to-window-config-1)
          ("s-2" . eyebrowse-switch-to-window-config-2)
@@ -954,8 +950,6 @@ indentation."
          ("s-/" . eyebrowse-close-window-config)
          ("s-t" . eyebrowse-rename-window-config)
          )
-  ;; :init
-  ;; (setq eyebrowse-keymap-prefix nil) ; Broken!
   :config
   (eyebrowse-mode t)
   (setq eyebrowse-wrap-around t)
@@ -963,8 +957,8 @@ indentation."
   (setq eyebrowse-new-workspace t)
   (setq eyebrowse-close-window-config-prompt t)
 
-  (setq eyebrowse-mode-line-separator " ")
-  (setq eyebrowse-mode-line-left-delimiter "[ ")
+  (setq eyebrowse-mode-line-separator       " " )
+  (setq eyebrowse-mode-line-left-delimiter  "[ ")
   (setq eyebrowse-mode-line-right-delimiter " ]")
 
   (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold nil)
@@ -1180,28 +1174,17 @@ indentation."
   :diminish anzu-mode
   :config (global-anzu-mode))
 
-;; Enable more powerful replace, plus Python regexps.
-;; Notes: Enable expressions with C-c C-c
-;;        You can use variables (like i, the match counter) in expressions
-(use-package visual-regexp-steroids
-  :bind (("C-`"   . vr/query-replace)
-         ;; Hold down Alt for regexp-powered search
-         ;; Keep the default search regexp-free for case insensitivity
-         ("C-M-s" . vr/isearch-forward)
-         ("C-M-r" . vr/isearch-backward)
-         ("C-s"   . isearch-forward)
-         ("C-r"   . isearch-backward)))
-
 ;; Fontify symbols representing faces with that face.
 (use-package fontify-face
-  :diminish fontify-face-mode
   :defer t
+  :diminish fontify-face-mode
+  :hook (emacs-lisp-mode . fontify-face-mode)
   )
 
 ;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode
-  :diminish rainbow-mode
   :defer t
+  :diminish rainbow-mode
   )
 
 ;; ;; Highlight blocks based on depth. Buggy.
@@ -1243,18 +1226,25 @@ indentation."
         )
   )
 
+;; Highlight keywords such as TODO, FIXME, NOTE, etc.
+;; NOTE: Face values defined in `hl-todo-keyword-faces'.
+(use-package hl-todo
+  :config
+  (global-hl-todo-mode)
+  )
+
 ;; Open current directory in Finder on Mac.
 (use-package reveal-in-osx-finder
   :bind ("C-c f" . reveal-in-osx-finder)
   )
 
+;; Open current directory in an external terminal emulator.
+(use-package terminal-here
+  :bind ("C-c t" . terminal-here-launch)
+  )
+
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover)
-
-;; ;; Temporarily "hide" other windows.
-;; (use-package zygospore
-;;   :bind ("M-o" . zygospore-toggle-delete-other-windows)
-;;   )
 
 ;; Undo/redo window configurations.
 (use-package winner
@@ -1264,14 +1254,11 @@ indentation."
          )
   :config (winner-mode 1))
 
-;; ;; Enable undo tree mode (C-x u)
-;; (use-package undo-tree
-;;   :diminish undo-tree-mode
-;;   :config
-;;   (progn
-;;     (global-undo-tree-mode)
-;;     (setq undo-tree-visualizer-timestamps t)
-;;     (setq undo-tree-visualizer-diff t)))
+(use-package undo-tree
+  :diminish undo-tree-mode
+  :config
+    (setq undo-tree-visualizer-timestamps t)
+    (setq undo-tree-visualizer-diff t))
 
 ;; Display available keys.
 (use-package which-key
@@ -1363,14 +1350,29 @@ indentation."
 ;; Git client in Emacs.
 (use-package magit
   :diminish auto-revert-mode
-  :bind ("C-x g" . magit-status)
   :bind (("C-x g" . magit-status)
          ("s-g"   . magit-status))
+
   :init
-  (setq magit-diff-refine-hunk `all)
-  (setq magit-display-buffer-function
-        #'magit-display-buffer-same-window-except-diff-v1)
+  (setq
+   ;; Show fine differences for all displayed diff hunks.
+   magit-diff-refine-hunk `all
+   magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
+   ;; Don't ask before saving repository buffers.
+   magit-save-repository-buffers 'dontask
+   )
   )
+
+;; ;; Show TODO items for a project.
+;; (use-package magit-todos
+;;   :config
+;;   (magit-todos-mode)
+;;   (setq magit-todos-update nil)
+;;   )
+
+;; Interface with GitHub etc. from Magit.
+(use-package forge
+  :defer 2)
 
 ;; Browse historic versions of a file.
 (use-package git-timemachine
@@ -1431,11 +1433,16 @@ indentation."
 
   ;; Disable checkers.
   (setq-default flycheck-disabled-checkers '(rust rust-cargo rust-clippy))
-  ;; (setq-default flycheck-disabled-checkers '(rust))
+  ;; (setq-default flycheck-disabled-checkers '(rust)) ;; Doesn't work.
+
+  ;; (flycheck-add-next-checker 'rust-cargo 'rust-clippy)
 
   (flycheck-add-mode 'proselint 'text-mode)
-  (flycheck-add-mode 'proselint 'org-mode)
-  (flycheck-add-next-checker 'markdown-mdl 'proselint)
+  ;; (flycheck-add-mode 'proselint 'org-mode) ;; Causes huge spikes in CPU.
+
+  (flycheck-add-next-checker 'markdown-mdl  'proselint)
+  ;; (flycheck-add-next-checker 'sh-bash       'sh-shellcheck)
+  ;; (flycheck-add-next-checker 'sh-posix-bash 'sh-shellcheck)
   )
 
 ;; Elisp package lints.
