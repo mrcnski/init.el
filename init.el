@@ -1,4 +1,4 @@
-;;; init.el --- Emacs configuration file.
+;;; init.el --- Emacs configuration file. -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2017-2019 Marcin Swieczkowski
 ;;
@@ -123,6 +123,8 @@
   (global-set-key (kbd "C-x C-SPC")  'helm-all-mark-rings)
   (global-set-key (kbd "M-i")        'helm-semantic-or-imenu)
 
+  (defvar helm-buffers-fuzzy-matching)
+  (defvar helm-recentf-fuzzy-match)
   (setq helm-buffers-fuzzy-matching t
         helm-recentf-fuzzy-match    t
         helm-follow-mode-persistent t
@@ -138,7 +140,7 @@
   (when (executable-find "curl")
     (setq helm-google-suggest-use-curl-p t))
 
-  (setq helm-split-window-in-side-p t ;; open helm buffer inside current window
+  (setq helm-split-window-inside-p t ;; open helm buffer inside current window
         ;; move to end or beginning of source when reaching top/bottom of source.
         helm-move-to-line-cycle-in-source t
         ;; search for library in `use-package' and `declare-function' sexp.
@@ -251,6 +253,7 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;; Keep directories clean.
+(defvar recentf-exclude)
 (use-package no-littering
   :config
   (require 'recentf)
@@ -295,6 +298,7 @@
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page   'disabled nil)
 
+(defvar show-paren-delay)
 (setq show-paren-delay highlight-delay)
 (show-paren-mode 1)
 
@@ -304,8 +308,8 @@
               indicate-empty-lines nil ;; Highlight end of buffer?
               )
 
-(setq x-select-enable-clipboard t
-      x-select-enable-primary t
+(setq select-enable-clipboard t
+      select-enable-primary t
       save-interprogram-paste-before-kill t
       apropos-do-all t
       mouse-yank-at-point t
@@ -543,7 +547,7 @@ another window."
   (interactive)
   (let ((filename (buffer-file-name))
         (buffer (current-buffer))
-        (name (buffer-name)))
+        )
     (if (not (and filename (file-exists-p filename)))
         (ido-kill-buffer)
       (when (yes-or-no-p "Are you sure you want to remove this file? ")
@@ -736,6 +740,7 @@ indentation."
   (defun font-exists-p (font)
     "Check if FONT exists."
     (if (null (x-list-fonts font)) nil t))
+  (declare-function font-exists-p "init.el")
 
   ;; Set font.
   (cond
@@ -754,13 +759,15 @@ indentation."
 
 ;;; Dired settings
 
+(defvar dired-mode-map)
 (add-hook 'dired-mode-hook
           #'(lambda ()
               ;; Create new file.
-              (define-key dired-mode-map "f"         'helm-find-files)
+              (define-key dired-mode-map "f" 'helm-find-files)
               ))
 
 ;; Handle opening and editing zip directories in dired.
+(defvar dired-compress-file-suffixes)
 (eval-after-load "dired-aux"
   '(add-to-list 'dired-compress-file-suffixes
                 '("\\.zip\\'" ".zip" "unzip")))
@@ -837,6 +844,7 @@ indentation."
       eshell-scroll-to-bottom-on-output nil
       )
 
+(defvar eshell-mode-map)
 (add-hook 'eshell-mode-hook
           #'(lambda ()
               (define-key eshell-mode-map (kbd "M-,")
@@ -1450,39 +1458,6 @@ indentation."
 (use-package gitignore-mode
   :defer t)
 
-;; Haskell
-
-(use-package haskell-mode
-  :mode "\\.hs\\'"
-  :config
-  (define-key haskell-mode-map (kbd "C-#") 'haskell-process-load-or-reload)
-  ;; Use hoogle in Haskell buffers.
-  ;; Supply prefix arg for full info (C-u C-c h)
-  (define-key haskell-mode-map (kbd "C-c h") 'haskell-hoogle)
-
-  (setq haskell-indentation-layout-offset 4
-        haskell-indentation-left-offset   4
-        haskell-indentation-ifte-offset   4
-        haskell-hoogle-command "hoogle")
-  )
-
-(use-package flycheck-haskell
-  :hook (flycheck-mode . flycheck-haskell-setup))
-
-;; ;; Completions for Haskell
-;; ;; FIXME: Doesn't get loaded...
-;; (use-package company-ghc
-;;   :after company
-;;   :init
-;;   (autoload 'ghc-init "ghc" nil t)
-;;   (autoload 'ghc-debug "ghc" nil t)
-;;   :config
-;;   (add-to-list 'company-backends 'company-ghc))
-
-;; ;; Haskell snippets
-;; (use-package haskell-snippets
-;;   :after yasnippet)
-
 ;; Javascript
 
 (use-package js2-mode
@@ -1535,7 +1510,7 @@ indentation."
 (use-package nim-mode
   :hook (nim-mode . nimsuggest-mode)
   :init
-  (setq nim-nimsuggest-path "~/.nim/bin/nimsuggest")
+  (setq nimsuggest-path "~/.nim/bin/nimsuggest")
   ;; Currently nimsuggest doesn't support nimscript files, so only nim-mode...
   :config
   (define-key nim-mode-map (kbd "RET") 'newline-and-indent)
@@ -1646,6 +1621,7 @@ indentation."
   ;; Org-agenda settings
 
   ;; Show scheduled items in order from most to least recent.
+  (defvar org-agenda-sorting-strategy)
   (setq org-agenda-sorting-strategy
         '((agenda habit-down time-up scheduled-down priority-down category-keep)
           (todo   priority-down category-keep)
@@ -1666,10 +1642,13 @@ indentation."
                                user-work-location
                                ))
   ;; Stop org-agenda from messing up my windows!!
+  (defvar org-agenda-window-setup)
   (setq org-agenda-window-setup 'current-window)
   ;; Start org-agenda from the current day.
+  (defvar org-agenda-start-on-weekday)
   (setq org-agenda-start-on-weekday nil)
   ;; Don't align tags in the org-agenda (sometimes it messes up the display).
+  (defvar org-agenda-tags-column)
   (setq org-agenda-tags-column 0)
 
   ;; Org-refile settings
@@ -1770,6 +1749,7 @@ indentation."
 
   (define-key org-mode-map (kbd "C-c d") 'org-finish)
 
+  (defvar org-agenda-mode-map)
   (add-hook 'org-agenda-mode-hook
             (lambda ()
               (define-key org-agenda-mode-map (kbd "C-c d") 'org-agenda-finish)
@@ -1812,7 +1792,6 @@ indentation."
          (re-preset (get 'org-agenda-regexp-filter :preset-filter))
          (effort-filter org-agenda-effort-filter)
          (effort-preset (get 'org-agenda-effort-filter :preset-filter))
-         (org-agenda-tag-filter-while-redo (or tag-filter tag-preset))
          (cols org-agenda-columns-active)
          (line (org-current-line))
          ;; (window-line (- line (org-current-line (window-start))))
