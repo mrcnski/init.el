@@ -484,18 +484,13 @@
   "Delete window and rebalance the remaining ones."
   (interactive)
   (delete-window)
-  (balance-windows))
-
-;; Remap the default window-splitting commands to the ones above.
-(global-set-key (kbd "C-x 2") 'split-window-below-focus)
-(global-set-key (kbd "C-x 3") 'split-window-right-focus)
-
+  (balance-windows)
+  )
 (global-set-key (kbd "C-0") 'delete-window-balance)
 (global-set-key (kbd "C-1") 'delete-other-windows)
 (global-set-key (kbd "C-2") 'split-window-below-focus)
 (global-set-key (kbd "C-3") 'split-window-right-focus)
 
-(global-set-key (kbd "C-j") 'indent-new-comment-line)
 (global-set-key (kbd "M-SPC") 'cycle-spacing)
 
 (define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
@@ -578,45 +573,30 @@ another window."
 
 (global-set-key (kbd "C-c r") 'rename-current-buffer-file)
 
-;; Select the current line.
-(defun select-current-line ()
-  "Select the current line."
+(defun select-line ()
+  "Select the rest of the current line."
   (interactive)
-  (end-of-line)
-  (push-mark (line-beginning-position) nil t))
-;; Replace default C-l, it's useless
-(global-set-key (kbd "C-l") 'select-current-line)
+  (push-mark (line-end-position) nil t)
+  ;; (kill-ring-save nil nil t) ;; Save the current region.
+  )
+;; Replace default C-l, it's useless.
+(global-set-key (kbd "C-l") 'select-line)
 
-;; Improved kill-whole-line which doesn't change cursor position
+;; Improved kill-whole-line which doesn't change cursor position.
 ;; Can be called on multiple lines.
-;; Will entirely kill any line that's even partially within the region
-(defun annihilate-line-dwim ()
+;; Will entirely kill any line that's even partially within the region.
+(defun annihilate-lines ()
   "Annihilate the current line or region by killing it, deleting the empty \
 line, and restoring cursor position. If called on a region, will annihilate \
 every line included in the region."
   (interactive)
-  (cond
-   ;; No region selected
-   ((not (region-active-p))
-    (annihilate-line))
-   ;; There is an active region
-   (t
-    (annihilate-line-region (region-beginning) (region-end)))))
-
-(defun annihilate-line ()
-  "Annihilate the current line."
-  (interactive)
-  (let ((col (current-column)))
-    (kill-region (line-beginning-position) (line-end-position))
-    (kill-append "\n" t)
-    (if (/= (line-end-position) (point-max)) ;; Are there more lines after this?
-        (delete-char 1))
-    (move-to-column col))
-  )
-
-(defun annihilate-line-region (beg end)
+  (cond ((region-active-p)
+         (annihilate-lines-region (region-beginning) (region-end)))
+        (t
+         (annihilate-lines-region (point) (point))
+         )))
+(defun annihilate-lines-region (beg end)
   "Annihilate the region from BEG to END."
-  (interactive "r")
   (let ((col (current-column)))
     (goto-char beg)
     (setq beg (line-beginning-position))
@@ -628,27 +608,12 @@ every line included in the region."
         (delete-char 1))
     (move-to-column col))) ;; Restore column position
 
-(global-set-key (kbd "C-S-k") 'annihilate-line-dwim)
+(global-set-key (kbd "C-S-k") 'annihilate-lines)
 
-;; Move current line up or down.
-(defun move-line-down ()
-  "Move the current line down, preserving the cursor position."
-  (interactive)
-  (let ((col (current-column)))
-    (forward-line)
-    (transpose-lines 1)
-    (forward-line -1)
-    (move-to-column col)))
-(defun move-line-up ()
-  "Move the current line up, preserving the cursor position."
-  (interactive)
-  (let ((col (current-column)))
-    (transpose-lines 1)
-    (forward-line -2)
-    (move-to-column col)))
-
-(global-set-key (kbd "C-S-n") 'move-line-down)
-(global-set-key (kbd "C-S-p") 'move-line-up)
+;; Drag up/down single line or lines in region.
+(use-package drag-stuff
+  :bind (("C-S-n" . drag-stuff-down)
+         ("C-S-p" . drag-stuff-up)))
 
 ;; Join the following line onto the current line.
 ;; Use this to quickly consolidate multiple lines into one.
@@ -661,7 +626,7 @@ one."
     (join-line -1)
     (move-to-column col)))
 
-(global-set-key (kbd "M-j") 'join-next-line)
+(global-set-key (kbd "C-j") 'join-next-line)
 
 (defun open-line-below ()
   "Open a new line below, even if the point is midsentence, keeping proper \
@@ -1319,12 +1284,13 @@ indentation."
 
 ;; Wrap parentheses or quotes around word.
 (use-package corral
-  :bind (("M-(" . corral-parentheses-backward)
+  :bind (
+         ("M-(" . corral-parentheses-backward)
          ("M-)" . corral-parentheses-forward)
          ("M-[" . corral-brackets-backward)
          ("M-]" . corral-brackets-forward)
-         ("M-{" . corral-braces-backward)
-         ("M-}" . corral-braces-forward)
+         ;; ("M-{" . corral-braces-backward) ;; Useful keys by default.
+         ;; ("M-}" . corral-braces-forward)
          ("M-`" . corral-backquote-forward)
          ("M-~" . corral-backquote-backward)
          ("M-'"  . corral-double-quotes-forward)
@@ -1393,13 +1359,13 @@ indentation."
   )
 
 (use-package helm-projectile
-  :bind ("s-'" . helm-projectile)
+  :bind ("s-;" . helm-projectile)
   :config
   (helm-projectile-on))
 
 ;; Show markers in margin indicating changes.
 (use-package diff-hl
-  :bind (("C-c d" . diff-hl-revert-hunk)
+  :bind (("C-?"   . diff-hl-revert-hunk)
          ("C-<"   . diff-hl-previous-hunk)
          ("C->"   . diff-hl-next-hunk)
          )
