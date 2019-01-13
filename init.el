@@ -38,6 +38,7 @@
 (defvar user-work-location     "~/Dropbox/Text/org/work.org")
 
 (defvar highlight-delay .03)
+(defvar info-delay      .25)
 
 ;; Open .emacs init.
 (defun open-init-file ()
@@ -331,10 +332,11 @@
       vc-make-backup-files t          ;; Make backups of all files.
       delete-old-versions t           ;; Silently delete old backup versions.
       isearch-allow-scroll t
-      ;; Isearch convenience, space matches anything
-      ;; search-whitespace-regexp ".*?"
-      show-trailing-whitespace 1      ;; Display trailing whitespace
-      lazy-highlight-initial-delay .15
+      show-trailing-whitespace 1      ;; Display trailing whitespace.
+      isearch-lazy-highlight t
+      lazy-highlight-initial-delay info-delay
+      ;; Delay for displaying function/variable information.
+      eldoc-idle-delay info-delay
 
       pop-up-frames nil               ;; Open files in existing frames.
       pop-up-windows t
@@ -1422,7 +1424,10 @@ indentation."
   (setq flycheck-check-syntax-automatically '(idle-change mode-enabled save))
   ;; (setq flycheck-check-syntax-automatically nil)
 
+  ;; Set shorter delay for displaying errors at point.
+  (setq flycheck-display-errors-delay (* 3 info-delay))
   (setq sentence-end-double-space nil) ;; Stupid check.
+
   ;; Disable checkers.
   (setq-default flycheck-disabled-checkers '(rust rust-cargo rust-clippy))
   ;; (setq-default flycheck-disabled-checkers '(rust))
