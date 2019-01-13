@@ -872,6 +872,7 @@ indentation."
 ;;; Load packages
 
 ;; Stop execution here for terminal.
+
 ;; We typically only want to open `emacs' in the terminal for quick editing.
 (when (not (display-graphic-p))
   (with-current-buffer " *load*"
@@ -979,17 +980,11 @@ indentation."
 (use-package copy-as-format
   :defer t)
 
-;; Jump to definitions using ag.
-(use-package dumb-jump
-  :bind (
-         ;; ("M-g o" . dumb-jump-go-other-window)
-         ("M-g j" . dumb-jump-go)
-         ("M-g q" . dumb-jump-quick-look)
-         )
+;; Jump to definitions using dumb-jump as a fallback.
+(use-package smart-jump
+  :ensure t
   :config
-  (setq dumb-jump-selector 'helm)
-  (setq dumb-jump-prefer-searcher 'ag)
-  )
+  (smart-jump-setup-default-registers))
 
 ;; ;; Line numbers.
 ;; (use-package nlinum
@@ -1543,7 +1538,7 @@ indentation."
   (setq nim-nimsuggest-path "~/.nim/bin/nimsuggest")
   ;; Currently nimsuggest doesn't support nimscript files, so only nim-mode...
   :config
-  (define-key nim-mode-map (kbd "RET") #'newline-and-indent)
+  (define-key nim-mode-map (kbd "RET") 'newline-and-indent)
   )
 
 ;; Rust
@@ -1554,7 +1549,7 @@ indentation."
   :init
   (setq rust-format-on-save nil)
   :config
-  (define-key rust-mode-map (kbd "C-c n") #'rust-format-buffer)
+  (define-key rust-mode-map (kbd "C-c n") 'rust-format-buffer)
   )
 
 (use-package racer
@@ -1562,18 +1557,9 @@ indentation."
   :hook ((rust-mode  . racer-mode)
          (racer-mode . eldoc-mode)
          )
-  :init
   :config
-  (define-key racer-mode-map (kbd "<mouse-2>") 'mouse-find-definition)
-  (define-key racer-mode-map (kbd "<mouse-3>") 'pop-tag-mark)
-
-  (defun mouse-find-definition (@click)
-    (interactive "e")
-    (let ((p1 (posn-point (event-start @click))))
-      (goto-char p1)
-      (call-interactively 'racer-find-definition)
-      )
-    )
+  (define-key racer-mode-map (kbd "M-,") 'smart-jump-back)
+  (define-key racer-mode-map (kbd "M-.") 'smart-jump-go)
   )
 
 ;; ;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
