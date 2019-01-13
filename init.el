@@ -389,12 +389,11 @@
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
 (add-to-list 'auto-mode-alist '("\\.pdf\\'"  . pdf-view-mode))
 
-;;; My Functions and Shortcuts/Keybindings
+;; Mouse settings
 
-;; (bind-keys*
-;; ("M-n" . scroll-up-line-quick)
-;; ("M-p" . scroll-down-line-quick)
-;; )
+(setq mouse-wheel-progressive-speed nil) ;; Make the mouse wheel not accelerate.
+
+;;; My Functions and Shortcuts/Keybindings
 
 (global-set-key (kbd "M-o") 'other-window)
 
@@ -408,7 +407,6 @@
 
 (global-set-key (kbd "s-y") 'helm-show-kill-ring)
 (global-set-key (kbd "s-h") 'helm-mark-ring)
-(global-set-key (kbd "s-g") 'magit-status)
 
 (global-set-key (kbd "s-i") 'helm-projectile-ag-inexact)
 (global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
@@ -673,6 +671,9 @@ one."
   (newline-and-indent)
   (forward-line -1)
   (indent-according-to-mode))
+(global-set-key (kbd "<C-return>") 'open-line-below)
+(global-set-key (kbd "<S-return>") 'open-line-above)
+
 (defun clear-line ()
   "Clear the line, but don't delete it."
   (interactive)
@@ -681,53 +682,49 @@ one."
   (indent-according-to-mode)
   )
 
-(global-set-key (kbd "<C-return>") 'open-line-below)
-(global-set-key (kbd "<S-return>") 'open-line-above)
-(global-set-key (kbd "<M-return>") 'clear-line)
+(defvar scroll-amount 8)
 
 ;; Scroll down/up by a smaller amount, doesn't change cursor position.
 (defun scroll-up-line-quick ()
   "Scroll up by a smaller amount without changing the cursor position."
   (interactive)
-  (scroll-up-line 6))
+  (scroll-up-line scroll-amount))
 (defun scroll-down-line-quick ()
   "Scroll down by a smaller amount without changing the cursor position."
   (interactive)
-  (scroll-down-line 6))
-
-(global-set-key (kbd "M-n") 'scroll-up-line-quick)
-(global-set-key (kbd "M-p") 'scroll-down-line-quick)
-
-(add-hook 'makefile-bsdmake-mode-hook
-          #'(lambda ()
-              (define-key makefile-bsdmake-mode-map (kbd "M-n")
-                'scroll-up-line-quick)
-              (define-key makefile-bsdmake-mode-map (kbd "M-p")
-                'scroll-down-line-quick)
-              ))
+  (scroll-down-line scroll-amount))
 
 ;; Scroll other window down/up.
 (defun scroll-other-window-up-quick ()
   "Scroll the other window up by a smaller amount."
   (interactive)
-  (scroll-other-window 5))
+  (scroll-other-window scroll-amount))
 (defun scroll-other-window-down-quick ()
   "Scroll the other window down by a smaller amount."
   (interactive)
-  (scroll-other-window-down 5))
+  (scroll-other-window-down scroll-amount))
 
-(global-set-key (kbd "M-N") 'scroll-other-window-up-quick)
-(global-set-key (kbd "M-P") 'scroll-other-window-down-quick)
+;; Globally bind these keys so they work in every mode.
+(bind-keys*
+ ("M-n" . scroll-up-line-quick)
+ ("M-p" . scroll-down-line-quick)
+ ("M-N" . scroll-other-window-up-quick)
+ ("M-P" . scroll-other-window-down-quick)
 
-;; Align region by character.
+ ("<mouse-3>" . previous-buffer)
+ ("<mouse-8>" . previous-buffer)
+ ("<mouse-4>" . next-buffer)
+ ("<mouse-9>" . next-buffer)
+ )
+
+;; Align region by string.
 ;; TODO: Enable history in read-string to allow for default values
-;; (i.e. last input)
+;;       (i.e. last input).
 (defun align-to-string (beg end)
-  "Align region along character CHAR from BEG to END."
+  "Align region from BEG to END along input string."
   (interactive "r")
   (let ((char (read-string "string: ")))
     (align-regexp beg end (concat "\\(\\s-*\\)" char))))
-
 (global-set-key (kbd "M-=") 'align-to-string)
 
 ;; Show ASCII table.
@@ -792,7 +789,6 @@ one."
               (define-key dired-mode-map (kbd "C-l") 'dired-up-directory)
               (define-key dired-mode-map (kbd "s-l") 'dired-up-directory)
               (define-key dired-mode-map "f"         'helm-find-files)
-              (define-key dired-mode-map (kbd "M-p") 'scroll-down-line-quick)
               ))
 
 ;; Handle opening and editing zip directories in dired
@@ -835,11 +831,6 @@ one."
 
 ;;; ERC settings
 
-(add-hook 'erc-mode-hook
-          #'(lambda ()
-              (define-key erc-mode-map (kbd "M-n") 'scroll-up-line-quick)
-              (define-key erc-mode-map (kbd "M-p") 'scroll-down-line-quick)
-              ))
 
 (setq erc-autojoin-channels-alist
       '(("freenode.net" "#emacs")
@@ -872,8 +863,6 @@ one."
 
 (add-hook 'eshell-mode-hook
           #'(lambda ()
-              (define-key eshell-mode-map (kbd "M-n") 'scroll-up-line-quick)
-              (define-key eshell-mode-map (kbd "M-p") 'scroll-down-line-quick)
               (define-key eshell-mode-map (kbd "M-,")
                 'eshell-previous-matching-input-from-input)
               (define-key eshell-mode-map (kbd "M-.")
@@ -905,12 +894,6 @@ one."
 ;; Open certain programs from eshell in a term buffer
 (add-hook 'eshell-load-hook #'(add-to-list 'eshell-visual-commands "ghci"))
 
-;; Mouse settings
-
-(setq mouse-wheel-progressive-speed nil) ;; Make the mouse wheel not accelerate
-
-(global-set-key (kbd "<mouse-8>") 'previous-buffer)
-(global-set-key (kbd "<mouse-9>") 'next-buffer)
 
 ;;; Load packages
 
@@ -1369,19 +1352,12 @@ one."
 (use-package magit
   :diminish auto-revert-mode
   :bind ("C-x g" . magit-status)
+  :bind (("C-x g" . magit-status)
+         ("s-g"   . magit-status))
   :init
   (setq magit-diff-refine-hunk `all)
   (setq magit-display-buffer-function
         #'magit-display-buffer-same-window-except-diff-v1)
-  :config
-  (define-key magit-status-mode-map (kbd "M-p") 'scroll-down-line-quick)
-  (define-key magit-status-mode-map (kbd "M-n") 'scroll-up-line-quick)
-  (define-key magit-stash-mode-map  (kbd "M-p") 'scroll-down-line-quick)
-  (define-key magit-stash-mode-map  (kbd "M-n") 'scroll-up-line-quick)
-  (define-key magit-revision-mode-map (kbd "M-p") 'scroll-down-line-quick)
-  (define-key magit-revision-mode-map (kbd "M-n") 'scroll-up-line-quick)
-  (define-key magit-log-mode-map (kbd "M-p") 'scroll-down-line-quick)
-  (define-key magit-log-mode-map (kbd "M-n") 'scroll-up-line-quick)
   )
 
 ;; Browse historic versions of a file.
@@ -1563,9 +1539,6 @@ one."
 
 (use-package markdown-mode
   :mode "\\.md\\'"
-  :config
-  (define-key markdown-mode-map (kbd "M-p") 'scroll-down-line-quick)
-  (define-key markdown-mode-map (kbd "M-n") 'scroll-up-line-quick)
   )
 (use-package markdown-toc
   :defer t)
