@@ -1628,22 +1628,34 @@ indentation."
 
 ;;; Org Mode
 
-(defun org-mode-hook-fun ()
-  "Initialize `org-mode'."
-  (visual-line-mode) ;; Word-wrap
-  (toggle-word-wrap t)
-  (org-indent-mode) ;; Indented entries
-  (local-unset-key (kbd "C-,")) ;; Unbind keys stolen by org-mode
-  ;; Add a buffer-local hook.
-  ;; (add-hook 'after-save-hook 'org-agenda-refresh nil 'make-it-local)
-  )
-
 (use-package org
+  :mode (("\\.org$" . org-mode))
   :hook (org-mode . org-mode-hook-fun)
   :diminish visual-line-mode
   :diminish org-indent-mode
 
+  :init
+
+  (defun org-mode-hook-fun ()
+    "Initialize `org-mode'."
+    (visual-line-mode) ;; Word-wrap
+    (toggle-word-wrap t)
+    (org-indent-mode) ;; Indented entries
+    (local-unset-key (kbd "C-,")) ;; Unbind keys stolen by org-mode
+    ;; Add a buffer-local hook.
+    ;; (add-hook 'after-save-hook 'org-agenda-refresh nil 'make-it-local)
+    )
+
+  (defun org-agenda-refresh ()
+    "Refresh all `org-agenda' buffers."
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (derived-mode-p 'org-agenda-mode)
+          (org-agenda-maybe-redo)
+          ))))
+
   :config
+
   ;;; Settings
 
   ;; Default org directory.
@@ -1656,8 +1668,9 @@ indentation."
   ;; Smart editing of invisible region around ellipses.
   (setq org-catch-invisible-edits 'smart)
 
-  ;; Tags
-  (setq org-tags-column 0)
+  ;; Don't align tags.
+  (setq org-tags-column     0
+        org-auto-align-tags nil)
 
   ;; All subtasks must be DONE before marking a task as DONE.
   (setq org-enforce-todo-dependencies t)
@@ -1672,8 +1685,17 @@ indentation."
 
   ;; Custom to-do states.
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
+        '((sequence "TODO(t)" "TODAY(y)" "WAITING(w)" "|" "DONE(d)")
           (sequence "|" "CANCELED(x)")))
+
+  ;; Org-agenda settings
+
+  ;; Show scheduled items in order from most to least recent.
+  (setq org-agenda-sorting-strategy
+        '((agenda habit-down time-up scheduled-down priority-down category-keep)
+          (todo   priority-down category-keep)
+          (tags   priority-down category-keep)
+          (search category-keep)))
 
   ;; Refresh org-agenda after changing an item status.
   ;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
@@ -1681,14 +1703,19 @@ indentation."
     "Refresh org-agenda."
     (org-agenda-refresh))
 
+  ;; Refresh org-agenda after an org-capture.
+  (add-hook 'org-capture-after-finalize-hook 'org-agenda-refresh)
+
   ;; Set location of agenda files.
   (setq org-agenda-files (list user-todo-location
-                               ;; user-work-location
+                               user-work-location
                                ))
   ;; Stop org-agenda from messing up my windows!!
   (setq org-agenda-window-setup 'current-window)
   ;; Start org-agenda from the current day.
   (setq org-agenda-start-on-weekday nil)
+  ;; Don't align tags in the org-agenda (sometimes it messes up the display).
+  (setq org-agenda-tags-column 0)
 
   ;; Org-refile settings
 
@@ -1698,9 +1725,10 @@ indentation."
   (setq org-refile-use-outline-path t)
   ;; Go down in steps when completing a path.
   (setq org-outline-path-complete-in-steps nil)
-  (setq org-refile-targets '((org-agenda-files . (:maxlevel . 9))
-                             (user-notes-location . (:maxlevel . 9))
-                             (user-dreams-location . (:maxlevel . 9))
+  (setq org-refile-targets '((org-agenda-files     . (:maxlevel . 99))
+                             (user-notes-location  . (:maxlevel . 99))
+                             (user-dreams-location . (:maxlevel . 99))
+                             (user-work-location   . (:maxlevel . 99))
                              ))
   ;; Jump to headings with completion.
   (setq org-goto-interface 'outline-path-interface
@@ -1717,17 +1745,26 @@ indentation."
 
   ;; Shortcuts/Keybindings
 
-  (defun org-done ()
+  (defvar org-recurrence-regexp "|\\(.*\\)|")
+  (defun org-finish ()
     "Change task status to DONE and archive it."
     (interactive)
-    (org-todo 'done)
-    (org-archive-subtree)
+    (let ((heading (substring-no-properties (org-get-heading))))
+      (cond ((string-match org-recurrence-regexp heading)
+             (org-schedule nil (match-string 1 heading)))
+            (t
+             (org-todo 'done)
+             (org-archive-subtree)
+             )))
     )
-  (defun org-agenda-done ()
+  (defun org-agenda-finish ()
     "In org-agenda, change task status to DONE and archive it."
     (interactive)
-    (let ((heading (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
-      (cond ((string-match "\\[\\(.*\\)\\]" heading)
+    ;; FIXME: Find a more robust way of getting the header from org-agenda view?
+    ;; This approach seems sufficient so far though.
+    (let ((heading (buffer-substring-no-properties
+                    (line-beginning-position) (line-end-position))))
+      (cond ((string-match org-recurrence-regexp heading)
              (org-agenda-schedule nil (match-string 1 heading)))
             (t
              (org-agenda-todo 'done)
@@ -1765,26 +1802,28 @@ indentation."
       )
     )
 
-  (define-key org-mode-map (kbd "<M-return>") 'org-meta-return-end)
+  (define-key org-mode-map (kbd "<s-return>") 'org-meta-return-end)
   (define-key org-mode-map (kbd "C-S-n") 'org-metadown)
   (define-key org-mode-map (kbd "C-S-p") 'org-metaup)
   (define-key org-mode-map (kbd "C-<")   'org-shiftmetaleft)
   (define-key org-mode-map (kbd "C->")   'org-shiftmetaright)
   (define-key org-mode-map (kbd "M-m")   'org-beginning-of-line)
+  (define-key org-mode-map (kbd "C-^")   'org-up-element)
+  (define-key org-mode-map (kbd "s-\"")  'org-refile)
 
   (define-key org-mode-map (kbd "<mouse-3>") 'mouse-org-cycle)
 
-  (define-key org-mode-map (kbd "C-c t") 'org-done)
-  (define-key org-mode-map (kbd "s-;")   'org-refile-goto)
-  (define-key org-mode-map (kbd "s-:")   'org-refile)
+  (define-key org-mode-map (kbd "C-c d") 'org-finish)
 
   (add-hook 'org-agenda-mode-hook
             (lambda ()
-              (define-key org-agenda-mode-map (kbd "C-c t") 'org-agenda-done)
-              (define-key org-agenda-mode-map (kbd "d")     'org-agenda-done)
+              (define-key org-agenda-mode-map (kbd "C-c d") 'org-agenda-finish)
+              (define-key org-agenda-mode-map (kbd "d")     'org-agenda-finish)
               (visual-line-mode)
               (toggle-word-wrap t)
               ))
+
+  (global-set-key (kbd "s-'")   'org-refile-goto)
 
   (global-set-key (kbd "C-c l") 'org-store-link)
   (global-set-key (kbd "C-c a") 'org-agenda-list)  ;; Switch to org-agenda.
@@ -1795,9 +1834,6 @@ indentation."
   ;; Jump to last capture.
   (global-set-key (kbd "C-c j") 'org-refile-goto-last-stored)
   )
-
-;; Open .org files in org-mode
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
 ;; Try to fix the annoying tendency of this function to scroll the point to some
 ;; random place and mess up my view of the agenda.
@@ -1872,13 +1908,44 @@ indentation."
     ;; (recenter window-line)
     ))
 
-(defun org-agenda-refresh ()
-  "Refresh all `org-agenda' buffers."
-  (dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (when (derived-mode-p 'org-agenda-mode)
-        (org-agenda-maybe-redo)
-        ))))
+;; Display groups in org-agenda to make things a bit more organized.
+(use-package org-super-agenda
+  :config
+  (org-super-agenda-mode)
+
+  (setq org-super-agenda-header-separator "")
+  (setq org-super-agenda-unmatched-name "Other")
+  (setq org-super-agenda-groups
+        '(;; Each group has an implicit boolean OR operator between its selectors.
+          (:name "Today"  ; Optionally specify section name
+                 :time-grid t  ; Items that appear on the time grid.
+                 :todo "TODAY"   ; Items that have this todo keyword.
+                 )
+          (:name "Work"
+                 :category "work"
+                 )
+          (:name "High Priority"
+                 :priority "A"
+                 :order 1
+                 )
+          (:name "Physical"
+                 :tag "physical"
+                 :order 2
+                 )
+
+          ;; After the last group, the agenda will display items that didn't
+          ;; match any of these groups, with the default order position of 99
+
+          (:name "Tech"
+                 :category "tech"
+                 :tag "tech"
+                 :order 180
+                 )
+          (:todo "WAITING" :order 190)  ; Set order of this section
+          (:name "Low priority"
+                 :priority "C"
+                 :order 200)
+          )))
 
 ;; Export org to Reveal.js.
 (use-package ox-reveal
