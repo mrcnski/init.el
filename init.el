@@ -107,76 +107,72 @@
   :diminish helm-mode
   :config
   (helm-mode 1)
+
+  ;; Rebind tab to run persistent action.
+  (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
+  ;; Alternate TAB key that works in terminal.
+  (define-key helm-map (kbd "C-i")   'helm-execute-persistent-action)
+  (define-key helm-map (kbd "C-z")   'helm-select-action) ;; List actions using C-z.
+  (define-key helm-map (kbd "M-x")   'helm-select-action)
+  (define-key helm-map (kbd "M-,")   'previous-history-element)
+  (define-key helm-map (kbd "M-.")   'next-history-element)
+
+  (global-set-key (kbd "M-x")        'helm-M-x)
+  (global-set-key (kbd "C-x C-f")    'helm-find-files)
+  (global-set-key (kbd "C-h C-a")    'helm-apropos)
+  (global-set-key (kbd "C-x C-SPC")  'helm-all-mark-rings)
+  (global-set-key (kbd "M-i")        'helm-semantic-or-imenu)
+
+  (setq helm-buffers-fuzzy-matching t
+        helm-recentf-fuzzy-match    t
+        helm-follow-mode-persistent t
+        )
+
+  (setq helm-apropos-fuzzy-match t)
+
+  ;; Jump to a function definition
+  (semantic-mode 1)
+  (setq helm-semantic-fuzzy-match t
+        helm-imenu-fuzzy-match    t)
+
+  (when (executable-find "curl")
+    (setq helm-google-suggest-use-curl-p t))
+
+  (setq helm-split-window-in-side-p t ;; open helm buffer inside current window
+        ;; move to end or beginning of source when reaching top/bottom of source.
+        helm-move-to-line-cycle-in-source t
+        ;; search for library in `use-package' and `declare-function' sexp.
+        helm-ff-search-library-in-sexp t
+        ;; scroll 8 lines other window using M-<next>/M-<prior>
+        helm-scroll-amount 8
+        helm-ff-file-name-history-use-recentf  t
+        helm-echo-input-in-header-line         t
+        )
+
+  (defun helm-hide-minibuffer-maybe ()
+    "Hide minibuffer in Helm session if we use the header line as input field."
+    (when (with-helm-buffer helm-echo-input-in-header-line)
+      (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
+        (overlay-put ov 'window (selected-window))
+        (overlay-put ov 'face
+                     (let ((bg-color (face-background 'default nil)))
+                       `(:background ,bg-color :foreground ,bg-color)))
+        (setq-local cursor-type nil))))
+
+  (add-hook 'helm-minibuffer-set-up-hook 'helm-hide-minibuffer-maybe)
+
+  (setq helm-mini-default-sources '(helm-source-buffers-list
+                                    helm-source-recentf
+                                    helm-source-files-in-current-dir
+                                    ;; helm-source-buffer-not-found
+                                    ))
+
+  (setq helm-autoresize-max-height 0)
+  (setq helm-autoresize-min-height 40)
+  (helm-autoresize-mode 1)
   )
 
-;; The default "C-x c" is quite close to "C-x C-c", which quits Emacs.
-;; Changed to "C-c h". Note: We must set "C-c h" globally, because we
-;; cannot change `helm-command-prefix-key' once `helm-config' is loaded.
-(global-set-key   (kbd "C-c h") 'helm-command-prefix)
-(global-unset-key (kbd "C-x c"))
-
-;; Rebind tab to run persistent action.
-(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
-;; Alternate TAB key that works in terminal.
-(define-key helm-map (kbd "C-i")   'helm-execute-persistent-action)
-(define-key helm-map (kbd "C-z")   'helm-select-action) ;; list actions using C-z
-(define-key helm-map (kbd "M-x")   'helm-select-action)
-
-(global-set-key (kbd "M-x")        'helm-M-x)
-(global-set-key (kbd "C-x C-f")    'helm-find-files)
-(global-set-key (kbd "C-h C-a")    'helm-apropos)
-(global-set-key (kbd "C-x C-SPC")  'helm-all-mark-rings)
-(global-set-key (kbd "M-i")        'helm-semantic-or-imenu)
-
-(setq helm-buffers-fuzzy-matching t
-      helm-recentf-fuzzy-match    t
-      helm-follow-mode-persistent t
-      )
-
-(setq helm-apropos-fuzzy-match t)
-
-;; Jump to a function definition
-(semantic-mode 1)
-(setq helm-semantic-fuzzy-match t
-      helm-imenu-fuzzy-match    t)
-
-(when (executable-find "curl")
-  (setq helm-google-suggest-use-curl-p t))
-
-(setq helm-split-window-in-side-p t ;; open helm buffer inside current window
-      ;; move to end or beginning of source when reaching top/bottom of source.
-      helm-move-to-line-cycle-in-source t
-      ;; search for library in `use-package' and `declare-function' sexp.
-      helm-ff-search-library-in-sexp t
-      ;; scroll 8 lines other window using M-<next>/M-<prior>
-      helm-scroll-amount 8
-      helm-ff-file-name-history-use-recentf  t
-      helm-echo-input-in-header-line         t
-      )
-
-(defun helm-hide-minibuffer-maybe ()
-  "Hide minibuffer in Helm session if we use the header line as input field."
-  (when (with-helm-buffer helm-echo-input-in-header-line)
-    (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
-      (overlay-put ov 'window (selected-window))
-      (overlay-put ov 'face
-                   (let ((bg-color (face-background 'default nil)))
-                     `(:background ,bg-color :foreground ,bg-color)))
-      (setq-local cursor-type nil))))
-
-(add-hook 'helm-minibuffer-set-up-hook 'helm-hide-minibuffer-maybe)
-
-(setq helm-mini-default-sources '(helm-source-buffers-list
-                                  helm-source-recentf
-                                  helm-source-files-in-current-dir
-                                  ;; helm-source-buffer-not-found
-                                  ))
-
-(setq helm-autoresize-max-height 0)
-(setq helm-autoresize-min-height 40)
-(helm-autoresize-mode 1)
-
-;; Better mode help
+;; Better mode help.
 (use-package helm-describe-modes
   :bind ("C-h m" . helm-describe-modes))
 
