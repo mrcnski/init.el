@@ -344,21 +344,22 @@
       ;; Move point to beginning or end of buffer when scrolling.
       scroll-error-top-bottom t
       mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
-
-      ;; Change window name to be more descriptive
-      frame-title-format '((:eval (when (and (buffer-modified-p) buffer-file-name) "*"))
-                           "Emacs - "
-                           (buffer-file-name
-                            "%f" (dired-directory dired-directory "%b")))
+      ;; Set a larger minimum window width. Smaller than this is hard to read.
+      window-min-width  30
+      window-min-height 10
 
       ;; Language-specific settings?
       c-default-style "stroustrup"
       )
 
+;; Change window name to be more descriptive.
+(setq frame-title-format '((:eval (when (and (buffer-modified-p) buffer-file-name) "*"))
+                           "Emacs - "
+                           (buffer-file-name
+                            "%f" (dired-directory dired-directory "%b"))))
+
 ;; Set some builtin modes
-(setq global-hl-line-sticky-flag t)     ;; Keep line highlight across windows
-(global-hl-line-mode t)                 ;; Highlight current line
-;; Use compressed files like normal files
+(setq global-hl-line-sticky-flag nil)   ;; Keep line highlight across windows?
 (global-hl-line-mode t)                 ;; Highlight current line.
 ;; Use compressed files like normal files.
 (auto-compression-mode 1)
@@ -388,6 +389,10 @@
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
 (add-to-list 'auto-mode-alist '("\\.pdf\\'"  . pdf-view-mode))
+
+;; Fix EasyPG error.
+;; From https://colinxy.github.io/software-installation/2016/09/24/emacs25-easypg-issue.html.
+(setq epa-pinentry-mode 'loopback)
 
 ;; Mouse settings
 
