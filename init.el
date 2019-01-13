@@ -320,30 +320,30 @@
       load-prefer-newer t
       ediff-window-setup-function 'ediff-setup-windows-plain
       window-combination-resize t
-      echo-keystrokes 0.01            ;; Display keystrokes immediately
-      inhibit-startup-message t       ;; Disable startup screen
-      initial-scratch-message ""      ;; Change the initial *scratch* buffer
-      help-window-select t            ;; Focus new help windows when opened
-      confirm-kill-emacs nil          ;; Always confirm before closing Emacs
-      delete-by-moving-to-trash t     ;; Send deleted files to trash
+      echo-keystrokes 0.01            ;; Display keystrokes immediately.
+      inhibit-startup-message t       ;; Disable startup screen.
+      initial-scratch-message ""      ;; Change the initial *scratch* buffer.
+      help-window-select t            ;; Focus new help windows when opened.
+      confirm-kill-emacs nil          ;; Always confirm before closing Emacs.
+      delete-by-moving-to-trash t     ;; Send deleted files to trash.
       ;; backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
-      version-control t               ;; Always make numeric backup versions
-      vc-make-backup-files t          ;; Make backups of all files
-      delete-old-versions t           ;; Silently delete old backup versions
+      version-control t               ;; Always make numeric backup versions.
+      vc-make-backup-files t          ;; Make backups of all files.
+      delete-old-versions t           ;; Silently delete old backup versions.
       isearch-allow-scroll t
       ;; Isearch convenience, space matches anything
       ;; search-whitespace-regexp ".*?"
       show-trailing-whitespace 1      ;; Display trailing whitespace
       lazy-highlight-initial-delay .15
 
-      pop-up-frames nil               ;; Open files in existing frames
+      pop-up-frames nil               ;; Open files in existing frames.
       pop-up-windows t
-      ;; Tab will first try to indent, then complete
+      ;; Tab will first try to indent, then complete.
       tab-always-indent 'complete
       resize-mini-windows t           ;; Resize the minibuffer when needed.
-      enable-recursive-minibuffers t  ;; Enable recursive editing of minibuffer
+      enable-recursive-minibuffers t  ;; Enable recursive editing of minibuffer.
       ;; (setq max-mini-window-height 0.33)
-      ;; Move point to beginning or end of buffer when scrolling
+      ;; Move point to beginning or end of buffer when scrolling.
       scroll-error-top-bottom t
       mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
 
@@ -361,12 +361,14 @@
 (setq global-hl-line-sticky-flag t)     ;; Keep line highlight across windows
 (global-hl-line-mode t)                 ;; Highlight current line
 ;; Use compressed files like normal files
+(global-hl-line-mode t)                 ;; Highlight current line.
+;; Use compressed files like normal files.
 (auto-compression-mode 1)
-;; (desktop-save-mode 1)                ;; Keep open files open across sessions
-(column-number-mode 1)                  ;; Display the column number
-;; (display-time-mode 1)                ;; Display the current time
+;; (desktop-save-mode 1)                ;; Keep open files open across sessions.
+(column-number-mode 1)                  ;; Display the column number.
+;; (display-time-mode 1)                ;; Display the current time.
 ;; (setq display-time-format "%l:%M%p")
-;; Replace selected text when typing or pasting
+;; Replace selected text when typing or pasting.
 (delete-selection-mode 1)
 ;; Auto revert files that changed on disk.
 (global-auto-revert-mode 1)
@@ -658,14 +660,15 @@ one."
 
 (global-set-key (kbd "M-j") 'join-next-line)
 
-;; Open a new line below or above, even if the point is midsentence.
 (defun open-line-below ()
-  "Open a new line below, even if the point is midsentence."
+  "Open a new line below, even if the point is midsentence, keeping proper \
+indentation."
   (interactive)
   (end-of-line)
   (newline-and-indent))
 (defun open-line-above ()
-  "Open a new line above, even if the point is midsentence."
+  "Open a new line above, even if the point is midsentence, keeping proper \
+indentation."
   (interactive)
   (beginning-of-line)
   (newline-and-indent)
@@ -791,28 +794,29 @@ one."
               (define-key dired-mode-map "f"         'helm-find-files)
               ))
 
-;; Handle opening and editing zip directories in dired
+;; Handle opening and editing zip directories in dired.
 (eval-after-load "dired-aux"
   '(add-to-list 'dired-compress-file-suffixes
                 '("\\.zip\\'" ".zip" "unzip")))
 
-(setq-default dired-recursive-copies 'always ;; Always do recursive copies
+(setq-default dired-recursive-copies 'always ;; Always do recursive copies.
               ;; Make sizes human-readable by default and put dotfiles and
               ;; capital-letters first.
               dired-listing-switches "-alhv"
-              dired-dwim-target t            ;; Try suggesting dired targets
-              dired-auto-revert-buffer t     ;; Update buffer when visiting
+              dired-dwim-target t            ;; Try suggesting dired targets.
+              dired-auto-revert-buffer t     ;; Update buffer when visiting.
               )
 
-;; ;; Extensions to Dired
+;; ;; Extensions to Dired. Includes more dired colors.
 ;; (use-package dired+)
 
-;; Colorify files in dired based on type
+;; Colorify files in dired based on type.
+;; Use `diredful-add' and `diredful-edit' to make changes.
 (use-package diredful
   :config (diredful-mode))
 
 ;; Expanded dired
-;; Enables C-x C-j to jump to the current directory in dired
+;; Enables jumping to the current directory in dired (default: C-x C-j).
 (require 'dired-x)
 (global-set-key (kbd "s-d") 'dired-jump)
 
@@ -825,8 +829,8 @@ one."
                              ))
 (setq dired-omit-files (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
 
-;; Allow changing file permissions in WDired
-;; Note: WDired can be entered with C-x C-q and changes saved with C-c C-c.
+;; Allow changing file permissions in WDired.
+;; NOTE: WDired can be entered with C-x C-q and changes saved with C-c C-c.
 (setq wdired-allow-to-change-permissions t)
 
 ;;; ERC settings
@@ -885,10 +889,15 @@ one."
 ;; Add z to eshell
 ;; Jumps to most recently visited directories
 (use-package eshell-z)
+;; Add z to eshell.
+;; Jumps to most recently visited directories.
+(use-package eshell-z
+  :defer 2)
 
-;; Add up to eshell
-;; Jump to a directory higher up in the directory hierarchy
+;; Add up to eshell.
+;; Jump to a directory higher up in the directory hierarchy.
 (use-package eshell-up
+  :defer 2
   :config (setq eshell-up-print-parent-dir nil))
 
 ;; Open certain programs from eshell in a term buffer
@@ -1231,7 +1240,7 @@ one."
         )
   )
 
-;; Open files in Finder on Mac.
+;; Open current directory in Finder on Mac.
 (use-package reveal-in-osx-finder
   :bind ("C-c f" . reveal-in-osx-finder)
   )
@@ -1772,12 +1781,12 @@ one."
               ))
 
   (global-set-key (kbd "C-c l") 'org-store-link)
-  (global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda
+  (global-set-key (kbd "C-c a") 'org-agenda-list)  ;; Switch to org-agenda.
 
-  (global-set-key (kbd "C-c c") 'org-note-capture) ;; org-capture
+  (global-set-key (kbd "C-c c") 'org-note-capture) ;; org-capture.
   (global-set-key (kbd "C-c v") 'org-task-capture)
 
-  ;; Jump to last capture
+  ;; Jump to last capture.
   (global-set-key (kbd "C-c j") 'org-refile-goto-last-stored)
   )
 
@@ -1853,6 +1862,7 @@ one."
     (and top-hl-filter (org-agenda-filter-top-headline-apply top-hl-filter))
     (and cols (called-interactively-p 'any) (org-agenda-columns))
     (org-goto-line line)
+    ;; Commenting out the following line stops the random scrolling.
     ;; (recenter window-line)
     ))
 
