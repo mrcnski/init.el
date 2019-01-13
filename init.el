@@ -2022,7 +2022,8 @@ indentation."
      '(:eval (propertize "%b"
                          'face '(:weight bold)
                          'help-echo (buffer-file-name)))
-     '(:eval (when line-number-mode ":%l:%C"))
+     " |"
+     '(:eval (when line-number-mode " %l:%C"))
      " "
      '(:eval (when (and line-number-mode mode-line-buffer-line-count buffer-file-name)
                (let ((str "["))
@@ -2030,11 +2031,7 @@ indentation."
                    (setq str (concat str "*")))
                  (setq str (concat str mode-line-buffer-line-count "]"))
                  str)))
-     '(:eval (when buffer-file-name (let ((str "["))
-                                      (when (buffer-modified-p)
-                                        (setq str (concat str "*")))
-                                      (setq str (concat str "%I]"))
-                                      str)))
+     '(:eval (when buffer-file-name "[%I]"))
      '(:eval (when (not (string-equal major-mode 'org-agenda-mode))
                (propertize "[%m] "
                            ;; 'face '(:weight bold)
@@ -2049,11 +2046,10 @@ indentation."
          (concat "{" (number-to-string (abs (- (point) (mark)))) "}")))
      " "
 
-     '(:eval (when (fboundp 'eyebrowse-mode-line-indicator)
-               (concat
-                (mode-line-fill (+ 1 (length (substring-no-properties
-                                              (eyebrowse-mode-line-indicator)))))
-                (eyebrowse-mode-line-indicator))))
+     '(:eval (concat
+              (mode-line-fill (+ 1 (length (substring-no-properties
+                                            (eyebrowse-mode-line-indicator)))))
+              (eyebrowse-mode-line-indicator)))
      ;; " "
      ;; '(:eval (propertize (format-time-string "%H:%M")))
      ))))
@@ -2065,9 +2061,12 @@ indentation."
   "Display Emacs welcome screen."
   (interactive)
   (find-file user-notes-location)
-  (other-window 1)
   (split-window-right-focus)
   (org-agenda-list)
+  (other-window 1)
+  (split-window-below-focus)
+  (find-file user-todo-location)
+  (other-window 1)
   )
 (emacs-welcome)
 
