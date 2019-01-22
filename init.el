@@ -123,6 +123,9 @@
 
   (defvar helm-buffers-fuzzy-matching)
   (defvar helm-recentf-fuzzy-match)
+  (defvar helm-apropos-fuzzy-match)
+  (defvar helm-semantic-fuzzy-match)
+  (defvar helm-imenu-fuzzy-match)
   (setq helm-buffers-fuzzy-matching t
         helm-recentf-fuzzy-match    t
         helm-follow-mode-persistent t
@@ -140,10 +143,12 @@
 
   (setq helm-split-window-inside-p t ;; open helm buffer inside current window
         ;; move to end or beginning of source when reaching top/bottom of source.
+  (defvar helm-ff-search-library-in-sexp)
+  (defvar helm-ff-file-name-history-use-recentf)
         helm-move-to-line-cycle-in-source t
-        ;; search for library in `use-package' and `declare-function' sexp.
+        ;; Search for library in `use-package' and `declare-function' sexp.
         helm-ff-search-library-in-sexp t
-        ;; scroll 8 lines other window using M-<next>/M-<prior>
+        ;; Scroll 8 lines other window using M-<next>/M-<prior>.
         helm-scroll-amount 8
         helm-ff-file-name-history-use-recentf  t
         helm-echo-input-in-header-line         t
@@ -161,6 +166,7 @@
 
   (add-hook 'helm-minibuffer-set-up-hook 'helm-hide-minibuffer-maybe)
 
+  (defvar helm-mini-default-sources)
   (setq helm-mini-default-sources '(helm-source-buffers-list
                                     helm-source-recentf
                                     helm-source-files-in-current-dir
@@ -708,7 +714,7 @@ indentation."
 (global-set-key (kbd "M-=") 'align-to-string)
 
 ;; Show ASCII table.
-;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html
+;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html.
 (defun ascii-table ()
   "Print the ascii table. Based on a defun by Alex Schroeder <asc@bsiag.com>."
   (interactive)
@@ -808,17 +814,20 @@ indentation."
 
 ;; Allow changing file permissions in WDired.
 ;; NOTE: WDired can be entered with C-x C-q and changes saved with C-c C-c.
+(defvar wdired-allow-to-change-permissions)
 (setq wdired-allow-to-change-permissions t)
 
-;;; ibuffer settings
+;; ibuffer settings
 
 ;; Don't show filter groups if there are no buffers in that group.
+(defvar ibuffer-show-empty-filter-groups)
 (setq ibuffer-show-empty-filter-groups nil)
 
 ;; Don't ask for confirmation to delete marked buffers.
+(defvar ibuffer-expert)
 (setq ibuffer-expert t)
 
-;;; ERC settings
+;; ERC settings
 
 (setq erc-autojoin-channels-alist
       '(("freenode.net" "#emacs")
@@ -826,6 +835,7 @@ indentation."
 ;; (erc :server "irc.mozilla.org" :port 6667 :nick "m-cat")
 
 ;; Notify in minibuffer when private messaged.
+(defvar erc-echo-notices-in-minibuffer-flag)
 (setq erc-echo-notices-in-minibuffer-flag t)
 
 ;; Match keywords, highlight pals, ignore fools.
@@ -840,10 +850,13 @@ indentation."
   (erc-update-modules)
   )
 
-;;; Eshell settings
+;; Eshell settings
 
 ;; Supposed to stop auto-scrolling of eshell output.
 ;; TODO: Not even sure if this works.
+(defvar eshell-scroll-show-maximum-output)
+(defvar eshell-scroll-to-bottom-on-input)
+(defvar eshell-scroll-to-bottom-on-output)
 (setq eshell-scroll-show-maximum-output nil
       eshell-scroll-to-bottom-on-input  nil
       eshell-scroll-to-bottom-on-output nil
@@ -886,6 +899,8 @@ indentation."
   (with-current-buffer " *load*"
     (goto-char (point-max)))
   )
+
+;; Start loading packages.
 
 ;; View PDF files in Emacs.
 (use-package pdf-tools
@@ -1169,8 +1184,10 @@ indentation."
   :hook (emacs-lisp-mode . highlight-quoted-mode))
 
 ;; Highlight operators.
+;; Breaks in `emacs-lisp-mode', which is why I enable this on a per-mode basis.
 (use-package highlight-operators
-  :hook ((c-mode-common . highlight-operators-mode)
+  :hook (
+         (c-mode-common . highlight-operators-mode)
          (rust-mode     . highlight-operators-mode)
          )
   )
@@ -1310,7 +1327,7 @@ indentation."
   :hook (image-mode . blimp-mode)
   )
 
-;;; Git packages.
+;;; Git packages
 
 ;; Git client in Emacs.
 (use-package magit
@@ -1347,7 +1364,7 @@ indentation."
 (use-package git-link
   :defer t)
 
-;;; Project packages.
+;;; Project packages
 
 ;; Project manager.
 (use-package projectile
@@ -1463,6 +1480,7 @@ indentation."
 (use-package js2-mode
   :mode "\\.js\\'"
   :config
+  ;TODO: use smart-jump here instead. Do we even need to define a key here?
   (define-key js-mode-map (kbd "M-.") 'dumb-jump-go)
   )
 
