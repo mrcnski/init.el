@@ -114,8 +114,6 @@
   (define-key helm-map (kbd "C-i")   'helm-execute-persistent-action)
   (define-key helm-map (kbd "C-z")   'helm-select-action) ;; List actions using C-z.
   (define-key helm-map (kbd "M-x")   'helm-select-action)
-  (define-key helm-map (kbd "M-,")   'previous-history-element)
-  (define-key helm-map (kbd "M-.")   'next-history-element)
 
   (global-set-key (kbd "M-x")        'helm-M-x)
   (global-set-key (kbd "C-x C-f")    'helm-find-files)
@@ -657,34 +655,41 @@ indentation."
   (indent-according-to-mode)
   )
 
-(defvar scroll-amount 8)
+(defun window-fraction-height (fraction)
+  "Get specified FRACTION of the height of the current window."
+  (max 1 (/ (1- (window-height (selected-window))) fraction)))
 
-;; Scroll down/up by a smaller amount, doesn't change cursor position.
-(defun scroll-up-line-quick ()
-  "Scroll up by a smaller amount without changing the cursor position."
+(defun scroll-up-third ()
+  "Scrolls up by a third of the current window height."
   (interactive)
-  (scroll-up-line scroll-amount))
-(defun scroll-down-line-quick ()
-  "Scroll down by a smaller amount without changing the cursor position."
-  (interactive)
-  (scroll-down-line scroll-amount))
+  (scroll-up (window-fraction-height 3)))
 
-;; Scroll other window down/up.
-(defun scroll-other-window-up-quick ()
-  "Scroll the other window up by a smaller amount."
+(defun scroll-down-third ()
+  "Scrolls down by a third of the current window height."
   (interactive)
-  (scroll-other-window scroll-amount))
-(defun scroll-other-window-down-quick ()
-  "Scroll the other window down by a smaller amount."
+  (scroll-down (window-fraction-height 3)))
+
+(defun scroll-other-window-up-third ()
+  "Scrolls other window up by a third of the current window height."
   (interactive)
-  (scroll-other-window-down scroll-amount))
+  (scroll-other-window (window-fraction-height 3)))
+
+(defun scroll-other-window-down-third ()
+  "Scrolls other window down by a third of the current window height."
+  (interactive)
+  (scroll-other-window-down (window-fraction-height 3)))
+
+(global-set-key (kbd "C-v") 'scroll-up-third)
+(global-set-key (kbd "M-v") 'scroll-down-third)
+(global-set-key (kbd "C-S-v") 'scroll-other-window-up-third)
+(global-set-key (kbd "M-V") 'scroll-other-window-down-third)
 
 ;; Globally bind these keys so they work in every mode.
 (bind-keys*
- ("M-n" . scroll-up-line-quick)
- ("M-p" . scroll-down-line-quick)
- ("M-N" . scroll-other-window-up-quick)
- ("M-P" . scroll-other-window-down-quick)
+ ;; ("M-n" . scroll-up-line-quick)
+ ;; ("M-p" . scroll-down-line-quick)
+ ;; ("M-N" . scroll-other-window-up-quick)
+ ;; ("M-P" . scroll-other-window-down-quick)
 
  ("<mouse-3>" . previous-buffer)
  ("<mouse-8>" . previous-buffer)
@@ -847,11 +852,6 @@ indentation."
 (defvar eshell-mode-map)
 (add-hook 'eshell-mode-hook
           #'(lambda ()
-              (define-key eshell-mode-map (kbd "M-,")
-                'eshell-previous-matching-input-from-input)
-              (define-key eshell-mode-map (kbd "M-.")
-                'eshell-next-matching-input-from-input)
-
               ;; Use helm to list eshell history.
               (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)
               (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
