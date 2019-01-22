@@ -1568,12 +1568,13 @@ indentation."
 
   (defun org-mode-hook-fun ()
     "Initialize `org-mode'."
-    (visual-line-mode) ;; Word-wrap
+
+    (visual-line-mode) ;; Word-wrap.
     (toggle-word-wrap t)
-    (org-indent-mode) ;; Indented entries
-    (local-unset-key (kbd "C-,")) ;; Unbind keys stolen by org-mode
-    ;; Add a buffer-local hook.
-    ;; (add-hook 'after-save-hook 'org-agenda-refresh nil 'make-it-local)
+    (org-indent-mode)  ;; Indented entries.
+
+    ;; Unbind keys stolen by org-mode.
+    (local-unset-key (kbd "C-,"))
     )
 
   (defun org-agenda-refresh ()
@@ -1600,11 +1601,11 @@ indentation."
 
   ;; Don't align tags.
   (setq org-tags-column     0
-        org-auto-align-tags nil)
+        org-auto-align-tags t)
 
-  ;; All subtasks must be DONE before marking a task as DONE.
+  ;; All subtasks must be Done before marking a task as Done.
   (setq org-enforce-todo-dependencies t)
-  (setq org-log-done (quote time)) ;; Log time a task was set to DONE.
+  (setq org-log-done (quote time)) ;; Log time a task was set to Done.
   (setq org-log-redeadline nil)
   (setq org-log-reschedule nil)
 
@@ -1663,10 +1664,15 @@ indentation."
                              (user-notes-location  . (:maxlevel . 99))
                              (user-dreams-location . (:maxlevel . 99))
                              (user-work-location   . (:maxlevel . 99))
+                             (user-ideas-location  . (:maxlevel . 99))
                              ))
   ;; Jump to headings with completion.
   (setq org-goto-interface 'outline-path-interface
-        org-goto-max-level 10)
+        org-goto-max-level 99)
+  ;; Always show full context, no matter how we get to a certain heading (e.g.
+  ;; `isearch', `org-goto', whatever). The default behavior of hiding headings
+  ;; is asinine.
+  (setq org-show-context-detail '((default . tree)))
 
   ;; org-capture template.
   (defvar org-capture-templates
@@ -1744,6 +1750,7 @@ indentation."
   (define-key org-mode-map (kbd "M-m")   'org-beginning-of-line)
   (define-key org-mode-map (kbd "C-^")   'org-up-element)
   (define-key org-mode-map (kbd "s-\"")  'org-refile)
+  (define-key org-mode-map (kbd "C-j")   'join-next-line)
 
   (define-key org-mode-map (kbd "<mouse-3>") 'mouse-org-cycle)
 
@@ -1753,6 +1760,7 @@ indentation."
   (add-hook 'org-agenda-mode-hook
             (lambda ()
               (define-key org-agenda-mode-map (kbd "C-c d") 'org-agenda-finish)
+              ;; Rebind the 'd' key (default: `org-agenda-day-view').
               (define-key org-agenda-mode-map (kbd "d")     'org-agenda-finish)
               (visual-line-mode)
               (toggle-word-wrap t)
@@ -1863,8 +1871,14 @@ indentation."
                  :order 1
                  )
           (:name "Physical"
+                 :category "physical"
                  :tag "physical"
                  :order 2
+                 )
+          (:name "Shopping List"
+                 :category "shopping"
+                 :tag "shopping"
+                 :order 3
                  )
 
           ;; After the last group, the agenda will display items that didn't
@@ -1876,9 +1890,9 @@ indentation."
                  :order 180
                  )
           (:todo "WAITING" :order 190)  ; Set order of this section
-          (:name "Low priority"
-                 :priority "C"
-                 :order 200)
+          ;; (:name "Low priority"
+          ;;        :priority "C"
+          ;;        :order 200)
           )))
 
 ;; Export org to Reveal.js.
