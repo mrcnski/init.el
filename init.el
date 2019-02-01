@@ -315,40 +315,37 @@
 (setq select-enable-clipboard t
       select-enable-primary t
       save-interprogram-paste-before-kill t
+      ;; TODO: What does this do?
       apropos-do-all t
-      mouse-yank-at-point t
       kill-ring-max 1000
       require-final-newline t    ;; Ensure that files end with a newline.
       next-line-add-newlines t   ;; Add newline at end of buffer with C-n.
       visible-bell t
       ring-bell-function 'ignore
       load-prefer-newer t
+      ;; TODO: What does this do?
       ediff-window-setup-function 'ediff-setup-windows-plain
-      window-combination-resize t
-      echo-keystrokes 0.01            ;; Display keystrokes immediately.
-      inhibit-startup-message t       ;; Disable startup screen.
-      initial-scratch-message ""      ;; Change the initial *scratch* buffer.
-      help-window-select t            ;; Focus new help windows when opened.
-      confirm-kill-emacs nil          ;; Always confirm before closing Emacs.
-      delete-by-moving-to-trash t     ;; Send deleted files to trash.
-      ;; backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
-      version-control t               ;; Always make numeric backup versions.
-      vc-make-backup-files t          ;; Make backups of all files.
-      delete-old-versions t           ;; Silently delete old backup versions.
-      show-trailing-whitespace 1      ;; Display trailing whitespace.
-      ;; Delay for displaying function/variable information.
-      eldoc-idle-delay info-delay
+      window-combination-resize nil
+      echo-keystrokes 0.01        ;; Display keystrokes immediately.
+      inhibit-startup-message t   ;; Disable startup screen.
+      initial-scratch-message ""  ;; Change the initial *scratch* buffer.
+      help-window-select t        ;; Focus new help windows when opened.
+      confirm-kill-emacs nil      ;; Always confirm before closing Emacs?
+      delete-by-moving-to-trash t ;; Send deleted files to trash.
+      version-control t           ;; Always make numeric backup versions.
+      vc-make-backup-files t      ;; Make backups of all files.
+      delete-old-versions t       ;; Silently delete old backup versions.
+      show-trailing-whitespace t  ;; Display trailing whitespace.
+      eldoc-idle-delay info-delay ;; Delay for displaying function/variable information.
 
-      pop-up-frames nil               ;; Open files in existing frames.
+      pop-up-frames nil           ;; Open files in existing frames.
       pop-up-windows t
-      ;; Tab will first try to indent, then complete.
-      tab-always-indent 'complete
-      resize-mini-windows t           ;; Resize the minibuffer when needed.
-      enable-recursive-minibuffers t  ;; Enable recursive editing of minibuffer.
-      ;; (setq max-mini-window-height 0.33)
-      ;; Move point to beginning or end of buffer when scrolling.
-      scroll-error-top-bottom t
+      tab-always-indent 'complete ;; Tab will first try to indent, then complete.
+      resize-mini-windows t       ;; Resize the minibuffer when needed.
+      enable-recursive-minibuffers nil ;; Enable recursive editing of minibuffer?
+      scroll-error-top-bottom t   ;; Move point to beginning or end of buffer when scrolling.
       mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
+
       ;; Set a larger minimum window width. Smaller than this is hard to read.
       window-min-width  30
       window-min-height 10
@@ -399,7 +396,9 @@
 
 ;; Mouse settings
 
-(setq mouse-wheel-progressive-speed nil) ;; Make the mouse wheel not accelerate.
+(setq mouse-wheel-progressive-speed nil ;; Make the mouse wheel not accelerate.
+      mouse-yank-at-point t
+)
 
 ;;; My Functions and Shortcuts/Keybindings
 
@@ -1060,12 +1059,6 @@ indentation."
          (prog-mode . ws-butler-mode)
          (text-mode . ws-butler-mode)
          ))
-
-;; Save open files across Emacs sessions.
-;; I use this instead of Desktop.el, which saves the entire session, as often
-;; I want to start Emacs with fresh settings.
-;; (use-package save-visited-files
-;;   :config (turn-on-save-visited-files-mode))
 
 ;; Avy mode (jump to a char/word using a decision tree).
 (use-package avy
