@@ -844,6 +844,7 @@ indentation."
 
 ;; ERC settings
 
+(defvar erc-autojoin-channels-alist)
 (setq erc-autojoin-channels-alist
       '(("freenode.net" "#emacs")
         ("mozilla.org" "#rust")))
@@ -1098,10 +1099,11 @@ indentation."
   (save-place-mode 1)
   )
 
-
-;; ;; Midnight mode - clean up buffers older than 3 days.
-(require 'midnight)
-(midnight-delay-set 'midnight-delay "4:30am")
+;; ;; ;; Midnight mode - clean up buffers older than 3 days.
+;; REMOVED: This was deleting buffers from my open workspaces.
+;;          Can use ibuffer instead (with setting to delete entire groups).
+;; (require 'midnight)
+;; (midnight-delay-set 'midnight-delay "4:30am")
 
 ;; Highlight the parts of lines that exceed column 80.
 (use-package whitespace
@@ -1112,13 +1114,10 @@ indentation."
   (defun c-whitespace-mode ()
     "Set whitespace column for c-like modes and turn on `whitespace-mode'."
     (setq whitespace-line-column 80
-          fill-column 80
-          )
+          fill-column            80)
     (whitespace-mode)
     )
-  (add-hook 'c-mode-hook 'c-whitespace-mode)
-  (add-hook 'c++-mode-hook 'c-whitespace-mode)
-  (add-hook 'emacs-lisp-mode-hook 'c-whitespace-mode)
+  (add-hook 'c-mode-common-hook 'c-whitespace-mode)
   (add-hook 'nim-mode-hook 'c-whitespace-mode)
 
   (defun 100-whitespace-mode ()
@@ -1128,7 +1127,8 @@ indentation."
           )
     (whitespace-mode)
     )
-  (add-hook 'rust-mode-hook '100-whitespace-mode)
+  ;; REMOVED: No point for Rust, should run cargo fmt anyway.
+  ;; (add-hook 'rust-mode-hook '100-whitespace-mode)
   (add-hook 'python-mode-hook '100-whitespace-mode)
   )
 
@@ -1181,11 +1181,14 @@ indentation."
   :hook (emacs-lisp-mode . highlight-quoted-mode))
 
 ;; Highlight operators.
-;; Breaks in `emacs-lisp-mode', which is why I enable this on a per-mode basis.
+;;
+;; Breaks in lisp modes, which is why I enable this on a per-mode basis.
 (use-package highlight-operators
   :hook (
          (c-mode-common . highlight-operators-mode)
-         (rust-mode     . highlight-operators-mode)
+         ;; REMOVED: Results in higher CPU load and slowdown in large files,
+         ;; especially in `rust-mode'.
+         ;; (rust-mode     . highlight-operators-mode)
          )
   )
 
@@ -1440,18 +1443,21 @@ indentation."
   (setq company-tooltip-align-annotations t) ;; Align tooltips to right border.
   )
 
-;; Yasnippet.
-;; NOTE: list all snippets for current mode with M-x `yas-describe-tables'.
-(use-package yasnippet-snippets)
-(use-package yasnippet
-  :requires yasnippet-snippets
-  :diminish yas-minor-mode
-  :config
-  (yas-global-mode)
+;; ;; Yasnippet.
+;; ;; NOTE: list all snippets for current mode with M-x `yas-describe-tables'.
+;; REMOVED: Takes a long time to load, sometimes can't open a buffer because of
+;; missing snippet files, sometimes I want to indent instead of expanding a
+;; snippet.
+;; (use-package yasnippet-snippets)
+;; (use-package yasnippet
+;;   :requires yasnippet-snippets
+;;   :diminish yas-minor-mode
+;;   :config
+;;   (yas-global-mode)
 
-  (setq yas-triggers-in-field t) ; Enable nested triggering of snippets
-  (setq yas-verbosity 1) ;; No need to be so verbose
-  )
+;;   (setq yas-triggers-in-field t) ; Enable nested triggering of snippets.
+;;   (setq yas-verbosity 1) ;; No need to be so verbose.
+;;   )
 
 ;;; Language packages
 
@@ -1529,6 +1535,10 @@ indentation."
   :config
   (define-key nim-mode-map (kbd "RET") 'newline-and-indent)
   )
+
+;; Processing
+
+(use-package processing-mode)
 
 ;; Rust
 
