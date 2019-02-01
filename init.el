@@ -33,6 +33,7 @@
 (defvar user-org-directory     "~/Dropbox/Text/org")
 (defvar user-physical-location "~/Dropbox/Text/org/physical.org")
 (defvar user-dreams-location   "~/Dropbox/Text/org/dreams.org")
+(defvar user-ideas-location    "~/Dropbox/Text/org/ideas.org")
 (defvar user-notes-location    "~/Dropbox/Text/org/notes.org")
 (defvar user-todo-location     "~/Dropbox/Text/org/todo.org")
 (defvar user-work-location     "~/Dropbox/Text/org/work.org")
@@ -309,7 +310,7 @@
 (setq-default indent-tabs-mode nil
               tab-width 4
               fill-column 80
-              indicate-empty-lines nil ;; Highlight end of buffer?
+              indicate-empty-lines t ;; Highlight end of buffer?
               )
 
 (setq select-enable-clipboard t
@@ -406,6 +407,7 @@
 ;;; My Functions and Shortcuts/Keybindings
 
 (global-set-key (kbd "M-o") 'other-window)
+(global-set-key (kbd "M-%") 'vr/query-replace)
 
 ;; Set up keys using super. s-a, s-s, s-x, s-c, and s-v correspond to
 ;; select-all, save, cut, copy, and paste, which I've left for
@@ -453,7 +455,8 @@
       (progn
         (linum-mode 1)
         (call-interactively #'goto-line))
-    (linum-mode -1)))
+    (linum-mode -1)
+    (end-of-line)))
 (global-set-key (kbd "s-l") 'goto-line-show)
 
 (defun helm-projectile-ag-inexact ()
@@ -608,7 +611,7 @@ every line included in the region."
     (goto-char end)
     (setq end (line-end-position))
     (kill-region beg end)
-    (kill-append "\n" t)
+    (kill-append "\n" nil)
     (if (/= (line-end-position) (point-max)) ;; Are there more lines after this?
         (delete-char 1))
     (move-to-column col))) ;; Restore column position
@@ -869,15 +872,18 @@ indentation."
 
 ;; Eshell settings
 
-;; Supposed to stop auto-scrolling of eshell output.
-;; TODO: Not even sure if this works.
 (defvar eshell-scroll-show-maximum-output)
 (defvar eshell-scroll-to-bottom-on-input)
 (defvar eshell-scroll-to-bottom-on-output)
-(setq eshell-scroll-show-maximum-output nil
-      eshell-scroll-to-bottom-on-input  nil
-      eshell-scroll-to-bottom-on-output nil
-      )
+(defvar eshell-hist-ignoredups)
+(setq
+ ;; Stop output from always going to the bottom.
+ eshell-scroll-show-maximum-output nil
+ eshell-scroll-to-bottom-on-output nil
+ ;; Always insert at the bottom.
+ eshell-scroll-to-bottom-on-input  t
+ eshell-hist-ignoredups            t
+ )
 
 (defvar eshell-mode-map)
 (add-hook 'eshell-mode-hook
@@ -1208,6 +1214,8 @@ indentation."
 (use-package hl-todo
   :config
   (global-hl-todo-mode)
+
+  (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
   )
 
 ;; Open current directory in Finder on Mac.
@@ -1544,6 +1552,9 @@ indentation."
          (racer-mode . eldoc-mode)
          )
   :config
+  ;; Don't insert argument placeholders when completing a function.
+  (setq racer-complete-insert-argument-placeholders nil)
+
   (define-key racer-mode-map (kbd "M-,") 'smart-jump-back)
   (define-key racer-mode-map (kbd "M-.") 'smart-jump-go)
   )
@@ -2017,11 +2028,9 @@ indentation."
   (interactive)
   (find-file user-notes-location)
   (split-window-right-focus)
-  (org-agenda-list)
-  (other-window 1)
-  (split-window-below-focus)
   (find-file user-todo-location)
-  (other-window 1)
+  (split-window-right-focus)
+  (org-agenda-list)
   )
 (emacs-welcome)
 
