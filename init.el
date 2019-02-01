@@ -335,10 +335,7 @@
       version-control t               ;; Always make numeric backup versions.
       vc-make-backup-files t          ;; Make backups of all files.
       delete-old-versions t           ;; Silently delete old backup versions.
-      isearch-allow-scroll t
       show-trailing-whitespace 1      ;; Display trailing whitespace.
-      isearch-lazy-highlight t
-      lazy-highlight-initial-delay info-delay
       ;; Delay for displaying function/variable information.
       eldoc-idle-delay info-delay
 
@@ -768,7 +765,27 @@ indentation."
    )
   )
 
-;;; Dired settings
+;;; Built-in mode settings
+
+;; isearch
+
+(setq
+ isearch-allow-scroll t   ;; Can scroll using C-v and M-v.
+ isearch-lazy-highlight t ;; Highlight more matches after a delay.
+ lazy-highlight-initial-delay info-delay
+ )
+
+;; Display last searched string in minibuffer prompt.
+(setq-default isearch-mode-hook nil)
+(add-hook 'isearch-mode-hook
+          (lambda () (interactive)
+            (setq isearch-message
+                  (format "%s[%s] " isearch-message
+                          (propertize (car search-ring)
+                                      'face '(:inherit font-lock-string-face))))
+            (isearch-search-and-update)))
+
+;; Dired settings
 
 (defvar dired-mode-map)
 (add-hook 'dired-mode-hook
@@ -1022,11 +1039,6 @@ indentation."
 ;; ;; Fix line numbers occasionally not appearing.
 ;; (use-package nlinum-hl)
 
-;; ;; Display current function in mode line. Sometimes doesn't work.
-;; (use-package which-func
-;;   :config
-;;   (which-function-mode 1))
-
 ;; Highlight indentation.
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
@@ -1054,9 +1066,7 @@ indentation."
 ;; Avy mode (jump to a char/word using a decision tree).
 (use-package avy
   :bind (("C-," . avy-goto-line-end)
-         ;; ("C-<" . avy-goto-char-in-line)
          ("C-." . avy-goto-char)
-         ;; ("C->" . avy-goto-word-1)
          )
   :init
   ;; Jump to the end of a line using avy's decision tree.
@@ -1068,13 +1078,9 @@ indentation."
     )
   :config
   ;; Use more characters (and better ones) in the decision tree.
-
-  ;; QWERTY keys
+  ;; QWERTY keys.
   (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
                       ?w ?e ?r ?u ?i ?o))
-  ;; DVORAK keys
-  ;; (setq avy-keys '(?p ?g ?c ?r
-  ;;                     ?a ?o ?e ?u ?h ?t ?n ?s))
 
   ;; Set the background to gray to highlight the decision tree?
   (setq avy-background nil)
@@ -1091,16 +1097,6 @@ indentation."
   (save-place-mode 1)
   )
 
-;; ;; Toggle the mode-line to save space.
-;; (use-package hide-mode-line
-;;   :config
-;;   (defun hide-mode-line-toggle ()
-;;     (interactive)
-;;     (hide-mode-line-mode (if hide-mode-line-mode -1 +1))
-;;     (unless hide-mode-line-mode
-;;       (redraw-display)))
-;;   (global-set-key (kbd "s-m") 'hide-mode-line-toggle)
-;;   )
 
 ;; ;; Midnight mode - clean up buffers older than 3 days.
 (require 'midnight)
@@ -1238,8 +1234,8 @@ indentation."
 (use-package undo-tree
   :diminish undo-tree-mode
   :config
-    (setq undo-tree-visualizer-timestamps t)
-    (setq undo-tree-visualizer-diff t))
+  (setq undo-tree-visualizer-timestamps t)
+  (setq undo-tree-visualizer-diff t))
 
 ;; Display available keys.
 (use-package which-key
@@ -1480,7 +1476,7 @@ indentation."
 (use-package js2-mode
   :mode "\\.js\\'"
   :config
-  ;TODO: use smart-jump here instead. Do we even need to define a key here?
+  ;; TODO: use smart-jump here instead. Do we even need to define a key here?
   (define-key js-mode-map (kbd "M-.") 'dumb-jump-go)
   )
 
@@ -1513,6 +1509,7 @@ indentation."
   :mode "\\.md\\'"
   )
 (use-package markdown-toc
+  :after markdown-mode
   :defer t)
 
 ;; On-the-fly markdown preview. M-x flymd-flyit
@@ -1526,10 +1523,6 @@ indentation."
 ;; Nim
 
 (use-package nim-mode
-  :hook (nim-mode . nimsuggest-mode)
-  :init
-  (setq nimsuggest-path "~/.nim/bin/nimsuggest")
-  ;; Currently nimsuggest doesn't support nimscript files, so only nim-mode...
   :config
   (define-key nim-mode-map (kbd "RET") 'newline-and-indent)
   )
@@ -1539,9 +1532,9 @@ indentation."
 (use-package rust-mode
   :mode "\\.rs\\'"
   :diminish eldoc-mode
-  :init
-  (setq rust-format-on-save nil)
   :config
+  (setq rust-format-on-save nil)
+
   (define-key rust-mode-map (kbd "C-c n") 'rust-format-buffer)
   )
 
@@ -1603,6 +1596,12 @@ indentation."
           (org-agenda-maybe-redo)
           ))))
 
+  ;; Don't align tags.
+  ;; Keep this in :init so that no org-files are opened without these settings.
+  ;; Should (hopefully) fix tag alignment getting messed up.
+  (setq org-tags-column     0
+        org-auto-align-tags nil)
+
   :config
 
   ;;; Settings
@@ -1616,10 +1615,6 @@ indentation."
   (setq org-special-ctrl-a/e t)
   ;; Smart editing of invisible region around ellipses.
   (setq org-catch-invisible-edits 'smart)
-
-  ;; Don't align tags.
-  (setq org-tags-column     0
-        org-auto-align-tags t)
 
   ;; All subtasks must be Done before marking a task as Done.
   (setq org-enforce-todo-dependencies t)
@@ -1876,7 +1871,7 @@ indentation."
   (setq org-super-agenda-header-separator "")
   (setq org-super-agenda-unmatched-name "Other")
   (setq org-super-agenda-groups
-        '(;; Each group has an implicit boolean OR operator between its selectors.
+        '(;; Each group has an implicit OR operator between its selectors.
           (:name "Today"  ; Optionally specify section name
                  :time-grid t  ; Items that appear on the time grid.
                  :todo "TODAY"   ; Items that have this todo keyword.
@@ -1984,7 +1979,8 @@ indentation."
      " |"
      '(:eval (when line-number-mode " %l:%C"))
      " "
-     '(:eval (when (and line-number-mode mode-line-buffer-line-count buffer-file-name)
+     '(:eval (when (and line-number-mode mode-line-buffer-line-count
+                        buffer-file-name)
                (let ((str "["))
                  (when (buffer-modified-p)
                    (setq str (concat str "*")))
