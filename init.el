@@ -288,6 +288,7 @@
 
 ;; Enable popup tooltips, use emacs tooltip implementation.
 (tooltip-mode nil)
+(defvar x-gtk-use-system-tooltips)
 (setq x-gtk-use-system-tooltips nil)
 
 ;; Enable functions that are disabled by default.
@@ -308,6 +309,9 @@
               indicate-empty-lines t ;; Highlight end of buffer?
               )
 
+(defvar apropos-do-all)
+(defvar ediff-window-setup-function)
+(defvar c-default-style)
 (setq select-enable-clipboard t
       select-enable-primary t
       save-interprogram-paste-before-kill t
@@ -359,21 +363,18 @@
                            (buffer-file-name
                             "%f" (dired-directory dired-directory "%b"))))
 
-;; Set some builtin modes
-(setq global-hl-line-sticky-flag nil)   ;; Keep line highlight across windows?
-(global-hl-line-mode t)                 ;; Highlight current line.
-;; Use compressed files like normal files.
-(auto-compression-mode 1)
-;; (desktop-save-mode 1)                ;; Keep open files open across sessions.
-(column-number-mode 1)                  ;; Display the column number.
-;; (display-time-mode 1)                ;; Display the current time.
-;; (setq display-time-format "%l:%M%p")
-;; Replace selected text when typing or pasting.
-(delete-selection-mode 1)
-;; Auto revert files that changed on disk.
-(global-auto-revert-mode 1)
+;; Set some builtin modes.
+(defvar global-hl-line-sticky-flag)
+(setq global-hl-line-sticky-flag nil) ;; Keep line highlight across windows?
+(global-hl-line-mode t)               ;; Highlight current line.
 
-;; Set c-style comments to be "//" by default (these are just better, sorry)
+(auto-compression-mode 1)   ;; Use compressed files like normal files.
+;; (desktop-save-mode 1)    ;; Keep open files open across sessions.
+(column-number-mode 1)      ;; Display the column number.
+(delete-selection-mode 1)   ;; Replace selected text when typing or pasting.
+(global-auto-revert-mode 1) ;; Auto revert files that changed on disk.
+
+;; Set c-style comments to be "//" by default (these are just better, sorry).
 (add-hook 'c-mode-common-hook
           (lambda ()
             ;; Preferred comment style
@@ -385,7 +386,7 @@
 (set-keyboard-coding-system 'utf-8)
 (prefer-coding-system       'utf-8)
 
-;; Setup selected file endings to open in certain modes
+;; Setup selected file endings to open in certain modes.
 (add-to-list 'auto-mode-alist '("\\.hdl\\'"  . c-mode))
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
@@ -393,6 +394,7 @@
 
 ;; Fix EasyPG error.
 ;; From https://colinxy.github.io/software-installation/2016/09/24/emacs25-easypg-issue.html.
+(defvar epa-pinentry-mode)
 (setq epa-pinentry-mode 'loopback)
 
 ;; Mouse settings
