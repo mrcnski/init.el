@@ -122,6 +122,10 @@
   (global-set-key (kbd "C-x C-SPC")  'helm-all-mark-rings)
   (global-set-key (kbd "M-i")        'helm-semantic-or-imenu)
 
+  (setq helm-follow-mode-persistent t)
+
+  ;; Jump to a function definition.
+  (semantic-mode 1)
   (defvar helm-buffers-fuzzy-matching)
   (defvar helm-recentf-fuzzy-match)
   (defvar helm-apropos-fuzzy-match)
@@ -129,23 +133,14 @@
   (defvar helm-imenu-fuzzy-match)
   (setq helm-buffers-fuzzy-matching t
         helm-recentf-fuzzy-match    t
-        helm-follow-mode-persistent t
-        )
+        helm-apropos-fuzzy-match    t
+        helm-semantic-fuzzy-match   t
+        helm-imenu-fuzzy-match      t)
 
-  (setq helm-apropos-fuzzy-match t)
-
-  ;; Jump to a function definition
-  (semantic-mode 1)
-  (setq helm-semantic-fuzzy-match t
-        helm-imenu-fuzzy-match    t)
-
-  (when (executable-find "curl")
-    (setq helm-google-suggest-use-curl-p t))
-
-  (setq helm-split-window-inside-p t ;; open helm buffer inside current window
-        ;; move to end or beginning of source when reaching top/bottom of source.
   (defvar helm-ff-search-library-in-sexp)
   (defvar helm-ff-file-name-history-use-recentf)
+  (setq helm-split-window-inside-p t ;; Open helm buffer inside current window?
+        ;; Move to end or beginning of source when reaching top/bottom of source.
         helm-move-to-line-cycle-in-source t
         ;; Search for library in `use-package' and `declare-function' sexp.
         helm-ff-search-library-in-sexp t
@@ -174,9 +169,9 @@
                                     ;; helm-source-buffer-not-found
                                     ))
 
-  (setq helm-autoresize-max-height 0)
-  (setq helm-autoresize-min-height 40)
-  (helm-autoresize-mode 1)
+  ;; (setq helm-autoresize-max-height 0)
+  ;; (setq helm-autoresize-min-height 40)
+  ;; (helm-autoresize-mode t)
   )
 
 ;; Better mode help.
