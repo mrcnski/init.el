@@ -1873,6 +1873,16 @@ indentation."
                  :tag "tech"
                  :order 180
                  )
+          (:name "To Read"
+                 :category "read"
+                 :tag "read"
+                 :order 181
+                 )
+          (:name "To Watch"
+                 :category "watch"
+                 :tag "watch"
+                 :order 182
+                 )
           (:todo "WAITING" :order 190)  ; Set order of this section
           ;; (:name "Low priority"
           ;;        :priority "C"
