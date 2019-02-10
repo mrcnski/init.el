@@ -268,6 +268,7 @@
               tab-width 4
               fill-column 80
               indicate-empty-lines t ;; Highlight end of buffer?
+              show-trailing-whitespace t ;; Display trailing whitespace.
               )
 
 (defvar apropos-do-all)
@@ -296,7 +297,6 @@
       version-control t           ;; Always make numeric backup versions.
       vc-make-backup-files t      ;; Make backups of all files.
       delete-old-versions t       ;; Silently delete old backup versions.
-      show-trailing-whitespace t  ;; Display trailing whitespace.
       eldoc-idle-delay info-delay ;; Delay for displaying function/variable information.
 
       pop-up-frames nil           ;; Open files in existing frames.
@@ -479,7 +479,7 @@
 (require 'hideshow)
 (diminish 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
-(define-key hs-minor-mode-map (kbd "C-)") 'hs-toggle-hiding)
+(define-key hs-minor-mode-map (kbd "C-z") 'hs-toggle-hiding)
 
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
@@ -729,7 +729,7 @@ indentation."
 ;; isearch
 
 (setq
- isearch-allow-scroll t   ;; Can scroll using C-v and M-v.
+ isearch-allow-scroll t ;; Can scroll using C-v and M-v.
  isearch-lazy-highlight t ;; Highlight more matches after a delay.
  lazy-highlight-initial-delay info-delay
  )
@@ -739,9 +739,13 @@ indentation."
 (add-hook 'isearch-mode-hook
           (lambda () (interactive)
             (setq isearch-message
-                  (format "%s[%s] " isearch-message
-                          (propertize (car search-ring)
-                                      'face '(:inherit font-lock-string-face))))
+                  (format "%s[%s] "
+                          isearch-message
+                          (if search-ring
+                              (propertize (car search-ring)
+                                          'face '(:inherit font-lock-string-face))
+                            ""))
+                  )
             (isearch-search-and-update)))
 
 ;; Dired settings
@@ -1068,16 +1072,17 @@ indentation."
 ;; (require 'midnight)
 ;; (midnight-delay-set 'midnight-delay "4:30am")
 
-;; Highlight the parts of lines that exceed column 80.
+;; Highlight the parts of lines that exceed certain column numbers.
 (use-package whitespace
   :diminish whitespace-mode
   :config
-  (setq whitespace-style '(face empty tabs lines-tail trailing))
+  (setq whitespace-style '(face
+                           empty lines-tail tabs trailing))
 
   (defun c-whitespace-mode ()
     "Set whitespace column for c-like modes and turn on `whitespace-mode'."
     (setq whitespace-line-column 80
-          fill-column            80)
+          fill-column 80)
     (whitespace-mode)
     )
   (add-hook 'c-mode-common-hook 'c-whitespace-mode)
@@ -1983,10 +1988,11 @@ indentation."
          (concat "{" (number-to-string (abs (- (point) (mark)))) "}")))
      " "
 
-     '(:eval (concat
-              (mode-line-fill (+ 1 (length (substring-no-properties
-                                            (eyebrowse-mode-line-indicator)))))
-              (eyebrowse-mode-line-indicator)))
+     '(:eval (let ((indicator (eyebrowse-mode-line-indicator)))
+               (concat
+                (mode-line-fill (+ 1 (length (substring-no-properties
+                                              indicator))))
+                indicator)))
      ;; " "
      ;; '(:eval (propertize (format-time-string "%H:%M")))
      ))))
