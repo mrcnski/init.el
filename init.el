@@ -1391,15 +1391,16 @@ indentation."
 (use-package flycheck-package
   :hook (flycheck-mode . flycheck-package-setup))
 
-;; Company mode for auto-completion.
-(use-package company
-  :diminish company-mode
-  :bind ("M-/" . company-complete)
-  :hook (after-init . global-company-mode)
-  :init
-  (setq company-idle-delay nil)
-  (setq company-tooltip-align-annotations t) ;; Align tooltips to right border.
-  )
+;; ;; Company mode for auto-completion.
+;; REMOVED: Tab's completion-at-point seems more useful.
+;; (use-package company
+;;   :diminish company-mode
+;;   :bind ("M-/" . company-complete)
+;;   :hook (after-init . global-company-mode)
+;;   :init
+;;   (setq company-idle-delay nil)
+;;   (setq company-tooltip-align-annotations t) ;; Align tooltips to right border.
+;;   )
 
 ;; ;; Yasnippet.
 ;; ;; NOTE: list all snippets for current mode with M-x `yas-describe-tables'.
