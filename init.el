@@ -107,7 +107,7 @@
   :init (require 'helm-config)
   :diminish helm-mode
   :config
-  (helm-mode 1)
+  (helm-mode t)
 
   ;; Rebind tab to run persistent action.
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
@@ -125,7 +125,7 @@
   (setq helm-follow-mode-persistent t)
 
   ;; Jump to a function definition.
-  (semantic-mode 1)
+  (semantic-mode t)
   (defvar helm-buffers-fuzzy-matching)
   (defvar helm-recentf-fuzzy-match)
   (defvar helm-apropos-fuzzy-match)
@@ -271,7 +271,7 @@
   )
 
 ;; Turn on blinking/flashing cursor.
-(blink-cursor-mode 1)
+(blink-cursor-mode t)
 (when (display-graphic-p)
   (setq-default cursor-type 'box))
 ;; Stretch cursor to be as wide as the character at point.
@@ -298,10 +298,6 @@
 (put 'scroll-right     'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page   'disabled nil)
-
-(defvar show-paren-delay)
-(setq show-paren-delay highlight-delay)
-(show-paren-mode 1)
 
 (setq-default indent-tabs-mode nil
               tab-width 4
@@ -358,18 +354,27 @@
 (setq frame-title-format '((:eval (when (and (buffer-modified-p) buffer-file-name) "*"))
                            "Emacs - "
                            (buffer-file-name
-                            "%f" (dired-directory dired-directory "%b"))))
+                            "%f" (dired-directory dired-directory "%b"))
+                           ))
 
 ;; Set some builtin modes.
+
+;; Disable eldoc mode, causes huge slowdown in Rust files.
+(global-eldoc-mode -1)
+
+(defvar show-paren-delay)
+(setq show-paren-delay highlight-delay)
+(show-paren-mode t)
+
 (defvar global-hl-line-sticky-flag)
 (setq global-hl-line-sticky-flag nil) ;; Keep line highlight across windows?
 (global-hl-line-mode t)               ;; Highlight current line.
 
-(auto-compression-mode 1)   ;; Use compressed files like normal files.
-;; (desktop-save-mode 1)    ;; Keep open files open across sessions.
-(column-number-mode 1)      ;; Display the column number.
-(delete-selection-mode 1)   ;; Replace selected text when typing or pasting.
-(global-auto-revert-mode 1) ;; Auto revert files that changed on disk.
+(auto-compression-mode t)   ;; Use compressed files like normal files.
+;; (desktop-save-mode t)    ;; Keep open files open across sessions.
+(column-number-mode t)      ;; Display the column number.
+(delete-selection-mode t)   ;; Replace selected text when typing or pasting.
+(global-auto-revert-mode t) ;; Auto revert files that changed on disk.
 
 ;; Set c-style comments to be "//" by default (these are just better, sorry).
 (add-hook 'c-mode-common-hook
@@ -387,7 +392,6 @@
 (add-to-list 'auto-mode-alist '("\\.hdl\\'"  . c-mode))
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
-(add-to-list 'auto-mode-alist '("\\.pdf\\'"  . pdf-view-mode))
 
 ;; Fix EasyPG error.
 ;; From https://colinxy.github.io/software-installation/2016/09/24/emacs25-easypg-issue.html.
@@ -398,7 +402,7 @@
 
 (setq mouse-wheel-progressive-speed nil ;; Make the mouse wheel not accelerate.
       mouse-yank-at-point t
-)
+      )
 
 ;;; My Functions and Shortcuts/Keybindings
 
@@ -449,7 +453,7 @@
   (interactive)
   (unwind-protect
       (progn
-        (linum-mode 1)
+        (linum-mode t)
         (call-interactively #'goto-line))
     (linum-mode -1)
     (end-of-line)))
@@ -496,8 +500,6 @@
 (global-set-key (kbd "C-3") 'split-window-right-focus)
 
 (global-set-key (kbd "M-SPC") 'cycle-spacing)
-
-(define-key key-translation-map (kbd "<C-tab>") (kbd "TAB"))
 
 ;; Narrow/widen easily.
 (defun narrow-dwim ()
@@ -688,11 +690,6 @@ indentation."
 
 ;; Globally bind these keys so they work in every mode.
 (bind-keys*
- ;; ("M-n" . scroll-up-line-quick)
- ;; ("M-p" . scroll-down-line-quick)
- ;; ("M-N" . scroll-other-window-up-quick)
- ;; ("M-P" . scroll-other-window-down-quick)
-
  ("<mouse-3>" . previous-buffer)
  ("<mouse-8>" . previous-buffer)
  ("<mouse-4>" . next-buffer)
@@ -738,8 +735,6 @@ indentation."
 
 ;; Nimbus is my personal theme, available on Melpa.
 (use-package nimbus-theme)
-;; (use-package zerodark-theme)
-;; (use-package zeno-theme)
 
 ;; Set font only if we're not in the terminal.
 (when (display-graphic-p)
@@ -922,11 +917,6 @@ indentation."
 
 ;; Start loading packages.
 
-;; View PDF files in Emacs.
-(use-package pdf-tools
-  :config
-  (pdf-loader-install))
-
 ;; Text separated by more than one space doesn't move.
 (use-package dynamic-spaces
   :config
@@ -1091,7 +1081,7 @@ indentation."
 ;; Automatically save place in each file.
 (use-package saveplace
   :config
-  (save-place-mode 1)
+  (save-place-mode t)
   )
 
 ;; ;; ;; Midnight mode - clean up buffers older than 3 days.
@@ -1122,8 +1112,7 @@ indentation."
           )
     (whitespace-mode)
     )
-  ;; REMOVED: No point for Rust, should run cargo fmt anyway.
-  ;; (add-hook 'rust-mode-hook '100-whitespace-mode)
+  (add-hook 'rust-mode-hook '100-whitespace-mode)
   (add-hook 'python-mode-hook '100-whitespace-mode)
   )
 
@@ -1158,14 +1147,10 @@ indentation."
   :diminish rainbow-mode
   )
 
-;; ;; Highlight blocks based on depth. Buggy.
-;; (use-package rainbow-blocks
-;;   :bind ("s-r" . rainbow-blocks-mode)
-;;   )
-
-;; Highlight delimiters with colors depending on depth.
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+;; ;; Highlight delimiters with colors depending on depth.
+;; REMOVED: Too slow in large files.
+;; (use-package rainbow-delimiters
+;;   :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; Highlight numbers in code.
 (use-package highlight-numbers
@@ -1230,7 +1215,7 @@ indentation."
          ("C-c C-," . winner-undo)
          ("C-c C-." . winner-redo)
          )
-  :config (winner-mode 1))
+  :config (winner-mode t))
 
 (use-package undo-tree
   :diminish undo-tree-mode
@@ -1539,7 +1524,6 @@ indentation."
 
 (use-package rust-mode
   :mode "\\.rs\\'"
-  :diminish eldoc-mode
   :config
   (setq rust-format-on-save nil)
 
@@ -1548,9 +1532,7 @@ indentation."
 
 (use-package racer
   :diminish racer-mode
-  :hook ((rust-mode  . racer-mode)
-         (racer-mode . eldoc-mode)
-         )
+  :hook ((rust-mode  . racer-mode))
   :config
   ;; Don't insert argument placeholders when completing a function.
   (setq racer-complete-insert-argument-placeholders nil)
