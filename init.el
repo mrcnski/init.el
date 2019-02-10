@@ -936,6 +936,19 @@ indentation."
 (use-package free-keys
   :defer t)
 
+;; Quick switching between buffers.
+(use-package nswbuff
+  :ensure t
+  :bind* (("<C-tab>" . nswbuff-switch-to-next-buffer)
+          ("<C-S-tab>" . nswbuff-switch-to-previous-buffer))
+  :config (setq nswbuff-buffer-list-function #'nswbuff-projectile-buffer-list
+                nswbuff-exclude-buffer-regexps '("^ .*" "^magit*" "^\\*.*\\*")
+                nswbuff-display-intermediate-buffers t
+                nswbuff-recent-buffers-first nil
+                nswbuff-header "Buffers: "
+                )
+  )
+
 ;; Mode for writing.
 (use-package olivetti
   :bind ("s-m" . olivetti-mode)
