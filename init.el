@@ -197,41 +197,6 @@
   (setq helm-swoop-speed-or-color t) ;; Show syntax highlighting in results.
   )
 
-;; ggtags with helm
-(use-package helm-gtags
-  :diminish helm-gtags-mode
-  :init
-  ;; Enable helm-gtags-mode.
-  (add-hook 'c-mode-hook   'helm-gtags-mode)
-  (add-hook 'c++-mode-hook 'helm-gtags-mode)
-  (add-hook 'asm-mode-hook 'helm-gtags-mode)
-
-  :config
-  (setq
-   helm-gtags-ignore-case t
-   helm-gtags-auto-update t
-   helm-gtags-use-input-at-cursor t
-   helm-gtags-pulse-at-cursor t
-   helm-gtags-prefix-key "\C-cg"
-   helm-gtags-suggested-key-mapping t
-   )
-  (define-key helm-gtags-mode-map (kbd "C-c g a")
-    'helm-gtags-tags-in-this-function)
-  (define-key helm-gtags-mode-map (kbd "M-.")
-    (lambda ()
-      (interactive)
-      (save-all)
-      ;; (helm-gtags-update-tags)
-      (let ((current-prefix-arg '(2))) (call-interactively
-                                        'helm-gtags-update-tags))
-      (helm-gtags-dwim)
-      ))
-
-  (define-key helm-gtags-mode-map (kbd "M-,")   'helm-gtags-pop-stack)
-  (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
-  (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
-  )
-
 ;; ag with helm.
 (use-package helm-ag
   :init
