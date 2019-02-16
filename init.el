@@ -39,7 +39,7 @@
 (defvar user-work-location     "~/Dropbox/Text/org/work.org")
 
 (defvar highlight-delay .03)
-(defvar info-delay      .25)
+(defvar info-delay .25)
 
 ;; Open .emacs init.
 (defun open-init-file ()
@@ -58,7 +58,7 @@
 ;;; Package settings
 
 (require 'package)
-;; Explicitly enable packages.
+;; Only enable packages found in this file (not all installed packages).
 (setq package-enable-at-startup nil)
 ;; Add package sources.
 (unless (assoc-default "melpa" package-archives)
@@ -74,6 +74,18 @@
   (package-install 'use-package))
 (require 'use-package)
 (setq use-package-always-ensure t)
+
+;; Keep directories clean.
+;; Should be one of the first things loaded.
+(defvar recentf-exclude)
+(use-package no-littering
+  :config
+  (require 'recentf)
+  (add-to-list 'recentf-exclude no-littering-var-directory)
+  (add-to-list 'recentf-exclude no-littering-etc-directory)
+  (setq auto-save-file-name-transforms
+        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+  )
 
 ;; Inherit environment variables from Shell.
 (when (memq window-system '(mac ns x))
@@ -216,17 +228,6 @@
 
 ;; Replace yes/no prompts with y/n.
 (fset 'yes-or-no-p 'y-or-n-p)
-
-;; Keep directories clean.
-(defvar recentf-exclude)
-(use-package no-littering
-  :config
-  (require 'recentf)
-  (add-to-list 'recentf-exclude no-littering-var-directory)
-  (add-to-list 'recentf-exclude no-littering-etc-directory)
-  (setq auto-save-file-name-transforms
-        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
-  )
 
 ;; Track recently-opened files.
 (use-package recentf
@@ -771,14 +772,7 @@ indentation."
               dired-auto-revert-buffer t     ;; Update buffer when visiting.
               )
 
-;; ;; Extensions to Dired. Includes more dired colors.
-;; (use-package dired+)
-
-;; More dired colors.
-(use-package diredfl
-  :config (diredfl-global-mode))
-
-;; Expanded dired
+;; Expanded dired.
 ;; Enables jumping to the current directory in dired (default: C-x C-j).
 (require 'dired-x)
 (global-set-key (kbd "s-d") 'dired-jump)
@@ -796,6 +790,13 @@ indentation."
 ;; NOTE: WDired can be entered with C-x C-q and changes saved with C-c C-c.
 (defvar wdired-allow-to-change-permissions)
 (setq wdired-allow-to-change-permissions t)
+
+;; ;; Extensions to Dired. Includes more dired colors.
+;; (use-package dired+)
+
+;; More dired colors.
+(use-package diredfl
+  :config (diredfl-global-mode))
 
 ;; ibuffer settings
 
@@ -863,16 +864,16 @@ indentation."
 (global-set-key [f1] 'projectile-run-eshell)
 (global-set-key [f2] 'eshell-new)
 
-;; Add z to eshell.
-;; Jumps to most recently visited directories.
-(use-package eshell-z
-  :defer 2)
-
 ;; Add up to eshell.
 ;; Jump to a directory higher up in the directory hierarchy.
 (use-package eshell-up
   :defer 2
   :config (setq eshell-up-print-parent-dir nil))
+
+;; Add z to eshell.
+;; Jumps to most recently visited directories.
+(use-package eshell-z
+  :defer 2)
 
 ;;; Load packages
 
@@ -886,17 +887,89 @@ indentation."
 
 ;; Start loading packages.
 
+;; Display number of matches when searching.
+(use-package anzu
+  :diminish anzu-mode
+  :config (global-anzu-mode))
+
+;; Avy mode (jump to a char/word using a decision tree).
+(use-package avy
+  :bind (("C-," . avy-goto-line-end)
+         ("C-." . avy-goto-char)
+         )
+  :init
+  ;; Jump to the end of a line using avy's decision tree.
+  (defun avy-goto-line-end ()
+    "Jump to a line using avy and go to the end of the line."
+    (interactive)
+    (avy-goto-line)
+    (end-of-line)
+    )
+  :config
+  ;; Use more characters (and better ones) in the decision tree.
+  ;; QWERTY keys.
+  (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
+                      ?w ?e ?r ?u ?i ?o))
+
+  ;; Set the background to gray to highlight the decision tree?
+  (setq avy-background nil)
+  )
+
+;; Imagemagick wrapper.
+(use-package blimp
+  :hook (image-mode . blimp-mode)
+  )
+
+;; ;; Move buffers around.
+;; (use-package buffer-move
+;;   :bind (("<s-up>"    . buf-move-up)
+;;          ("<s-down>"  . buf-move-down)
+;;          ("<s-left>"  . buf-move-left)
+;;          ("<s-right>" . buf-move-right)
+;;          ))
+
+;; Copy selected region to be pasted into Slack/Github/etc.
+(use-package copy-as-format
+  :defer t)
+
+;; Wrap parentheses or quotes around word.
+(use-package corral
+  :bind (
+         ("M-(" . corral-parentheses-backward)
+         ("M-)" . corral-parentheses-forward)
+         ("M-[" . corral-brackets-backward)
+         ("M-]" . corral-brackets-forward)
+         ;; ("M-{" . corral-braces-backward) ;; Useful keys by default.
+         ;; ("M-}" . corral-braces-forward)
+         ("M-`" . corral-backquote-forward)
+         ("M-~" . corral-backquote-backward)
+         ("M-'"  . corral-double-quotes-forward)
+         ("M-\"" . corral-double-quotes-backward)
+         )
+  :config (setq corral-preserve-point t))
+
+;; Display available keybindings in Dired mode (? creates popup).
+(use-package discover)
+
 ;; Text separated by more than one space doesn't move.
 (use-package dynamic-spaces
   :config
   (dynamic-spaces-global-mode))
 
-;; A package for choosing a color by updating text sample.
-;; See https://www.emacswiki.org/emacs/MakeColor.
-(use-package make-color
-  :defer t)
+;; Better comment command.
+(use-package evil-nerd-commenter
+  :bind ("M-;" . evilnc-comment-or-uncomment-lines))
 
-;; Workspaces
+;; Expand-region.
+(use-package expand-region
+  :bind ("C-=" . er/expand-region)
+  :config
+  ;; Fix region not highlighting.
+  ;; See https://github.com/magnars/expand-region.el/issues/229
+  (setq shift-select-mode nil)
+  )
+
+;; Workspaces.
 (use-package eyebrowse
   :demand t ;; To prevent mode-line display errors.
   :bind (("s-," . eyebrowse-prev-window-config)
@@ -936,83 +1009,16 @@ indentation."
          )
   )
 
+;; Fontify symbols representing faces with that face.
+(use-package fontify-face
+  :defer t
+  :diminish fontify-face-mode
+  :hook (emacs-lisp-mode . fontify-face-mode)
+  )
+
 ;; Show unused keys.
 (use-package free-keys
   :defer t)
-
-;; Quick switching between buffers.
-(use-package nswbuff
-  :ensure t
-  :bind* (("<C-tab>" . nswbuff-switch-to-next-buffer)
-          ("<C-S-tab>" . nswbuff-switch-to-previous-buffer))
-  :config (setq nswbuff-buffer-list-function #'nswbuff-projectile-buffer-list
-                nswbuff-exclude-buffer-regexps '("^ .*" "^magit*" "^\\*.*\\*")
-                nswbuff-display-intermediate-buffers t
-                nswbuff-recent-buffers-first nil
-                nswbuff-header "Buffers: "
-                )
-  )
-
-;; Mode for writing.
-(use-package olivetti
-  :bind ("s-m" . olivetti-mode)
-  :init
-  (setq olivetti-hide-mode-line t
-        olivetti-body-width     0.9
-        )
-  )
-
-;; ;; Add indicators for position in buffer and end of buffer.
-;; ;; Only load this for graphical displays (i.e. not the terminal).
-;; ;; Buggy.
-;; (when (display-graphic-p)
-;;   (use-package indicators
-;;     :diminish indicators-mode
-;;     :hook ((prog-mode . new-indicators)
-;;            (conf-mode . new-indicators)
-;;            (text-mode . new-indicators)
-;;            )
-;;     :config
-;;     (defun new-indicators ()
-;;       "Create new indicators in the current buffer."
-;;       (interactive)
-
-;;       ;; ;; show an arrow at the end of buffer using the default fringe face
-;;       ;; (ind-create-indicator 'point-max
-;;       ;;                       :managed t
-;;       ;;                       :relative nil
-;;       ;;                       :fringe 'left-fringe
-;;       ;;                       :bitmap 'right-arrow
-;;       ;;                       :face 'fringe)
-
-;;       ;; show relative position in the file (a.k.a. scroll bar)
-;;       (ind-create-indicator 'point :managed t)
-;;       )
-;;     )
-;;   )
-
-;; Copy selected region to be pasted into Slack/Github/etc.
-(use-package copy-as-format
-  :defer t)
-
-;; Jump to definitions using dumb-jump as a fallback.
-(use-package smart-jump
-  :ensure t
-  :config
-  (smart-jump-setup-default-registers))
-
-;; ;; Line numbers.
-;; (use-package nlinum
-;;   :hook ((prog-mode . nlinum-mode)
-;;          (conf-mode . nlinum-mode)
-;;          (text-mode . nlinum-mode)
-;;          )
-;;   :config
-;;   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
-;;   (setq nlinum-highlight-current-line t)
-;;   )
-;; ;; Fix line numbers occasionally not appearing.
-;; (use-package nlinum-hl)
 
 ;; Highlight indentation.
 (use-package highlight-indent-guides
@@ -1024,80 +1030,48 @@ indentation."
         )
   )
 
-;; Automatically clean up extraneous whitespace.
-(use-package ws-butler
-  :diminish ws-butler-mode
+;; Highlight numbers in code.
+(use-package highlight-numbers
+  :hook (prog-mode . highlight-numbers-mode))
+
+;; Highlight operators.
+;; Breaks in lisp modes, which is why I enable this on a per-mode basis.
+(use-package highlight-operators
   :hook (
-         (prog-mode . ws-butler-mode)
-         (text-mode . ws-butler-mode)
-         ))
-
-;; Avy mode (jump to a char/word using a decision tree).
-(use-package avy
-  :bind (("C-," . avy-goto-line-end)
-         ("C-." . avy-goto-char)
+         (c-mode-common . highlight-operators-mode)
+         ;; REMOVED: Results in higher CPU load and slowdown in large files,
+         ;; especially in `rust-mode'.
+         ;; (rust-mode     . highlight-operators-mode)
          )
-  :init
-  ;; Jump to the end of a line using avy's decision tree.
-  (defun avy-goto-line-end ()
-    "Jump to a line using avy and go to the end of the line."
-    (interactive)
-    (avy-goto-line)
-    (end-of-line)
-    )
-  :config
-  ;; Use more characters (and better ones) in the decision tree.
-  ;; QWERTY keys.
-  (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
-                      ?w ?e ?r ?u ?i ?o))
-
-  ;; Set the background to gray to highlight the decision tree?
-  (setq avy-background nil)
   )
 
-;; Use a sensible mechanism for making buffer names unique.
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'forward
-      uniquify-min-dir-content 1)
-
-;; Automatically save place in each file.
-(use-package saveplace
+;; Highlight surrounding parentheses.
+(use-package highlight-parentheses
+  :diminish highlight-parentheses-mode
+  :hook (prog-mode . highlight-parentheses-mode)
   :config
-  (save-place-mode t)
+  (setq hl-paren-colors '("cyan3")
+        hl-paren-delay highlight-delay
+        )
   )
 
-;; ;; ;; Midnight mode - clean up buffers older than 3 days.
-;; REMOVED: This was deleting buffers from my open workspaces.
-;;          Can use ibuffer instead (with setting to delete entire groups).
-;; (require 'midnight)
-;; (midnight-delay-set 'midnight-delay "4:30am")
+;; Highlight more elisp syntax.
+(use-package highlight-quoted
+  :hook (emacs-lisp-mode . highlight-quoted-mode))
 
-;; Highlight the parts of lines that exceed certain column numbers.
-(use-package whitespace
-  :diminish whitespace-mode
+;; Highlight keywords such as TODO, FIXME, NOTE, etc.
+;; NOTE: Face values defined in `hl-todo-keyword-faces'.
+(use-package hl-todo
   :config
-  (setq whitespace-style '(face
-                           empty lines-tail tabs trailing))
+  (global-hl-todo-mode)
 
-  (defun c-whitespace-mode ()
-    "Set whitespace column for c-like modes and turn on `whitespace-mode'."
-    (setq whitespace-line-column 80
-          fill-column 80)
-    (whitespace-mode)
-    )
-  (add-hook 'c-mode-common-hook 'c-whitespace-mode)
-  (add-hook 'nim-mode-hook 'c-whitespace-mode)
-
-  (defun 100-whitespace-mode ()
-    "Set whitespace column at 100 and turn on `whitespace-mode'."
-    (setq whitespace-line-column 100
-          fill-column 100
-          )
-    (whitespace-mode)
-    )
-  (add-hook 'rust-mode-hook '100-whitespace-mode)
-  (add-hook 'python-mode-hook '100-whitespace-mode)
+  (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
   )
+
+;; A package for choosing a color by updating text sample.
+;; See https://www.emacswiki.org/emacs/MakeColor.
+(use-package make-color
+  :defer t)
 
 ;; Multiple cursors.
 (use-package multiple-cursors
@@ -1112,17 +1086,36 @@ indentation."
   (setq mc/always-run-for-all t)
   )
 
-;; Display number of matches when searching.
-(use-package anzu
-  :diminish anzu-mode
-  :config (global-anzu-mode))
+;; ;; Line numbers.
+;; (use-package nlinum
+;;   :hook ((prog-mode . nlinum-mode)
+;;          (conf-mode . nlinum-mode)
+;;          (text-mode . nlinum-mode)
+;;          )
+;;   :config
+;;   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
+;;   (setq nlinum-highlight-current-line t)
+;;   )
+;; ;; Fix line numbers occasionally not appearing.
+;; (use-package nlinum-hl)
 
-;; Fontify symbols representing faces with that face.
-(use-package fontify-face
-  :defer t
-  :diminish fontify-face-mode
-  :hook (emacs-lisp-mode . fontify-face-mode)
+;; Mode for writing.
+(use-package olivetti
+  :bind ("s-m" . olivetti-mode)
+  :init
+  (setq olivetti-hide-mode-line t
+        olivetti-body-width     0.9
+        )
   )
+
+;; Synonym lookup.
+(use-package powerthesaurus
+  :defer t)
+
+;; ;; Highlight delimiters with colors depending on depth.
+;; REMOVED: Too slow in large files.
+;; (use-package rainbow-delimiters
+;;   :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode
@@ -1130,58 +1123,15 @@ indentation."
   :diminish rainbow-mode
   )
 
-;; ;; Highlight delimiters with colors depending on depth.
-;; REMOVED: Too slow in large files.
-;; (use-package rainbow-delimiters
-;;   :hook (prog-mode . rainbow-delimiters-mode))
-
-;; Highlight numbers in code.
-(use-package highlight-numbers
-  :hook (prog-mode . highlight-numbers-mode))
-
-;; Highlight more elisp syntax.
-(use-package highlight-quoted
-  :hook (emacs-lisp-mode . highlight-quoted-mode))
-
-;; Highlight operators.
-;;
-;; Breaks in lisp modes, which is why I enable this on a per-mode basis.
-(use-package highlight-operators
-  :hook (
-         (c-mode-common . highlight-operators-mode)
-         ;; REMOVED: Results in higher CPU load and slowdown in large files,
-         ;; especially in `rust-mode'.
-         ;; (rust-mode     . highlight-operators-mode)
-         )
-  )
-
-;; Highlight some recent changes such as undos.
-(use-package volatile-highlights
-  :diminish volatile-highlights-mode
-  :config (volatile-highlights-mode))
-
-;; Highlight surrounding parentheses.
-(use-package highlight-parentheses
-  :diminish highlight-parentheses-mode
-  :hook (prog-mode . highlight-parentheses-mode)
-  :config
-  (setq hl-paren-colors '("cyan3")
-        hl-paren-delay highlight-delay
-        )
-  )
-
-;; Highlight keywords such as TODO, FIXME, NOTE, etc.
-;; NOTE: Face values defined in `hl-todo-keyword-faces'.
-(use-package hl-todo
-  :config
-  (global-hl-todo-mode)
-
-  (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
-  )
-
 ;; Open current directory in Finder on Mac.
 (use-package reveal-in-osx-finder
   :bind ("C-c f" . reveal-in-osx-finder)
+  )
+
+;; Automatically save place in each file.
+(use-package saveplace
+  :config
+  (save-place-mode t)
   )
 
 ;; Open current directory in an external terminal emulator.
@@ -1189,22 +1139,21 @@ indentation."
   :bind ("C-c t" . terminal-here-launch)
   )
 
-;; Display available keybindings in Dired mode (? creates popup).
-(use-package discover)
-
-;; Undo/redo window configurations.
-(use-package winner
-  :bind (
-         ("C-c C-," . winner-undo)
-         ("C-c C-." . winner-redo)
-         )
-  :config (winner-mode t))
-
 (use-package undo-tree
   :diminish undo-tree-mode
   :config
   (setq undo-tree-visualizer-timestamps t)
   (setq undo-tree-visualizer-diff t))
+
+;; Use a sensible mechanism for making buffer names unique.
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'forward
+      uniquify-min-dir-content 1)
+
+;; Highlight some recent changes such as undos.
+(use-package volatile-highlights
+  :diminish volatile-highlights-mode
+  :config (volatile-highlights-mode))
 
 ;; Display available keys.
 (use-package which-key
@@ -1233,66 +1182,62 @@ indentation."
   (winum-mode)
   )
 
-;; ;; Move buffers around.
-;; (use-package buffer-move
-;;   :bind (("<s-up>"    . buf-move-up)
-;;          ("<s-down>"  . buf-move-down)
-;;          ("<s-left>"  . buf-move-left)
-;;          ("<s-right>" . buf-move-right)
-;;          ))
-
-;; ;; Make currently focused window larger.
-;; ;; This package is not actively maintained.
-;; (use-package golden-ratio
-;;   :diminish golden-ratio-mode
-;;   :config
-;;   (golden-ratio-mode)
-;;   (setq golden-ratio-auto-scale nil)
-;;   (setq golden-ratio-adjust-factor 0.80)
-;;   (defadvice select-window-by-number
-;;       (after golden-ratio-resize-window activate)
-;;     (golden-ratio) nil)
-;;   )
-
-;; Expand-region.
-(use-package expand-region
-  :bind ("C-=" . er/expand-region)
+;; Highlight the parts of lines that exceed certain column numbers.
+(use-package whitespace
+  :diminish whitespace-mode
   :config
-  ;; Fix region not highlighting.
-  ;; See https://github.com/magnars/expand-region.el/issues/229
-  (setq shift-select-mode nil)
+  (setq whitespace-style '(face
+                           empty lines-tail tabs trailing))
+
+  (defun c-whitespace-mode ()
+    "Set whitespace column for c-like modes and turn on `whitespace-mode'."
+    (setq whitespace-line-column 80
+          fill-column 80)
+    (whitespace-mode)
+    )
+  (add-hook 'c-mode-common-hook 'c-whitespace-mode)
+  (add-hook 'nim-mode-hook 'c-whitespace-mode)
+
+  (defun 100-whitespace-mode ()
+    "Set whitespace column at 100 and turn on `whitespace-mode'."
+    (setq whitespace-line-column 100
+          fill-column 100
+          )
+    (whitespace-mode)
+    )
+  (add-hook 'rust-mode-hook '100-whitespace-mode)
+  (add-hook 'python-mode-hook '100-whitespace-mode)
   )
 
-;; Wrap parentheses or quotes around word.
-(use-package corral
+;; Undo/redo window configurations.
+(use-package winner
   :bind (
-         ("M-(" . corral-parentheses-backward)
-         ("M-)" . corral-parentheses-forward)
-         ("M-[" . corral-brackets-backward)
-         ("M-]" . corral-brackets-forward)
-         ;; ("M-{" . corral-braces-backward) ;; Useful keys by default.
-         ;; ("M-}" . corral-braces-forward)
-         ("M-`" . corral-backquote-forward)
-         ("M-~" . corral-backquote-backward)
-         ("M-'"  . corral-double-quotes-forward)
-         ("M-\"" . corral-double-quotes-backward)
+         ("C-c C-," . winner-undo)
+         ("C-c C-." . winner-redo)
          )
-  :config (setq corral-preserve-point t))
+  :config (winner-mode t))
 
-;; Better comment command.
-(use-package evil-nerd-commenter
-  :bind ("M-;" . evilnc-comment-or-uncomment-lines))
-
-;; Synonym lookup.
-(use-package powerthesaurus
-  :defer t)
-
-;; Imagemagick wrapper.
-(use-package blimp
-  :hook (image-mode . blimp-mode)
-  )
+;; Automatically clean up extraneous whitespace.
+(use-package ws-butler
+  :diminish ws-butler-mode
+  :hook (
+         (prog-mode . ws-butler-mode)
+         (text-mode . ws-butler-mode)
+         ))
 
 ;;; Git packages
+
+;; Interface with GitHub etc. from Magit.
+(use-package forge
+  :defer 2)
+
+;; Generate links to Github for current code location.
+(use-package git-link
+  :defer t)
+
+;; Browse historic versions of a file.
+(use-package git-timemachine
+  :defer t)
 
 ;; Git client in Emacs.
 (use-package magit
@@ -1310,39 +1255,18 @@ indentation."
    )
   )
 
-;; ;; Show TODO items for a project.
-;; (use-package magit-todos
-;;   :config
-;;   (magit-todos-mode)
-;;   (setq magit-todos-update nil)
-;;   )
-
-;; Interface with GitHub etc. from Magit.
-(use-package forge
-  :defer 2)
-
-;; Browse historic versions of a file.
-(use-package git-timemachine
-  :defer t)
-
-;; Generate links to Github for current code location.
-(use-package git-link
-  :defer t)
-
 ;;; Project packages
 
-;; Project manager.
-(use-package projectile
-  :defer 1
-  :hook (prog-mode . projectile-mode)
-  :config
-  (setq projectile-completion-system 'helm)
-  )
-
-(use-package helm-projectile
-  :bind ("s-;" . helm-projectile)
-  :config
-  (helm-projectile-on))
+;; ;; Company mode for auto-completion.
+;; REMOVED: Tab's completion-at-point seems more useful.
+;; (use-package company
+;;   :diminish company-mode
+;;   :bind ("M-/" . company-complete)
+;;   :hook (after-init . global-company-mode)
+;;   :init
+;;   (setq company-idle-delay nil)
+;;   (setq company-tooltip-align-annotations t) ;; Align tooltips to right border.
+;;   )
 
 ;; Show markers in margin indicating changes.
 (use-package diff-hl
@@ -1371,7 +1295,7 @@ indentation."
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors)
   :config
-  (setq flycheck-check-syntax-automatically '(idle-change mode-enabled save))
+  (setq flycheck-check-syntax-automatically '(mode-enabled save))
   ;; (setq flycheck-check-syntax-automatically nil)
 
   ;; Set shorter delay for displaying errors at point.
@@ -1396,16 +1320,37 @@ indentation."
 (use-package flycheck-package
   :hook (flycheck-mode . flycheck-package-setup))
 
-;; ;; Company mode for auto-completion.
-;; REMOVED: Tab's completion-at-point seems more useful.
-;; (use-package company
-;;   :diminish company-mode
-;;   :bind ("M-/" . company-complete)
-;;   :hook (after-init . global-company-mode)
-;;   :init
-;;   (setq company-idle-delay nil)
-;;   (setq company-tooltip-align-annotations t) ;; Align tooltips to right border.
-;;   )
+(use-package helm-projectile
+  :bind ("s-;" . helm-projectile)
+  :config
+  (helm-projectile-on))
+
+;; Quick switching between buffers.
+(use-package nswbuff
+  :ensure t
+  :bind* (("<C-tab>" . nswbuff-switch-to-next-buffer)
+          ("<C-S-tab>" . nswbuff-switch-to-previous-buffer))
+  :config (setq nswbuff-buffer-list-function #'nswbuff-projectile-buffer-list
+                nswbuff-exclude-buffer-regexps '("^ .*" "^magit*" "^\\*.*\\*")
+                nswbuff-display-intermediate-buffers t
+                nswbuff-recent-buffers-first nil
+                nswbuff-header "Buffers: "
+                )
+  )
+
+;; Project manager.
+(use-package projectile
+  :defer 1
+  :hook (prog-mode . projectile-mode)
+  :config
+  (setq projectile-completion-system 'helm)
+  )
+
+;; Jump to definitions using dumb-jump as a fallback.
+(use-package smart-jump
+  :ensure t
+  :config
+  (smart-jump-setup-default-registers))
 
 ;; ;; Yasnippet.
 ;; ;; NOTE: list all snippets for current mode with M-x `yas-describe-tables'.
@@ -1430,14 +1375,14 @@ indentation."
 (use-package clojure-mode
   :defer t)
 
-(use-package flycheck-clojure
-  :defer t)
-
 (use-package cider
   :after clojure-mode
   :config
   (setq cider-use-overlays nil)
   )
+
+(use-package flycheck-clojure
+  :defer t)
 
 ;; Git
 
@@ -1478,19 +1423,15 @@ indentation."
 
 ;; Markdown
 
+;; On-the-fly markdown preview. M-x flymd-flyit
+(use-package flymd
+  :defer t)
+
 (use-package markdown-mode
   :mode "\\.md\\'"
   )
 (use-package markdown-toc
   :after markdown-mode
-  :defer t)
-
-;; On-the-fly markdown preview. M-x flymd-flyit
-(use-package flymd
-  :defer t)
-
-;; Mode for JIRA-markup formatted text.
-(use-package jira-markup-mode
   :defer t)
 
 ;; Nim
@@ -1506,14 +1447,6 @@ indentation."
 
 ;; Rust
 
-(use-package rust-mode
-  :mode "\\.rs\\'"
-  :config
-  (setq rust-format-on-save nil)
-
-  (define-key rust-mode-map (kbd "C-c n") 'rust-format-buffer)
-  )
-
 (use-package racer
   :diminish racer-mode
   :hook ((rust-mode  . racer-mode))
@@ -1525,13 +1458,13 @@ indentation."
   (define-key racer-mode-map (kbd "M-.") 'smart-jump-go)
   )
 
-;; ;; Run cargo commands in rust buffers, e.g. C-c C-c C-r for cargo-run
-;; (use-package cargo
-;;   :diminish cargo-minor-mode
-;;   :hook ((rust-mode . cargo-minor-mode)
-;;          (toml-mode . cargo-minor-mode)
-;;          )
-;;   )
+(use-package rust-mode
+  :mode "\\.rs\\'"
+  :config
+  (setq rust-format-on-save nil)
+
+  (define-key rust-mode-map (kbd "C-c n") 'rust-format-buffer)
+  )
 
 ;; TOML
 
