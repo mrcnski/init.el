@@ -236,27 +236,6 @@
   (recentf-mode t)
   )
 
-;; Turn on blinking/flashing cursor.
-(blink-cursor-mode t)
-(when (display-graphic-p)
-  (setq-default cursor-type 'box))
-;; Stretch cursor to be as wide as the character at point.
-(setq x-stretch-cursor 1)
-
-;; Disable scroll bars and the tool bar.
-(when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
-(when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
-(when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
-(when (fboundp 'horizontal-scroll-bar-mode) (horizontal-scroll-bar-mode 0))
-
-(toggle-frame-maximized) ;; Maximize!
-;; (toggle-frame-fullscreen) ;; Maximize MORE
-
-;; Enable popup tooltips, use emacs tooltip implementation.
-(tooltip-mode nil)
-(defvar x-gtk-use-system-tooltips)
-(setq x-gtk-use-system-tooltips nil)
-
 ;; Enable functions that are disabled by default.
 (put 'downcase-region  'disabled nil)
 (put 'upcase-region    'disabled nil)
@@ -691,6 +670,30 @@ indentation."
 ;; Set transparency.
 (set-frame-parameter (selected-frame) 'alpha '(98))
 ;; (set-frame-parameter (selected-frame) 'alpha '(100))
+
+;; Turn on blinking/flashing cursor.
+(blink-cursor-mode t)
+(when (display-graphic-p)
+  (setq-default cursor-type 'box))
+;; Stretch cursor to be as wide as the character at point.
+(setq x-stretch-cursor 1)
+
+;; Disable scroll bars and the tool bar.
+(when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
+(when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
+(when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
+(when (fboundp 'horizontal-scroll-bar-mode) (horizontal-scroll-bar-mode 0))
+
+;; Allow resizing by pixels.
+(setq frame-resize-pixelwise t)
+
+(toggle-frame-maximized) ;; Maximize!
+;; (toggle-frame-fullscreen) ;; Maximize MORE
+
+;; Enable popup tooltips, use emacs tooltip implementation.
+(tooltip-mode nil)
+(defvar x-gtk-use-system-tooltips)
+(setq x-gtk-use-system-tooltips nil)
 
 ;; Load Themes
 ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
