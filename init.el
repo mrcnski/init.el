@@ -190,6 +190,8 @@
 
 ;;; Helm-swoop.
 (use-package helm-swoop
+  ;; To prevent bug where `helm-swoop-from-isearch' doesn't work the first time.
+  :demand t
   :bind (("C-;" . helm-swoop-without-pre-input)
          ("C-:" . helm-multi-swoop-all))
   :config
