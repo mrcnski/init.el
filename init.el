@@ -136,8 +136,6 @@
 
   (setq helm-follow-mode-persistent t)
 
-  ;; Jump to a function definition.
-  (semantic-mode t)
   (defvar helm-buffers-fuzzy-matching)
   (defvar helm-recentf-fuzzy-match)
   (defvar helm-apropos-fuzzy-match)
@@ -151,16 +149,21 @@
 
   (defvar helm-ff-search-library-in-sexp)
   (defvar helm-ff-file-name-history-use-recentf)
-  (setq helm-split-window-inside-p t ;; Open helm buffer inside current window?
-        ;; Move to end or beginning of source when reaching top/bottom of source.
-        helm-move-to-line-cycle-in-source t
-        ;; Search for library in `use-package' and `declare-function' sexp.
-        helm-ff-search-library-in-sexp t
-        ;; Scroll 8 lines other window using M-<next>/M-<prior>.
-        helm-scroll-amount 8
-        helm-ff-file-name-history-use-recentf  t
-        helm-echo-input-in-header-line         t
-        )
+  (setq
+   ;; Open helm buffer inside current window?
+   helm-split-window-inside-p t
+   ;; Move to end or beginning of source when reaching top/bottom of source.
+   helm-move-to-line-cycle-in-source t
+   ;; Search for library in `use-package' and `declare-function' sexp.
+   helm-ff-search-library-in-sexp t
+   ;; Scroll 8 lines other window using M-<next>/M-<prior>.
+   helm-scroll-amount 8
+   helm-ff-file-name-history-use-recentf  t
+   helm-echo-input-in-header-line         t
+   )
+
+  (defvar helm-buffers-column-separator)
+  (setq helm-buffers-column-separator "  ")
 
   (defun helm-hide-minibuffer-maybe ()
     "Hide minibuffer in Helm session if we use the header line as input field."
@@ -171,7 +174,6 @@
                      (let ((bg-color (face-background 'default nil)))
                        `(:background ,bg-color :foreground ,bg-color)))
         (setq-local cursor-type nil))))
-
   (add-hook 'helm-minibuffer-set-up-hook 'helm-hide-minibuffer-maybe)
 
   (defvar helm-mini-default-sources)
@@ -180,10 +182,6 @@
                                     helm-source-files-in-current-dir
                                     ;; helm-source-buffer-not-found
                                     ))
-
-  ;; (setq helm-autoresize-max-height 0)
-  ;; (setq helm-autoresize-min-height 40)
-  ;; (helm-autoresize-mode t)
   )
 
 ;; Better mode help.
