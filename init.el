@@ -603,6 +603,16 @@ indentation."
 (global-set-key (kbd "<C-return>") 'open-line-below)
 (global-set-key (kbd "<S-return>") 'open-line-above)
 
+(defun open-line-indent ()
+  "Like the regular `open-line', but indent the next line."
+  (interactive)
+  (call-interactively #'open-line)
+  (save-excursion
+    (forward-line)
+    (indent-according-to-mode)
+    ))
+(global-set-key (kbd "C-o") 'open-line-indent)
+
 (defun clear-line ()
   "Clear the line, but don't delete it."
   (interactive)
@@ -957,10 +967,10 @@ indentation."
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover)
 
-;; Text separated by more than one space doesn't move.
-(use-package dynamic-spaces
-  :config
-  (dynamic-spaces-global-mode))
+;; ;; Text separated by more than one space doesn't move.
+;; (use-package dynamic-spaces
+;;   :config
+;;   (dynamic-spaces-global-mode))
 
 ;; Better comment command.
 (use-package evil-nerd-commenter
@@ -973,6 +983,7 @@ indentation."
   ;; Fix region not highlighting.
   ;; See https://github.com/magnars/expand-region.el/issues/229
   (setq shift-select-mode nil)
+  (setq expand-region-fast-keys-enabled nil)
   )
 
 ;; Workspaces.
@@ -1839,13 +1850,6 @@ indentation."
           ;;        :priority "C"
           ;;        :order 200)
           )))
-
-;; Export org to Reveal.js.
-(use-package ox-reveal
-  :config
-  (setq org-reveal-hlevel 1)
-  (setq org-reveal-title-slide "<h1>%t<h2><br>%a<br><br>%d")
-  )
 
 ;;; Final
 
