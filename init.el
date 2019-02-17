@@ -27,16 +27,16 @@
 
 ;;; User-Defined Variables
 
-(defvar init-file-location  (concat user-emacs-directory "init.el"))
-(defvar scratchpad-location "~/Dropbox/Text/scratchpad.txt")
+(defvar user-text-location "~/Dropbox/Text/")
+(defvar user-scratchpad-location (concat user-text-location "scratchpad.txt"))
 
-(defvar user-org-directory     "~/Dropbox/Text/org")
-(defvar user-physical-location "~/Dropbox/Text/org/physical.org")
-(defvar user-dreams-location   "~/Dropbox/Text/org/dreams.org")
-(defvar user-ideas-location    "~/Dropbox/Text/org/ideas.org")
-(defvar user-notes-location    "~/Dropbox/Text/org/notes.org")
-(defvar user-todo-location     "~/Dropbox/Text/org/todo.org")
-(defvar user-work-location     "~/Dropbox/Text/org/work.org")
+(defvar user-org-directory     (concat user-text-location "org/"))
+(defvar user-physical-location (concat user-org-directory "physical.org"))
+(defvar user-dreams-location   (concat user-org-directory "dreams.org"))
+(defvar user-ideas-location    (concat user-org-directory "ideas.org"))
+(defvar user-notes-location    (concat user-org-directory "notes.org"))
+(defvar user-todo-location     (concat user-org-directory "todo.org"))
+(defvar user-work-location     (concat user-org-directory "work.org"))
 
 (defvar highlight-delay .03)
 (defvar info-delay .25)
@@ -45,14 +45,14 @@
 (defun open-init-file ()
   "Open the init file."
   (interactive)
-  (find-file init-file-location))
+  (find-file user-init-file))
 (global-set-key (kbd "C-c i") 'open-init-file)
 
 ;; Open scratchpad.txt.
 (defun open-scratchpad-file ()
   "Open scratchpad file."
   (interactive)
-  (find-file scratchpad-location))
+  (find-file user-scratchpad-location))
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
 
 ;;; Package settings
