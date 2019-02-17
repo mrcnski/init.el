@@ -16,6 +16,9 @@
 
 ;;; Code:
 
+;; Show more error info.
+;; (setq debug-on-error t)
+
 ;; First things first, increase GC threshold to speed up startup.
 ;; Reset the GC threshold after initialization, and GC whenever we tab out.
 (setq gc-cons-threshold (* 64 1000 1000))
@@ -63,7 +66,6 @@
 ;; Add package sources.
 (unless (assoc-default "melpa" package-archives)
   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t))
-(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 
 ;; Run auto-load functions specified by package authors.
 (package-initialize)
@@ -73,6 +75,7 @@
   (package-refresh-contents)
   (package-install 'use-package))
 (require 'use-package)
+;; Always install missing packages.
 (setq use-package-always-ensure t)
 
 ;; Keep directories clean.
@@ -105,9 +108,6 @@
 ;; Find bugs in Emacs configuration.
 (use-package bug-hunter
   :defer t)
-
-;; Show more error info.
-;; (setq debug-on-error nil)
 
 ;; Diminish modeline clutter.
 (use-package diminish)
@@ -338,10 +338,10 @@
 ;; Turn on utf-8 by default
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
-(prefer-coding-system       'utf-8)
+(prefer-coding-system 'utf-8)
 
 ;; Setup selected file endings to open in certain modes.
-(add-to-list 'auto-mode-alist '("\\.hdl\\'"  . c-mode))
+(add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
 
@@ -642,10 +642,6 @@ indentation."
 
 ;; Globally bind these keys so they work in every mode.
 (bind-keys*
- ("<mouse-3>" . previous-buffer)
- ("<mouse-8>" . previous-buffer)
- ("<mouse-4>" . next-buffer)
- ("<mouse-9>" . next-buffer)
  )
 
 ;; Align region by string.
@@ -1253,7 +1249,7 @@ indentation."
 (use-package magit
   :diminish auto-revert-mode
   :bind (("C-x g" . magit-status)
-         ("s-g"   . magit-status))
+         ("s-g" . magit-status))
 
   :init
   (setq
@@ -1268,7 +1264,7 @@ indentation."
 ;;; Project packages
 
 ;; ;; Company mode for auto-completion.
-;; REMOVED: Tab's completion-at-point seems more useful.
+;; REMOVED: Heavy-weight. Tab's completion-at-point seems more useful.
 ;; (use-package company
 ;;   :diminish company-mode
 ;;   :bind ("M-/" . company-complete)
@@ -1280,9 +1276,9 @@ indentation."
 
 ;; Show markers in margin indicating changes.
 (use-package diff-hl
-  :bind (("C-?"   . diff-hl-revert-hunk)
-         ("C-<"   . diff-hl-previous-hunk)
-         ("C->"   . diff-hl-next-hunk)
+  :bind (("C-?" . diff-hl-revert-hunk)
+         ("C-<" . diff-hl-previous-hunk)
+         ("C->" . diff-hl-next-hunk)
          )
   ;; :hook (prog-mode . turn-on-diff-hl-mode)
   :init
@@ -1290,10 +1286,11 @@ indentation."
   :config
   (diff-hl-margin-mode) ;; Show diffs in margin.
   ;; (diff-hl-flydiff-mode) ;; No need to save before seeing diffs.
-  (diff-hl-dired-mode)   ;; See diffs in Dired.
 
   ;; Refresh diffs after a Magit commit.
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+  ;; See diffs in Dired.
+  (add-hook 'dired-mode-hook 'diff-hl-dired-mode)
   )
 
 ;; On-the-fly syntax checker.
@@ -1519,7 +1516,7 @@ indentation."
   ;; Don't align tags.
   ;; Keep this in :init so that no org-files are opened without these settings.
   ;; Should (hopefully) fix tag alignment getting messed up.
-  (setq org-tags-column     0
+  (setq org-tags-column 0
         org-auto-align-tags nil)
 
   :config
@@ -1538,9 +1535,11 @@ indentation."
 
   ;; All subtasks must be Done before marking a task as Done.
   (setq org-enforce-todo-dependencies t)
-  (setq org-log-done (quote time)) ;; Log time a task was set to Done.
-  (setq org-log-redeadline nil)
+   ;; Log time a task was set to Done.
+  (setq org-log-done (quote time))
+  ;; Don't log the time a task was rescheduled or redeadlined.
   (setq org-log-reschedule nil)
+  (setq org-log-redeadline nil)
 
   ;; M-RET should not split the heading if point is not at the end of a line.
   ;; (setq org-M-RET-may-split-line nil)
@@ -1564,6 +1563,7 @@ indentation."
 
   ;; Refresh org-agenda after changing an item status.
   ;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
+  ;; Refresh org-agenda after rescheduling a task.
   (defadvice org-schedule (after refresh-agenda activate)
     "Refresh org-agenda."
     (org-agenda-refresh))
@@ -1585,19 +1585,19 @@ indentation."
   (defvar org-agenda-tags-column)
   (setq org-agenda-tags-column 0)
 
-  ;; Org-refile settings
+  ;; org-refile settings
 
-  ;; `org-refile' notes to the top of the list.
+  ;; Refile notes to the top of the list.
   (setq org-reverse-note-order t)
   ;; Use headline paths (level1/level2/...)
   (setq org-refile-use-outline-path t)
   ;; Go down in steps when completing a path.
   (setq org-outline-path-complete-in-steps nil)
-  (setq org-refile-targets '((org-agenda-files     . (:maxlevel . 99))
-                             (user-notes-location  . (:maxlevel . 99))
+  (setq org-refile-targets '((org-agenda-files . (:maxlevel . 99))
+                             (user-notes-location . (:maxlevel . 99))
                              (user-dreams-location . (:maxlevel . 99))
-                             (user-work-location   . (:maxlevel . 99))
-                             (user-ideas-location  . (:maxlevel . 99))
+                             (user-work-location . (:maxlevel . 99))
+                             (user-ideas-location . (:maxlevel . 99))
                              ))
   ;; Jump to headings with completion.
   (setq org-goto-interface 'outline-path-interface
@@ -1675,15 +1675,17 @@ indentation."
       )
     )
 
+  ;; Local keybindings.
+
   (define-key org-mode-map (kbd "<s-return>") 'org-meta-return-end)
   (define-key org-mode-map (kbd "C-S-n") 'org-metadown)
   (define-key org-mode-map (kbd "C-S-p") 'org-metaup)
-  (define-key org-mode-map (kbd "C-<")   'org-shiftmetaleft)
-  (define-key org-mode-map (kbd "C->")   'org-shiftmetaright)
-  (define-key org-mode-map (kbd "M-m")   'org-beginning-of-line)
-  (define-key org-mode-map (kbd "C-^")   'org-up-element)
-  (define-key org-mode-map (kbd "s-\"")  'org-refile)
-  (define-key org-mode-map (kbd "C-j")   'join-next-line)
+  (define-key org-mode-map (kbd "C-<") 'org-shiftmetaleft)
+  (define-key org-mode-map (kbd "C->") 'org-shiftmetaright)
+  (define-key org-mode-map (kbd "M-m") 'org-beginning-of-line)
+  (define-key org-mode-map (kbd "C-^") 'org-up-element)
+  (define-key org-mode-map (kbd "s-\"") 'org-refile)
+  (define-key org-mode-map (kbd "C-j") 'join-next-line)
 
   (define-key org-mode-map (kbd "<mouse-3>") 'mouse-org-cycle)
 
@@ -1698,12 +1700,12 @@ indentation."
               (visual-line-mode)
               (toggle-word-wrap t)
               ))
+  ;; Global keybindings.
 
-  (global-set-key (kbd "s-'")   'org-refile-goto)
+  (global-set-key (kbd "s-'") 'org-refile-goto)
 
   (global-set-key (kbd "C-c l") 'org-store-link)
-  (global-set-key (kbd "C-c a") 'org-agenda-list)  ;; Switch to org-agenda.
-
+  (global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda.
   (global-set-key (kbd "C-c c") 'org-note-capture) ;; org-capture.
   (global-set-key (kbd "C-c v") 'org-task-capture)
 
