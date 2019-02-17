@@ -248,8 +248,15 @@
               tab-width 4
               fill-column 80
               indicate-empty-lines t ;; Highlight end of buffer?
-              show-trailing-whitespace t ;; Display trailing whitespace.
               )
+
+;; Enable show-trailing-whitespace.
+(defun enable-trailing-whitespace ()
+  "Turn on trailing whitespace."
+  (setq show-trailing-whitespace t)
+  )
+(add-hook 'prog-mode-hook 'enable-trailing-whitespace)
+(add-hook 'text-mode-hook 'enable-trailing-whitespace)
 
 (defvar apropos-do-all)
 (defvar ediff-window-setup-function)
