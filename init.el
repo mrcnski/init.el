@@ -1499,7 +1499,9 @@ indentation."
 
 (use-package org
   :mode (("\\.org$" . org-mode))
-  :hook (org-mode . org-mode-hook-fun)
+  :hook ((org-mode . org-mode-hook-fun)
+         (org-agenda-mode . org-agenda-mode-hook-fun))
+
   :diminish visual-line-mode
   :diminish org-indent-mode
 
@@ -1514,6 +1516,19 @@ indentation."
 
     ;; Unbind keys stolen by org-mode.
     (local-unset-key (kbd "C-,"))
+
+    ;; Fix tags alignment getting messed up (still not sure of the cause).
+    (add-hook 'before-save-hook 'org-align-all-tags nil t)
+    )
+
+  (defun org-agenda-mode-hook-fun ()
+    "Initialize `org-agenda-mode'."
+
+    (visual-line-mode)
+    (toggle-word-wrap t)
+
+    (defvar org-agenda-mode-map)
+    (define-key org-agenda-mode-map (kbd "s-\"") 'org-agenda-refile)
     )
 
   (defun org-agenda-refresh ()
@@ -1546,11 +1561,14 @@ indentation."
 
   ;; All subtasks must be Done before marking a task as Done.
   (setq org-enforce-todo-dependencies t)
-   ;; Log time a task was set to Done.
+  ;; Log time a task was set to Done.
   (setq org-log-done (quote time))
   ;; Don't log the time a task was rescheduled or redeadlined.
   (setq org-log-reschedule nil)
   (setq org-log-redeadline nil)
+
+  ;; Prefer rescheduling to future dates and times.
+  (setq org-read-date-prefer-future 'time)
 
   ;; M-RET should not split the heading if point is not at the end of a line.
   ;; (setq org-M-RET-may-split-line nil)
@@ -1629,33 +1647,6 @@ indentation."
 
   ;; Shortcuts/Keybindings
 
-  (defvar org-recurrence-regexp "|\\(.*\\)|")
-  (defun org-finish ()
-    "Change task status to DONE and archive it."
-    (interactive)
-    (let ((heading (substring-no-properties (org-get-heading))))
-      (cond ((string-match org-recurrence-regexp heading)
-             (org-schedule nil (match-string 1 heading)))
-            (t
-             (org-todo 'done)
-             (org-archive-subtree)
-             )))
-    )
-  (defun org-agenda-finish ()
-    "In org-agenda, change task status to DONE and archive it."
-    (interactive)
-    ;; FIXME: Find a more robust way of getting the header from org-agenda view?
-    ;; This approach seems sufficient so far though.
-    (let ((heading (buffer-substring-no-properties
-                    (line-beginning-position) (line-end-position))))
-      (cond ((string-match org-recurrence-regexp heading)
-             (org-agenda-schedule nil (match-string 1 heading)))
-            (t
-             (org-agenda-todo 'done)
-             (org-agenda-archive)
-             )))
-    )
-
   (defun org-refile-goto ()
     "Use org-refile to conveniently choose and go to a heading."
     (interactive)
@@ -1700,17 +1691,6 @@ indentation."
 
   (define-key org-mode-map (kbd "<mouse-3>") 'mouse-org-cycle)
 
-  (define-key org-mode-map (kbd "C-c d") 'org-finish)
-
-  (defvar org-agenda-mode-map)
-  (add-hook 'org-agenda-mode-hook
-            (lambda ()
-              (define-key org-agenda-mode-map (kbd "C-c d") 'org-agenda-finish)
-              ;; Rebind the 'd' key (default: `org-agenda-day-view').
-              (define-key org-agenda-mode-map (kbd "d")     'org-agenda-finish)
-              (visual-line-mode)
-              (toggle-word-wrap t)
-              ))
   ;; Global keybindings.
 
   (global-set-key (kbd "s-'") 'org-refile-goto)
@@ -1795,6 +1775,24 @@ indentation."
     ;; Commenting out the following line stops the random scrolling.
     ;; (recenter window-line)
     ))
+
+;; Recurring org-mode tasks.
+(use-package org-recur
+  :hook ((org-mode . org-recur-mode)
+         (org-agenda-mode . org-recur-agenda-mode))
+  :demand t
+  :config
+  (defvar org-recur-mode-map)
+  (define-key org-recur-mode-map (kbd "C-c d") 'org-recur-finish)
+
+  ;; Rebind the 'd' key in org-agenda (default: `org-agenda-day-view').
+  (defvar org-recur-agenda-mode-map)
+  (define-key org-recur-agenda-mode-map (kbd "d") 'org-recur-finish)
+  (define-key org-recur-agenda-mode-map (kbd "C-c d") 'org-recur-finish)
+
+  (setq org-recur-finish-done t
+        org-recur-finish-archive t)
+  )
 
 ;; Display groups in org-agenda to make things a bit more organized.
 (use-package org-super-agenda
