@@ -131,7 +131,6 @@
   (global-set-key (kbd "M-x")        'helm-M-x)
   (global-set-key (kbd "C-x C-f")    'helm-find-files)
   (global-set-key (kbd "C-h C-a")    'helm-apropos)
-  (global-set-key (kbd "C-x C-SPC")  'helm-all-mark-rings)
   (global-set-key (kbd "M-i")        'helm-semantic-or-imenu)
 
   (setq helm-follow-mode-persistent t)
@@ -281,8 +280,6 @@
       help-window-select t        ;; Focus new help windows when opened.
       confirm-kill-emacs nil      ;; Always confirm before closing Emacs?
       delete-by-moving-to-trash t ;; Send deleted files to trash.
-      version-control t           ;; Always make numeric backup versions.
-      vc-make-backup-files t      ;; Make backups of all files.
       delete-old-versions t       ;; Silently delete old backup versions.
       eldoc-idle-delay info-delay ;; Delay for displaying function/variable information.
 
@@ -359,7 +356,6 @@
 ;;; My Functions and Shortcuts/Keybindings
 
 (global-set-key (kbd "M-o") 'other-window)
-(global-set-key (kbd "M-%") 'vr/query-replace)
 
 ;; Set up keys using super. s-a, s-s, s-x, s-c, and s-v correspond to
 ;; select-all, save, cut, copy, and paste, which I've left for
@@ -453,14 +449,14 @@
 
 (global-set-key (kbd "M-SPC") 'cycle-spacing)
 
-;; Narrow/widen easily.
-(defun narrow-dwim ()
-  "Widen if currently narrowed, else narrow to function."
-  (interactive)
-  (cond
-   ((buffer-narrowed-p) (widen))
-   (t (narrow-to-defun))))
-(global-set-key (kbd "C-(") 'narrow-dwim)
+;; ;; Narrow/widen easily.
+;; (defun narrow-dwim ()
+;;   "Widen if currently narrowed, else narrow to function."
+;;   (interactive)
+;;   (cond
+;;    ((buffer-narrowed-p) (widen))
+;;    (t (narrow-to-defun))))
+;; (global-set-key (kbd "C-(") 'narrow-dwim)
 
 ;; Code folding.
 (require 'hideshow)
@@ -495,7 +491,6 @@ another window."
   )
 (global-set-key (kbd "C-c h") 'region-history-other)
 
-;; Delete current buffer file.
 (defun delete-current-buffer-file ()
   "Remove file connected to current buffer and kill buffer."
   (interactive)
@@ -511,9 +506,8 @@ another window."
 
 (global-set-key (kbd "C-c k") 'delete-current-buffer-file)
 
-;; Rename current buffer file.
 (defun rename-current-buffer-file ()
-  "Renames current buffer and file it is visiting."
+  "Rename the current buffer and file it is visiting."
   (interactive)
   (let ((name (buffer-name))
         (filename (buffer-file-name)))
@@ -540,13 +534,38 @@ another window."
 ;; Replace default C-l, it's useless.
 (global-set-key (kbd "C-l") 'select-line)
 
+;; Select entire line or lines.
+;; Will entirely select any line that's even partially within the region.
+(defun select-lines ()
+  "Select the entire current line or region.
+If called on a region, will entirely select all lines included in
+the region."
+  (interactive)
+  (cond ((region-active-p)
+         (select-lines-region (region-beginning) (region-end)))
+        (t
+         (select-lines-region (point) (point))
+         )))
+(defun select-lines-region (beg end)
+  "Entirely select all lines in the region from BEG to END."
+  (goto-char end)
+  (end-of-line)
+  (push-mark)
+  (activate-mark)
+  (goto-char beg)
+  (beginning-of-line)
+  )
+
+(global-set-key (kbd "C-S-l") 'select-lines)
+
 ;; Improved kill-whole-line which doesn't change cursor position.
 ;; Can be called on multiple lines.
 ;; Will entirely kill any line that's even partially within the region.
 (defun annihilate-lines ()
-  "Annihilate the current line or region by killing it, deleting the empty \
-line, and restoring cursor position. If called on a region, will annihilate \
-every line included in the region."
+  "Annihilate the current line or region by killing it entirely.
+Will delete the resulting empty line and restore cursor position.
+If called on a region, will annihilate every line included in the
+region."
   (interactive)
   (cond ((region-active-p)
          (annihilate-lines-region (region-beginning) (region-end)))
@@ -576,9 +595,9 @@ every line included in the region."
 ;; Join the following line onto the current line.
 ;; Use this to quickly consolidate multiple lines into one.
 (defun join-next-line ()
-  "Join the following line onto the current line, preserving the cursor \
-position. This command can be used to rapidly consolidate multiple lines into \
-one."
+  "Join the next line onto the current line, preserving the cursor position.
+This command can be used to rapidly consolidate multiple lines
+into one."
   (interactive)
   (let ((col (current-column)))
     (join-line -1)
@@ -587,14 +606,12 @@ one."
 (global-set-key (kbd "C-j") 'join-next-line)
 
 (defun open-line-below ()
-  "Open a new line below, even if the point is midsentence, keeping proper \
-indentation."
+  "Open a new line below while keeping proper indentation."
   (interactive)
   (end-of-line)
   (newline-and-indent))
 (defun open-line-above ()
-  "Open a new line above, even if the point is midsentence, keeping proper \
-indentation."
+  "Open a new line above while keeping proper indentation."
   (interactive)
   (beginning-of-line)
   (newline-and-indent)
@@ -686,6 +703,7 @@ indentation."
 
 ;; Turn on blinking/flashing cursor.
 (blink-cursor-mode t)
+(setq blink-cursor-blinks 0) ;; Blink forever!
 (when (display-graphic-p)
   (setq-default cursor-type 'box))
 ;; Stretch cursor to be as wide as the character at point.
@@ -1015,7 +1033,7 @@ indentation."
   (setq eyebrowse-mode-line-left-delimiter  "[ ")
   (setq eyebrowse-mode-line-right-delimiter " ]")
 
-  (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold nil)
+  (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold t)
   )
 
 ;; Fix the capitalization commands.
@@ -1156,11 +1174,15 @@ indentation."
   :bind ("C-c t" . terminal-here-launch)
   )
 
-(use-package undo-tree
-  :diminish undo-tree-mode
-  :config
-  (setq undo-tree-visualizer-timestamps t)
-  (setq undo-tree-visualizer-diff t))
+;; A more lightweight alternative to undo-tree.
+(use-package undo-propose
+  :bind ("C-_" . undo-propose))
+
+;; (use-package undo-tree
+;;   :diminish undo-tree-mode
+;;   :config
+;;   (setq undo-tree-visualizer-timestamps t)
+;;   (setq undo-tree-visualizer-diff t))
 
 ;; Use a sensible mechanism for making buffer names unique.
 (require 'uniquify)
@@ -1254,6 +1276,9 @@ indentation."
 
 ;; Browse historic versions of a file.
 (use-package git-timemachine
+  :defer t)
+
+(use-package gitignore-mode
   :defer t)
 
 ;; Git client in Emacs.
@@ -1402,11 +1427,6 @@ indentation."
 (use-package flycheck-clojure
   :defer t)
 
-;; Git
-
-(use-package gitignore-mode
-  :defer t)
-
 ;; Javascript
 
 (use-package js2-mode
@@ -1467,7 +1487,7 @@ indentation."
 
 (use-package racer
   :diminish racer-mode
-  :hook ((rust-mode  . racer-mode))
+  :hook ((rust-mode . racer-mode))
   :config
   ;; Don't insert argument placeholders when completing a function.
   (setq racer-complete-insert-argument-placeholders nil)
@@ -1824,6 +1844,11 @@ indentation."
                  :tag "shopping"
                  :order 3
                  )
+          (:name "Cleaning"
+                 :category "cleaning"
+                 :tag "cleaning"
+                 :order 4
+                 )
 
           ;; After the last group, the agenda will display items that didn't
           ;; match any of these groups, with the default order position of 99
@@ -1905,6 +1930,8 @@ indentation."
      " ["
      '(:eval (winum-get-number-string))
      "] "
+     '(:eval (eyebrowse-mode-line-indicator))
+     " "
      'mode-line-modified
      " "
      '(:eval (propertize "%b"
@@ -1933,13 +1960,13 @@ indentation."
      '(:eval
        (when mark-active
          (concat "{" (number-to-string (abs (- (point) (mark)))) "}")))
-     " "
 
-     '(:eval (let ((indicator (eyebrowse-mode-line-indicator)))
-               (concat
-                (mode-line-fill (+ 1 (length (substring-no-properties
-                                              indicator))))
-                indicator)))
+     ;; '(:eval (let ((indicator (eyebrowse-mode-line-indicator)))
+     ;;           (concat
+     ;;            (mode-line-fill (+ 1 (length (substring-no-properties
+     ;;                                          indicator))))
+     ;;            indicator)))
+
      ;; " "
      ;; '(:eval (propertize (format-time-string "%H:%M")))
      ))))
