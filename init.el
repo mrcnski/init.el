@@ -280,6 +280,7 @@
       help-window-select t        ;; Focus new help windows when opened.
       confirm-kill-emacs nil      ;; Always confirm before closing Emacs?
       delete-by-moving-to-trash t ;; Send deleted files to trash.
+      make-backup-files t
       delete-old-versions t       ;; Silently delete old backup versions.
       eldoc-idle-delay info-delay ;; Delay for displaying function/variable information.
 
@@ -852,6 +853,37 @@ into one."
 (defvar ibuffer-expert)
 (setq ibuffer-expert t)
 
+;; Use human-readable Size column.
+(defvar ibuffer-inline-columns)
+(define-ibuffer-column size-h
+  (:name "Size" :inline t)
+  (let ((bs (buffer-size)))
+    (cond ((> bs 1e6) (format "%7.1fm" (/ bs 1e6)))
+          ((> bs 1e3) (format "%7.1fk" (/ bs 1e3)))
+          (t          (format "%7d" bs)))))
+
+(defvar ibuffer-formats)
+(setf ibuffer-formats
+      '((mark modified read-only vc-status-mini " "
+              (name 24 24 :left :elide)
+              " "
+              (size-h 8 -1 :right)
+              " "
+              (mode 16 16 :left :elide)
+              " "
+              (vc-status 12 16 :left)
+              " "
+              filename-and-process)))
+
+(use-package ibuffer-vc
+  :config
+  (add-hook 'ibuffer-hook
+            (lambda ()
+              (ibuffer-vc-set-filter-groups-by-vc-root)
+              (unless (eq ibuffer-sorting-mode 'alphabetic)
+                (ibuffer-do-sort-by-alphabetic))))
+  )
+
 ;; ERC settings
 
 (defvar erc-autojoin-channels-alist)
@@ -887,8 +919,10 @@ into one."
  eshell-scroll-show-maximum-output nil
  eshell-scroll-to-bottom-on-output nil
  ;; Always insert at the bottom.
- eshell-scroll-to-bottom-on-input  t
- eshell-hist-ignoredups            t
+ eshell-scroll-to-bottom-on-input t
+ eshell-hist-ignoredups t
+ ;; Set the history file.
+ eshell-history-file-name "~/.bash_history"
  )
 
 (defvar eshell-mode-map)
@@ -999,6 +1033,11 @@ into one."
 ;; (use-package dynamic-spaces
 ;;   :config
 ;;   (dynamic-spaces-global-mode))
+
+;; Show example usage when examining elisp functions.
+(use-package elisp-demos
+  :config
+  (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1))
 
 ;; Better comment command.
 (use-package evil-nerd-commenter
