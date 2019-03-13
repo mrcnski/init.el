@@ -525,17 +525,23 @@ another window."
 
 (global-set-key (kbd "C-c r") 'rename-current-buffer-file)
 
+;; Select from point onwards instead of the entire line.
+;; + Behaves like C-k.
+;; + Can choose whether to keep indentation (run either C-a or M-m beforehand).
+;; + Being able to select  from point onwards comes in handy much of the time.
 (defun select-line ()
   "Select the rest of the current line."
   (interactive)
   (push-mark (line-end-position) nil t)
   ;; (kill-ring-save nil nil t) ;; Save the current region.
   )
+
 ;; Replace default C-l, it's useless.
 (global-set-key (kbd "C-l") 'select-line)
 
 ;; Select entire line or lines.
 ;; Will entirely select any line that's even partially within the region.
+;; + Behaves like C-S-k.
 (defun select-lines ()
   "Select the entire current line or region.
 If called on a region, will entirely select all lines included in
@@ -802,8 +808,12 @@ into one."
               ;; Make sizes human-readable by default and put dotfiles and
               ;; capital-letters first.
               dired-listing-switches "-alhv"
-              dired-dwim-target t            ;; Try suggesting dired targets.
-              dired-auto-revert-buffer t     ;; Update buffer when visiting.
+              ;; Try suggesting dired targets.
+              dired-dwim-target t
+              ;; Update buffer when visiting.
+              dired-auto-revert-buffer t
+              ;; Don't confirm various actions.
+              dired-no-confirm t
               )
 
 ;; Expanded dired.
@@ -1532,7 +1542,7 @@ into one."
 
     (visual-line-mode) ;; Word-wrap.
     (toggle-word-wrap t)
-    (org-indent-mode)  ;; Indented entries.
+    (org-indent-mode) ;; Indented entries.
 
     ;; Unbind keys stolen by org-mode.
     (local-unset-key (kbd "C-,"))
