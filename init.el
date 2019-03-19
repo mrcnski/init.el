@@ -23,8 +23,7 @@
 ;; Reset the GC threshold after initialization, and GC whenever we tab out.
 (setq gc-cons-threshold (* 64 1000 1000))
 (add-hook 'after-init-hook #'(lambda ()
-                               ;; restore after startup
-                               (setq gc-cons-threshold (* 2 1000 1000))))
+                               (setq gc-cons-threshold (* 32 1000 1000))))
 (add-hook 'focus-out-hook 'garbage-collect)
 (run-with-idle-timer 5 t 'garbage-collect)
 
@@ -33,13 +32,13 @@
 (defvar user-text-location "~/Dropbox/Text/")
 (defvar user-scratchpad-location (concat user-text-location "scratchpad.txt"))
 
-(defvar user-org-directory     (concat user-text-location "org/"))
+(defvar user-org-directory (concat user-text-location "org/"))
 (defvar user-physical-location (concat user-org-directory "physical.org"))
-(defvar user-dreams-location   (concat user-org-directory "dreams.org"))
-(defvar user-ideas-location    (concat user-org-directory "ideas.org"))
-(defvar user-notes-location    (concat user-org-directory "notes.org"))
-(defvar user-todo-location     (concat user-org-directory "todo.org"))
-(defvar user-work-location     (concat user-org-directory "work.org"))
+(defvar user-dreams-location (concat user-org-directory "dreams.org"))
+(defvar user-ideas-location (concat user-org-directory "ideas.org"))
+(defvar user-notes-location (concat user-org-directory "notes.org"))
+(defvar user-todo-location (concat user-org-directory "todo.org"))
+(defvar user-work-location (concat user-org-directory "work.org"))
 
 (defvar highlight-delay .03)
 (defvar info-delay .25)
@@ -49,6 +48,7 @@
   "Open the init file."
   (interactive)
   (find-file user-init-file))
+
 (global-set-key (kbd "C-c i") 'open-init-file)
 
 ;; Open scratchpad.txt.
@@ -56,11 +56,13 @@
   "Open scratchpad file."
   (interactive)
   (find-file user-scratchpad-location))
+
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
 
 ;;; Package settings
 
 (require 'package)
+(setq load-prefer-newer t)
 ;; Only enable packages found in this file (not all installed packages).
 (setq package-enable-at-startup nil)
 ;; Add package sources.
@@ -80,10 +82,11 @@
 
 ;; Keep directories clean.
 ;; Should be one of the first things loaded.
-(defvar recentf-exclude)
 (use-package no-littering
   :config
   (require 'recentf)
+
+  (defvar recentf-exclude)
   (add-to-list 'recentf-exclude no-littering-var-directory)
   (add-to-list 'recentf-exclude no-littering-etc-directory)
   (setq auto-save-file-name-transforms
@@ -113,25 +116,26 @@
 (use-package diminish)
 (diminish 'abbrev-mode)
 
-;;; Initialize Helm
+;;; Helm
 
 (use-package helm
-  :init (require 'helm-config)
-  :diminish helm-mode
+  :init
+  (require 'helm-config)
+  :diminish
   :config
   (helm-mode t)
 
   ;; Rebind tab to run persistent action.
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
   ;; Alternate TAB key that works in terminal.
-  (define-key helm-map (kbd "C-i")   'helm-execute-persistent-action)
-  (define-key helm-map (kbd "C-z")   'helm-select-action) ;; List actions using C-z.
-  (define-key helm-map (kbd "M-x")   'helm-select-action)
+  (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
+  (define-key helm-map (kbd "C-z") 'helm-select-action) ;; List actions using C-z.
+  (define-key helm-map (kbd "M-x") 'helm-select-action)
 
-  (global-set-key (kbd "M-x")        'helm-M-x)
-  (global-set-key (kbd "C-x C-f")    'helm-find-files)
-  (global-set-key (kbd "C-h C-a")    'helm-apropos)
-  (global-set-key (kbd "M-i")        'helm-semantic-or-imenu)
+  (global-set-key (kbd "M-x") 'helm-M-x)
+  (global-set-key (kbd "C-x C-f") 'helm-find-files)
+  (global-set-key (kbd "C-h C-a") 'helm-apropos)
+  (global-set-key (kbd "M-i") 'helm-semantic-or-imenu)
 
   (setq helm-follow-mode-persistent t)
 
@@ -141,10 +145,10 @@
   (defvar helm-semantic-fuzzy-match)
   (defvar helm-imenu-fuzzy-match)
   (setq helm-buffers-fuzzy-matching t
-        helm-recentf-fuzzy-match    t
-        helm-apropos-fuzzy-match    t
-        helm-semantic-fuzzy-match   t
-        helm-imenu-fuzzy-match      t)
+        helm-recentf-fuzzy-match t
+        helm-apropos-fuzzy-match t
+        helm-semantic-fuzzy-match t
+        helm-imenu-fuzzy-match t)
 
   (defvar helm-ff-search-library-in-sexp)
   (defvar helm-ff-file-name-history-use-recentf)
@@ -157,8 +161,8 @@
    helm-ff-search-library-in-sexp t
    ;; Scroll 8 lines other window using M-<next>/M-<prior>.
    helm-scroll-amount 8
-   helm-ff-file-name-history-use-recentf  t
-   helm-echo-input-in-header-line         t
+   helm-ff-file-name-history-use-recentf t
+   helm-echo-input-in-header-line t
    )
 
   (defvar helm-buffers-column-separator)
@@ -181,37 +185,37 @@
                                     helm-source-files-in-current-dir
                                     ;; helm-source-buffer-not-found
                                     ))
-  )
 
-;; Better mode help.
-(use-package helm-describe-modes
-  :bind ("C-h m" . helm-describe-modes))
+  ;; Better mode help.
+  (use-package helm-describe-modes
+    :bind ("C-h m" . helm-describe-modes))
 
-;;; Helm-swoop.
-(use-package helm-swoop
-  ;; To prevent bug where `helm-swoop-from-isearch' doesn't work the first time.
-  :demand t
-  :bind (("C-;" . helm-swoop-without-pre-input)
-         ("C-:" . helm-multi-swoop-all))
-  :config
-  ;; Move up and down like isearch
-  (define-key helm-swoop-map        (kbd "C-r") 'helm-previous-line)
-  (define-key helm-swoop-map        (kbd "C-s") 'helm-next-line)
-  (define-key helm-multi-swoop-map  (kbd "C-r") 'helm-previous-line)
-  (define-key helm-multi-swoop-map  (kbd "C-s") 'helm-next-line)
+  ;; helm-swoop.
+  (use-package helm-swoop
+    ;; To prevent bug where `helm-swoop-from-isearch' doesn't work the first time.
+    :demand t
+    :bind (("C-;" . helm-swoop-without-pre-input)
+           ("C-:" . helm-multi-swoop-all))
+    :config
+    ;; Move up and down like isearch
+    (define-key helm-swoop-map (kbd "C-r") 'helm-previous-line)
+    (define-key helm-swoop-map (kbd "C-s") 'helm-next-line)
+    (define-key helm-multi-swoop-map (kbd "C-r") 'helm-previous-line)
+    (define-key helm-multi-swoop-map (kbd "C-s") 'helm-next-line)
 
-  ;; When doing isearch, hand the word over to helm-swoop.
-  (define-key isearch-mode-map (kbd "C-;") 'helm-swoop-from-isearch)
-  ;; From helm-swoop to helm-multi-swoop-all.
-  (define-key helm-swoop-map   (kbd "C-;") 'helm-multi-swoop-all-from-helm-swoop)
+    ;; When doing isearch, hand the word over to helm-swoop.
+    (define-key isearch-mode-map (kbd "C-;") 'helm-swoop-from-isearch)
+    ;; From helm-swoop to helm-multi-swoop-all.
+    (define-key helm-swoop-map (kbd "C-;") 'helm-multi-swoop-all-from-helm-swoop)
 
-  (setq helm-swoop-speed-or-color t) ;; Show syntax highlighting in results.
-  )
+    (setq helm-swoop-speed-or-color t) ;; Show syntax highlighting in results.
+    )
 
-;; ag with helm.
-(use-package helm-ag
-  :init
-  (setq helm-ag-insert-at-point 'symbol)
+  ;; ag with helm.
+  (use-package helm-ag
+    :init
+    (setq helm-ag-insert-at-point 'symbol)
+    )
   )
 
 ;;; Load customizations
@@ -236,17 +240,18 @@
   )
 
 ;; Enable functions that are disabled by default.
-(put 'downcase-region  'disabled nil)
-(put 'upcase-region    'disabled nil)
-(put 'scroll-left      'disabled nil)
-(put 'scroll-right     'disabled nil)
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
+(put 'scroll-left 'disabled nil)
+(put 'scroll-right 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
-(put 'narrow-to-page   'disabled nil)
+(put 'narrow-to-page 'disabled nil)
 
 (setq-default indent-tabs-mode nil
               tab-width 4
               fill-column 80
-              indicate-empty-lines t ;; Highlight end of buffer?
+              ;; Highlight end of buffer?
+              indicate-empty-lines t
               )
 
 ;; Enable show-trailing-whitespace.
@@ -266,30 +271,44 @@
       ;; TODO: What does this do?
       apropos-do-all t
       kill-ring-max 1000
-      require-final-newline t    ;; Ensure that files end with a newline.
-      next-line-add-newlines t   ;; Add newline at end of buffer with C-n.
+      ;; Ensure that files end with a newline.
+      require-final-newline t
+      ;; Add newline at end of buffer with C-n.
+      next-line-add-newlines t
       visible-bell t
       ring-bell-function 'ignore
-      load-prefer-newer t
       ;; TODO: What does this do?
       ediff-window-setup-function 'ediff-setup-windows-plain
       window-combination-resize nil
-      echo-keystrokes 0.01        ;; Display keystrokes immediately.
-      inhibit-startup-message t   ;; Disable startup screen.
-      initial-scratch-message ""  ;; Change the initial *scratch* buffer.
-      help-window-select t        ;; Focus new help windows when opened.
-      confirm-kill-emacs nil      ;; Always confirm before closing Emacs?
-      delete-by-moving-to-trash t ;; Send deleted files to trash.
+      ;; Display keystrokes immediately.
+      echo-keystrokes 0.01
+      ;; Disable startup screen.
+      inhibit-startup-message t
+      ;; Change the initial *scratch* buffer.
+      initial-scratch-message ""
+      ;; Focus new help windows when opened.
+      help-window-select t
+      ;; Always confirm before closing Emacs?
+      confirm-kill-emacs nil
+      ;; Send deleted files to trash.
+      delete-by-moving-to-trash t
       make-backup-files t
-      delete-old-versions t       ;; Silently delete old backup versions.
-      eldoc-idle-delay info-delay ;; Delay for displaying function/variable information.
+      ;; Silently delete old backup versions.
+      delete-old-versions t
+      ;; Delay for displaying function/variable information.
+      eldoc-idle-delay info-delay
 
-      pop-up-frames nil           ;; Open files in existing frames.
+      ;; Open files in existing frames.
+      pop-up-frames nil
       pop-up-windows t
-      tab-always-indent 'complete ;; Tab will first try to indent, then complete.
-      resize-mini-windows t       ;; Resize the minibuffer when needed.
-      enable-recursive-minibuffers nil ;; Enable recursive editing of minibuffer?
-      scroll-error-top-bottom t   ;; Move point to beginning or end of buffer when scrolling.
+      ;; Tab will first try to indent, then complete.
+      tab-always-indent 'complete
+      ;; Resize the minibuffer when needed.
+      resize-mini-windows t
+      ;; Enable recursive editing of minibuffer?
+      enable-recursive-minibuffers nil
+      ;; Move point to beginning or end of buffer when scrolling.
+      scroll-error-top-bottom t
       mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
 
       ;; Set a larger minimum window width. Smaller than this is hard to read.
@@ -306,25 +325,6 @@
                            (buffer-file-name
                             "%f" (dired-directory dired-directory "%b"))
                            ))
-
-;; Set some builtin modes.
-
-;; Disable eldoc mode, causes huge slowdown in Rust files.
-(global-eldoc-mode -1)
-
-(defvar show-paren-delay)
-(setq show-paren-delay highlight-delay)
-(show-paren-mode t)
-
-(defvar global-hl-line-sticky-flag)
-(setq global-hl-line-sticky-flag nil) ;; Keep line highlight across windows?
-(global-hl-line-mode t)               ;; Highlight current line.
-
-(auto-compression-mode t)   ;; Use compressed files like normal files.
-;; (desktop-save-mode t)    ;; Keep open files open across sessions.
-(column-number-mode t)      ;; Display the column number.
-(delete-selection-mode t)   ;; Replace selected text when typing or pasting.
-(global-auto-revert-mode t) ;; Auto revert files that changed on disk.
 
 ;; Set c-style comments to be "//" by default (these are just better, sorry).
 (add-hook 'c-mode-common-hook
@@ -348,11 +348,44 @@
 (defvar epa-pinentry-mode)
 (setq epa-pinentry-mode 'loopback)
 
+;; Set some built-in modes.
+
+;; Use compressed files like normal files.
+(auto-compression-mode t)
+
+;; Display the column number.
+(column-number-mode t)
+
+;; Replace selected text when typing or pasting.
+(delete-selection-mode t)
+
+;; Display line numbers (better than linum).
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(add-hook 'conf-mode-hook 'display-line-numbers-mode)
+
+;; Auto revert files that changed on disk.
+(global-auto-revert-mode t)
+
+;; Disable eldoc mode, causes huge slowdown in Rust files.
+(global-eldoc-mode -1)
+
+;; Highlight current line.
+(defvar global-hl-line-sticky-flag)
+(setq global-hl-line-sticky-flag t) ;; Keep line highlight across windows?
+(global-hl-line-mode t)
+
+;; Show matching parentheses.
+(defvar show-paren-delay)
+(setq show-paren-delay highlight-delay)
+(show-paren-mode t)
+
 ;; Mouse settings
 
-(setq mouse-wheel-progressive-speed nil ;; Make the mouse wheel not accelerate.
-      mouse-yank-at-point t
-      )
+(setq
+ ;; Make the mouse wheel not accelerate.
+ mouse-wheel-progressive-speed nil
+ mouse-yank-at-point t
+ )
 
 ;;; My Functions and Shortcuts/Keybindings
 
@@ -390,7 +423,8 @@
 (defun save-all ()
   "Save all file-visiting buffers without prompting."
   (interactive)
-  (save-some-buffers t) ;; Do not prompt for confirmation.
+  ;; Do not prompt for confirmation.
+  (save-some-buffers t)
   )
 (global-set-key (kbd "C-x s") 'save-all)
 
@@ -449,15 +483,6 @@
 (global-set-key (kbd "C-3") 'split-window-right-focus)
 
 (global-set-key (kbd "M-SPC") 'cycle-spacing)
-
-;; ;; Narrow/widen easily.
-;; (defun narrow-dwim ()
-;;   "Widen if currently narrowed, else narrow to function."
-;;   (interactive)
-;;   (cond
-;;    ((buffer-narrowed-p) (widen))
-;;    (t (narrow-to-defun))))
-;; (global-set-key (kbd "C-(") 'narrow-dwim)
 
 ;; Code folding.
 (require 'hideshow)
@@ -914,6 +939,7 @@ into one."
 (defvar eshell-scroll-to-bottom-on-input)
 (defvar eshell-scroll-to-bottom-on-output)
 (defvar eshell-hist-ignoredups)
+(defvar eshell-history-file-name)
 (setq
  ;; Stop output from always going to the bottom.
  eshell-scroll-show-maximum-output nil
@@ -1078,8 +1104,8 @@ into one."
   (setq eyebrowse-new-workspace t)
   (setq eyebrowse-close-window-config-prompt t)
 
-  (setq eyebrowse-mode-line-separator       " " )
-  (setq eyebrowse-mode-line-left-delimiter  "[ ")
+  (setq eyebrowse-mode-line-separator " " )
+  (setq eyebrowse-mode-line-left-delimiter "[ ")
   (setq eyebrowse-mode-line-right-delimiter " ]")
 
   (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold t)
@@ -1125,7 +1151,7 @@ into one."
          (c-mode-common . highlight-operators-mode)
          ;; REMOVED: Results in higher CPU load and slowdown in large files,
          ;; especially in `rust-mode'.
-         ;; (rust-mode     . highlight-operators-mode)
+         ;; (rust-mode . highlight-operators-mode)
          )
   )
 
@@ -1170,25 +1196,12 @@ into one."
   (setq mc/always-run-for-all t)
   )
 
-;; ;; Line numbers.
-;; (use-package nlinum
-;;   :hook ((prog-mode . nlinum-mode)
-;;          (conf-mode . nlinum-mode)
-;;          (text-mode . nlinum-mode)
-;;          )
-;;   :config
-;;   (setq linum-format "%3d") ;; Set linum format, minimum 3 lines at all times
-;;   (setq nlinum-highlight-current-line t)
-;;   )
-;; ;; Fix line numbers occasionally not appearing.
-;; (use-package nlinum-hl)
-
 ;; Mode for writing.
 (use-package olivetti
   :bind ("s-m" . olivetti-mode)
   :init
   (setq olivetti-hide-mode-line t
-        olivetti-body-width     0.9
+        olivetti-body-width 0.9
         )
   )
 
@@ -1400,12 +1413,10 @@ into one."
 
   ;; (flycheck-add-next-checker 'rust-cargo 'rust-clippy)
 
-  (flycheck-add-mode 'proselint 'text-mode)
-  ;; (flycheck-add-mode 'proselint 'org-mode) ;; Causes huge spikes in CPU.
-
-  (flycheck-add-next-checker 'markdown-mdl  'proselint)
-  ;; (flycheck-add-next-checker 'sh-bash       'sh-shellcheck)
-  ;; (flycheck-add-next-checker 'sh-posix-bash 'sh-shellcheck)
+  ;; REMOVED: Causes huge spikes in CPU.
+  ;; (flycheck-add-mode 'proselint 'text-mode)
+  ;; (flycheck-add-mode 'proselint 'org-mode)
+  ;; (flycheck-add-next-checker 'markdown-mdl 'proselint)
   )
 
 ;; Elisp package lints.
