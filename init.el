@@ -1527,21 +1527,23 @@ into one."
   :config
   (helm-projectile-on))
 
-;; Quick switching between buffers.
-(use-package nswbuff
-  :ensure t
-  :bind* (("<C-tab>" . nswbuff-switch-to-next-buffer)
-          ("<C-S-tab>" . nswbuff-switch-to-previous-buffer))
-  :config (setq nswbuff-buffer-list-function #'nswbuff-projectile-buffer-list
-                nswbuff-exclude-buffer-regexps '("^ .*" "^magit*" "^\\*.*\\*")
-                nswbuff-display-intermediate-buffers t
-                nswbuff-recent-buffers-first nil
-                nswbuff-header "Buffers: "
-                )
-  )
+;; ;; Quick switching between buffers.
+;; REMOVED: Don't really see this being that useful.
+;; (use-package nswbuff
+;;   :ensure t
+;;   :bind* (("<C-tab>" . nswbuff-switch-to-next-buffer)
+;;           ("<C-S-tab>" . nswbuff-switch-to-previous-buffer))
+;;   :config (setq nswbuff-buffer-list-function #'nswbuff-projectile-buffer-list
+;;                 nswbuff-exclude-buffer-regexps '("^ .*" "^magit*" "^\\*.*\\*")
+;;                 nswbuff-display-intermediate-buffers t
+;;                 nswbuff-recent-buffers-first nil
+;;                 nswbuff-header "Buffers: "
+;;                 )
+;;   )
 
 ;; Project manager.
 (use-package projectile
+  :diminish
   :defer 1
   :hook (prog-mode . projectile-mode)
   :config
@@ -1593,16 +1595,6 @@ into one."
   :config
   ;; TODO: use smart-jump here instead. Do we even need to define a key here?
   (define-key js-mode-map (kbd "M-.") 'dumb-jump-go)
-  )
-
-;; Javascript REPL
-(use-package nodejs-repl
-  :defer t
-  :config
-  (define-key js-mode-map (kbd "C-M-x")   'nodejs-repl-send-buffer)
-  (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
-  (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
-  (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)
   )
 
 ;; JSON
