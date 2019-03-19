@@ -1769,6 +1769,13 @@ into one."
           (tags   priority-down category-keep)
           (search category-keep)))
 
+  ;; Customize columns (remove filename/category, mostly redundant).
+  (defvar org-agenda-prefix-format)
+  (setq org-agenda-prefix-format '((agenda . " %i %?-12t% s")
+                                   (todo . " %i %-12:c")
+                                   (tags . " %i %-12:c")
+                                   (search . " %i %-12:c")))
+
   ;; Refresh org-agenda after changing an item status.
   ;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
   ;; Refresh org-agenda after rescheduling a task.
