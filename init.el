@@ -434,12 +434,14 @@
 (defun goto-line-show ()
   "Show line numbers temporarily, while prompting for the line number input."
   (interactive)
-  (unwind-protect
-      (progn
-        (linum-mode t)
-        (call-interactively #'goto-line))
-    (linum-mode -1)
-    (end-of-line)))
+  (let ((line-numbers display-line-numbers))
+    (unwind-protect
+        (progn
+          (setq-local display-line-numbers t)
+          (call-interactively #'goto-line)
+          (end-of-line))
+      (setq-local display-line-numbers line-numbers))))
+
 (global-set-key (kbd "s-l") 'goto-line-show)
 
 (defun helm-projectile-ag-inexact ()
@@ -1453,12 +1455,23 @@ into one."
          ("C-<" . diff-hl-previous-hunk)
          ("C->" . diff-hl-next-hunk)
          )
-  ;; :hook (prog-mode . turn-on-diff-hl-mode)
+  :hook ((prog-mode . enable-diff-hl)
+         (conf-mode . enable-diff-hl)
+         (markdown-mode . enable-diff-hl)
+         )
   :init
-  (global-diff-hl-mode)
+  (defun enable-diff-hl ()
+    ;; Make the fringe wide enough to display correctly.
+    (setq-local left-fringe-width 16)
+    (turn-on-diff-hl-mode))
+
+  ;; (global-diff-hl-mode)
   :config
-  (diff-hl-margin-mode) ;; Show diffs in margin.
-  ;; (diff-hl-flydiff-mode) ;; No need to save before seeing diffs.
+
+  ;; Show diffs in margin when running in terminal.
+  (unless (window-system) (diff-hl-margin-mode))
+  ;; No need to save before seeing diffs.
+  ;; (diff-hl-flydiff-mode)
 
   ;; Refresh diffs after a Magit commit.
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
