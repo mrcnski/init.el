@@ -1290,6 +1290,15 @@ into one."
   (save-place-mode t)
   )
 
+;; Actually a really nice mode-line package.
+;; Requires little configuration.
+(use-package spaceline
+  :config
+  (require 'spaceline-config)
+  (spaceline-spacemacs-theme)
+  (spaceline-helm-mode)
+  )
+
 ;; Open current directory in an external terminal emulator.
 (use-package terminal-here
   :bind ("C-c t" . terminal-here-launch)
@@ -1326,6 +1335,11 @@ into one."
 ;; Switch windows more easily.
 (use-package winum
   :init
+  ;; Prevent winum from inserting its own number in the mode-line
+  ;; (spaceline already does so).
+  (setq winum-auto-setup-mode-line nil)
+
+  ;; This has to be in :init for some reason.
   (setq winum-keymap
         (let ((map (make-sparse-keymap)))
           (define-key map (kbd "M-1") 'winum-select-window-1)
@@ -1339,6 +1353,8 @@ into one."
           (define-key map (kbd "M-9") 'winum-select-window-9)
           (define-key map (kbd "M-0") 'winum-select-window-0)
           map))
+
+  :config
   (winum-mode)
   )
 
@@ -1994,101 +2010,6 @@ into one."
           )))
 
 ;;; Final
-
-;; Set mode-line format.
-;; This should run after (winum-mode).
-
-;; Count total lines in buffer.
-;; From https://stackoverflow.com/a/8191130.
-(defvar mode-line-buffer-line-count nil)
-(make-variable-buffer-local 'mode-line-buffer-line-count)
-
-(defun mode-line-count-lines ()
-  "Count the total number of lines in the current buffer."
-  (setq mode-line-buffer-line-count
-        (int-to-string (count-lines (point-min) (point-max)))))
-
-(add-hook 'find-file-hook 'mode-line-count-lines)
-(add-hook 'after-save-hook 'mode-line-count-lines)
-(add-hook 'after-revert-hook 'mode-line-count-lines)
-(add-hook 'dired-after-readin-hook 'mode-line-count-lines)
-(add-hook 'after-change-major-mode-hook 'mode-line-count-lines)
-
-;; Active window detection.
-;; From https://emacs.stackexchange.com/a/26345.
-(defvar mode-line-selected-window nil)
-
-(defun mode-line-record-selected-window ()
-  "Record the current window as selected."
-  (setq mode-line-selected-window (selected-window)))
-(add-hook 'post-command-hook 'mode-line-record-selected-window)
-
-(defun mode-line-update-all ()
-  "Update all mode lines."
-  (force-mode-line-update t))
-(add-hook 'buffer-list-update-hook 'mode-line-update-all)
-
-;; For right-aligning.
-;; From https://stackoverflow.com/a/22971471.
-(defun mode-line-fill (reserve)
-  "Return empty space leaving RESERVE space on the right."
-  (unless reserve
-    (setq reserve 20))
-  (when (and window-system (eq 'right (get-scroll-bar-mode)))
-    (setq reserve (- reserve 3)))
-  (propertize
-   " "
-   'display `((space :align-to (- (+ right right-fringe right-margin) ,reserve)))
-   ))
-
-;; Set the mode-line.
-(setq-default
- mode-line-format
- '((:eval
-    (list
-     " ["
-     '(:eval (winum-get-number-string))
-     "] "
-     '(:eval (eyebrowse-mode-line-indicator))
-     " "
-     'mode-line-modified
-     " "
-     '(:eval (propertize "%b"
-                         'face '(:weight bold)
-                         'help-echo (buffer-file-name)))
-     " |"
-     '(:eval (when line-number-mode " %l:%C"))
-     " "
-     '(:eval (when (and line-number-mode mode-line-buffer-line-count
-                        buffer-file-name)
-               (let ((str "["))
-                 (when (buffer-modified-p)
-                   (setq str (concat str "*")))
-                 (setq str (concat str mode-line-buffer-line-count "]"))
-                 str)))
-     '(:eval (when buffer-file-name "[%I]"))
-     '(:eval (when (not (string-equal major-mode 'org-agenda-mode))
-               (propertize "[%m] "
-                           ;; 'face '(:weight bold)
-                           'help-echo (format "%s" major-mode)
-                           )))
-     '(:eval (when buffer-read-only
-               (propertize "RO "
-                           'face 'font-lock-preprocessor-face
-                           'help-echo "Buffer is read-only")))
-     '(:eval
-       (when mark-active
-         (concat "{" (number-to-string (abs (- (point) (mark)))) "}")))
-
-     ;; '(:eval (let ((indicator (eyebrowse-mode-line-indicator)))
-     ;;           (concat
-     ;;            (mode-line-fill (+ 1 (length (substring-no-properties
-     ;;                                          indicator))))
-     ;;            indicator)))
-
-     ;; " "
-     ;; '(:eval (propertize (format-time-string "%H:%M")))
-     ))))
 
 ;; Misc
 
