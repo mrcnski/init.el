@@ -260,6 +260,7 @@
   (setq show-trailing-whitespace t)
   )
 (add-hook 'prog-mode-hook 'enable-trailing-whitespace)
+(add-hook 'conf-mode-hook 'enable-trailing-whitespace)
 (add-hook 'text-mode-hook 'enable-trailing-whitespace)
 
 (defvar apropos-do-all)
@@ -768,7 +769,8 @@ into one."
   (mapc #'disable-theme custom-enabled-themes))
 
 ;; Nimbus is my personal theme, available on Melpa.
-(use-package nimbus-theme)
+(use-package nimbus-theme
+  :load-path "~/Dropbox/Code/Elisp/nimbus-theme")
 
 ;; Set font only if we're not in the terminal.
 (when (display-graphic-p)
@@ -872,6 +874,12 @@ into one."
 
 ;; ibuffer settings
 
+(require 'ibuffer)
+(require 'ibuffer-vc)
+
+;; Unbind ibuffer-visit-buffer-1-window.
+(define-key ibuffer-mode-map (kbd "M-o") nil)
+
 ;; Don't show filter groups if there are no buffers in that group.
 (defvar ibuffer-show-empty-filter-groups)
 (setq ibuffer-show-empty-filter-groups nil)
@@ -881,7 +889,6 @@ into one."
 (setq ibuffer-expert t)
 
 ;; Use human-readable Size column.
-(defvar ibuffer-inline-columns)
 (define-ibuffer-column size-h
   (:name "Size" :inline t)
   (let ((bs (buffer-size)))
@@ -957,7 +964,7 @@ into one."
 (add-hook 'eshell-mode-hook
           #'(lambda ()
               ;; Use helm to list eshell history.
-              (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)
+              ;; (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)
               (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
               (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
               ))
@@ -996,7 +1003,9 @@ into one."
 ;; Display number of matches when searching.
 (use-package anzu
   :diminish anzu-mode
-  :config (global-anzu-mode))
+  :config
+  (setq anzu-cons-mode-line-p nil)
+  (global-anzu-mode))
 
 ;; Avy mode (jump to a char/word using a decision tree).
 (use-package avy
@@ -1108,13 +1117,14 @@ into one."
          ;; ("M-}" . corral-braces-forward)
          ("M-`" . corral-backquote-forward)
          ("M-~" . corral-backquote-backward)
-         ("M-'"  . corral-double-quotes-forward)
-         ("M-\"" . corral-double-quotes-backward)
+         ;; ("M-'"  . corral-double-quotes-forward)
+         ;; ("M-\"" . corral-double-quotes-backward)
          )
   :config (setq corral-preserve-point t))
 
 ;; Display available keybindings in Dired mode (? creates popup).
-(use-package discover)
+(use-package discover
+  :defer 2)
 
 ;; ;; Text separated by more than one space doesn't move.
 ;; (use-package dynamic-spaces
@@ -1193,6 +1203,7 @@ into one."
 
 ;; Highlight indentation.
 (use-package highlight-indent-guides
+  :diminish
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
   (setq highlight-indent-guides-method 'character
@@ -1221,7 +1232,7 @@ into one."
   :diminish highlight-parentheses-mode
   :hook (prog-mode . highlight-parentheses-mode)
   :config
-  (setq hl-paren-colors '("cyan3")
+  (setq hl-paren-colors '("cyan2")
         hl-paren-delay highlight-delay
         )
   )
