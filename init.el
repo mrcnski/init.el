@@ -448,6 +448,7 @@
 (defun helm-projectile-ag-inexact ()
   "Run helm-projectile-ag case-insensitive and without word boundaries."
   (interactive)
+  (save-all)
   (setq helm-ag-base-command "ag --hidden --nocolor --nogroup --ignore-case")
   (setq helm-ag-insert-at-point nil)
   (helm-projectile-ag)
@@ -455,6 +456,7 @@
 (defun helm-projectile-ag-exact ()
   "Run helm-projectile-ag case-sensitive and with word boundaries."
   (interactive)
+  (save-all)
   (setq helm-ag-base-command
         "ag --hidden --nocolor --nogroup --word-regexp --case-sensitive")
   (setq helm-ag-insert-at-point 'symbol)
@@ -967,6 +969,9 @@ into one."
               ;; (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)
               (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
               (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
+
+              ;; Save all buffers before running a command.
+              (add-hook 'eshell-pre-command-hook 'save-all)
               ))
 
 ;; Open a new eshell buffer.
@@ -1047,12 +1052,12 @@ into one."
          )
 
   :init
-  ;; Restore on load (even before you require bm)
+  ;; Restore on load (even before you require bm).
   (defvar bm-restore-repository-on-load)
   (setq bm-restore-repository-on-load t)
 
   :config
-  ;; Where to store persistant files
+  ;; Where to store persistant files.
   (setq bm-repository-file "~/.emacs.d/bm-repository")
 
   ;; Save bookmarks
@@ -1087,7 +1092,7 @@ into one."
   ;; This can easily be avoided if the package provides a hook that is
   ;; called before the buffer is reverted (like `vc-before-checkin-hook').
   ;; Then new bookmarks can be saved before the buffer is reverted.
-  ;; Make sure bookmarks is saved before check-in (and revert-buffer)
+  ;; Make sure bookmarks is saved before check-in (and revert-buffer).
   (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
 
   (use-package helm-bm
