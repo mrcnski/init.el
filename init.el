@@ -325,7 +325,11 @@
                            "Emacs - "
                            (buffer-file-name
                             "%f" (dired-directory dired-directory "%b"))
-                           ))
+                           (:eval (when (fboundp 'eyebrowse-mode-line-indicator)
+                                    (format " - %s:%s"
+                                            (eyebrowse-mode-line-indicator)
+                                            (eyebrowse--get 'current-slot)
+                                            )))))
 
 ;; Set c-style comments to be "//" by default (these are just better, sorry).
 (add-hook 'c-mode-common-hook
@@ -1180,9 +1184,9 @@ into one."
   (setq eyebrowse-new-workspace t)
   (setq eyebrowse-close-window-config-prompt t)
 
-  (setq eyebrowse-mode-line-separator " " )
-  (setq eyebrowse-mode-line-left-delimiter "[ ")
-  (setq eyebrowse-mode-line-right-delimiter " ]")
+  (setq eyebrowse-mode-line-separator "," )
+  (setq eyebrowse-mode-line-left-delimiter "[")
+  (setq eyebrowse-mode-line-right-delimiter "]")
 
   (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold t)
   )
