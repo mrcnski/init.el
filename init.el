@@ -394,8 +394,6 @@
 
 ;;; My Functions and Shortcuts/Keybindings
 
-(global-set-key (kbd "M-o") 'other-window)
-
 ;; Set up keys using super. s-a, s-s, s-x, s-c, and s-v correspond to
 ;; select-all, save, cut, copy, and paste, which I've left for
 ;; consistency/utility on Macs.
@@ -412,6 +410,15 @@
 (global-set-key (kbd "s-o") 'helm-ag-pop-stack)
 
 (global-set-key [f12] 'toggle-frame-fullscreen)
+
+(defun other-window-reverse ()
+  "Go to other window in reverse."
+  (interactive)
+  (other-window -1)
+  )
+
+(global-set-key (kbd "M-o") 'other-window)
+(global-set-key (kbd "M-O") 'other-window-reverse)
 
 ;; Actions to perform when saving.
 ;; (add-hook 'before-save-hook 'whitespace-cleanup)
