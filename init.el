@@ -1346,7 +1346,9 @@ into one."
 ;; Use a sensible mechanism for making buffer names unique.
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward
-      uniquify-min-dir-content 1)
+      uniquify-min-dir-content 1
+      uniquify-strip-common-suffix nil
+      )
 
 ;; Highlight some recent changes such as undos.
 (use-package volatile-highlights
