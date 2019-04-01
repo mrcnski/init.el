@@ -325,11 +325,7 @@
                            "Emacs - "
                            (buffer-file-name
                             "%f" (dired-directory dired-directory "%b"))
-                           (:eval (when (fboundp 'eyebrowse-mode-line-indicator)
-                                    (format " - %s:%s"
-                                            (eyebrowse-mode-line-indicator)
-                                            (eyebrowse--get 'current-slot)
-                                            )))))
+                           ))
 
 ;; Set c-style comments to be "//" by default (these are just better, sorry).
 (add-hook 'c-mode-common-hook
@@ -1196,6 +1192,25 @@ into one."
   (setq eyebrowse-mode-line-right-delimiter "]")
 
   (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold t)
+
+  ;;; Show workspaces in title bar.
+
+  ;; Only recalculate the workspaces string when it actually changes.
+  (defvar eyebrowse-workspaces)
+  (defun eyebrowse-workspaces-string ()
+    "Get the current workspaces as a string."
+    (setq eyebrowse-workspaces (substring-no-properties (eyebrowse-mode-line-indicator))))
+  (eyebrowse-workspaces-string)
+  (add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-string)
+  (advice-add 'eyebrowse-close-window-config :after 'eyebrowse-workspaces-string)
+
+  ;; Append to title list.
+  (add-to-list 'frame-title-format
+               '(:eval (when (fboundp 'eyebrowse-mode-line-indicator)
+                         (let ((current (eyebrowse--get 'current-slot)))
+                           (format " - %s:%s" eyebrowse-workspaces current))))
+               t
+               )
   )
 
 ;; Fix the capitalization commands.
