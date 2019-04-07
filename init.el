@@ -1124,21 +1124,23 @@ into one."
 (use-package copy-as-format
   :defer t)
 
-;; Wrap parentheses or quotes around word.
-(use-package corral
-  :bind (
-         ("M-(" . corral-parentheses-backward)
-         ("M-)" . corral-parentheses-forward)
-         ("M-[" . corral-brackets-backward)
-         ("M-]" . corral-brackets-forward)
-         ;; ("M-{" . corral-braces-backward) ;; Useful keys by default.
-         ;; ("M-}" . corral-braces-forward)
-         ("M-`" . corral-backquote-forward)
-         ("M-~" . corral-backquote-backward)
-         ;; ("M-'"  . corral-double-quotes-forward)
-         ;; ("M-\"" . corral-double-quotes-backward)
-         )
-  :config (setq corral-preserve-point t))
+;; ;; Wrap parentheses or quotes around word.
+;; REMOVED: Took up too many useful keybindings.
+;;          Looking for a more intuitive replacement.
+;; (use-package corral
+;;   :bind (
+;;          ("M-(" . corral-parentheses-backward)
+;;          ("M-)" . corral-parentheses-forward)
+;;          ("M-[" . corral-brackets-backward)
+;;          ("M-]" . corral-brackets-forward)
+;;          ;; ("M-{" . corral-braces-backward) ;; Useful keys by default.
+;;          ;; ("M-}" . corral-braces-forward)
+;;          ("M-`" . corral-backquote-forward)
+;;          ("M-~" . corral-backquote-backward)
+;;          ;; ("M-'"  . corral-double-quotes-forward)
+;;          ;; ("M-\"" . corral-double-quotes-backward)
+;;          )
+;;   :config (setq corral-preserve-point t))
 
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover
@@ -1358,12 +1360,6 @@ into one."
 (use-package undo-propose
   :bind ("C-_" . undo-propose))
 
-;; (use-package undo-tree
-;;   :diminish undo-tree-mode
-;;   :config
-;;   (setq undo-tree-visualizer-timestamps t)
-;;   (setq undo-tree-visualizer-diff t))
-
 ;; Use a sensible mechanism for making buffer names unique.
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward
@@ -1383,32 +1379,6 @@ into one."
   (which-key-mode)
   (setq which-key-sort-order 'which-key-key-order-alpha)
   (setq which-key-sort-uppercase-first nil))
-
-;; Switch windows more easily.
-(use-package winum
-  :init
-  ;; Prevent winum from inserting its own number in the mode-line
-  ;; (spaceline already does so).
-  (setq winum-auto-setup-mode-line nil)
-
-  ;; This has to be in :init for some reason.
-  (setq winum-keymap
-        (let ((map (make-sparse-keymap)))
-          (define-key map (kbd "M-1") 'winum-select-window-1)
-          (define-key map (kbd "M-2") 'winum-select-window-2)
-          (define-key map (kbd "M-3") 'winum-select-window-3)
-          (define-key map (kbd "M-4") 'winum-select-window-4)
-          (define-key map (kbd "M-5") 'winum-select-window-5)
-          (define-key map (kbd "M-6") 'winum-select-window-6)
-          (define-key map (kbd "M-7") 'winum-select-window-7)
-          (define-key map (kbd "M-8") 'winum-select-window-8)
-          (define-key map (kbd "M-9") 'winum-select-window-9)
-          (define-key map (kbd "M-0") 'winum-select-window-0)
-          map))
-
-  :config
-  (winum-mode)
-  )
 
 ;; Highlight the parts of lines that exceed certain column numbers.
 (use-package whitespace
@@ -1444,6 +1414,32 @@ into one."
          ("C-c C-." . winner-redo)
          )
   :config (winner-mode t))
+
+;; Switch windows more easily.
+(use-package winum
+  :init
+  ;; Prevent winum from inserting its own number in the mode-line
+  ;; (spaceline already does so).
+  (setq winum-auto-setup-mode-line nil)
+
+  ;; This has to be in :init for some reason.
+  (setq winum-keymap
+        (let ((map (make-sparse-keymap)))
+          (define-key map (kbd "M-1") 'winum-select-window-1)
+          (define-key map (kbd "M-2") 'winum-select-window-2)
+          (define-key map (kbd "M-3") 'winum-select-window-3)
+          (define-key map (kbd "M-4") 'winum-select-window-4)
+          (define-key map (kbd "M-5") 'winum-select-window-5)
+          (define-key map (kbd "M-6") 'winum-select-window-6)
+          (define-key map (kbd "M-7") 'winum-select-window-7)
+          (define-key map (kbd "M-8") 'winum-select-window-8)
+          (define-key map (kbd "M-9") 'winum-select-window-9)
+          (define-key map (kbd "M-0") 'winum-select-window-0)
+          map))
+
+  :config
+  (winum-mode)
+  )
 
 ;; Automatically clean up extraneous whitespace.
 (use-package ws-butler
