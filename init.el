@@ -316,7 +316,7 @@
       mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
 
       ;; Set a larger minimum window width. Smaller than this is hard to read.
-      window-min-width  30
+      window-min-width 30
       window-min-height 10
 
       ;; Language-specific settings?
@@ -389,8 +389,12 @@
 
 ;; Highlight current line.
 (defvar global-hl-line-sticky-flag)
-(setq global-hl-line-sticky-flag t) ;; Keep line highlight across windows?
+;; Keep line highlight across windows?
+(setq global-hl-line-sticky-flag t)
 (global-hl-line-mode t)
+
+;; Save minibuffer history across Emacs sessions.
+(savehist-mode t)
 
 ;; Show matching parentheses.
 (defvar show-paren-delay)
@@ -901,7 +905,6 @@ into one."
 ;; ibuffer settings
 
 (require 'ibuffer)
-(require 'ibuffer-vc)
 
 ;; Unbind ibuffer-visit-buffer-1-window.
 (define-key ibuffer-mode-map (kbd "M-o") nil)
@@ -990,7 +993,7 @@ into one."
 (add-hook 'eshell-mode-hook
           #'(lambda ()
               ;; Use helm to list eshell history.
-              ;; (define-key eshell-mode-map (kbd "M-l") 'helm-eshell-history)
+              (define-key eshell-mode-map (kbd "M-i") 'helm-eshell-history)
               (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
               (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
 
@@ -1508,13 +1511,14 @@ into one."
 
 ;; Show markers in margin indicating changes.
 (use-package diff-hl
-  :bind (("C-?" . diff-hl-revert-hunk)
-         ("C-<" . diff-hl-previous-hunk)
-         ("C->" . diff-hl-next-hunk)
+  :bind (
+         ("C-?" . diff-hl-revert-hunk)
+         ("M-[" . diff-hl-previous-hunk)
+         ("M-]" . diff-hl-next-hunk)
          )
   :hook ((prog-mode . enable-diff-hl)
+         (text-mode . enable-diff-hl)
          (conf-mode . enable-diff-hl)
-         (markdown-mode . enable-diff-hl)
          )
   :init
   (defun enable-diff-hl ()
