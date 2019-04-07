@@ -4,7 +4,7 @@
 ;;
 ;;; Commentary:
 ;;
-;; Requires Emacs 25 or higher.
+;; Requires Emacs 26 or higher.
 ;;
 ;; Making changes / testing:
 ;;
@@ -364,6 +364,9 @@
 (delete-selection-mode t)
 
 ;; Display line numbers (better than linum).
+(defvar display-line-numbers-grow-only)
+;; Don't shrink the line numbers.
+(setq display-line-numbers-grow-only t)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (add-hook 'conf-mode-hook 'display-line-numbers-mode)
 
