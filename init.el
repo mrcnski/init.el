@@ -1221,16 +1221,15 @@ into one."
   (defvar eyebrowse-workspaces)
   (defun eyebrowse-workspaces-string ()
     "Get the current workspaces as a string."
-    (setq eyebrowse-workspaces (substring-no-properties (eyebrowse-mode-line-indicator))))
+    (let ((workspaces (substring-no-properties (eyebrowse-mode-line-indicator))))
+      (setq eyebrowse-workspaces (if (string-blank-p workspaces) "[1]" workspaces))))
   (eyebrowse-workspaces-string)
   (add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-string)
   (advice-add 'eyebrowse-close-window-config :after 'eyebrowse-workspaces-string)
 
   ;; Append to title list.
   (add-to-list 'frame-title-format
-               '(:eval (when (fboundp 'eyebrowse-mode-line-indicator)
-                         (let ((current (eyebrowse--get 'current-slot)))
-                           (format " - %s:%s" eyebrowse-workspaces current))))
+               '(:eval (format " - %s:%s" eyebrowse-workspaces (eyebrowse--get 'current-slot)))
                t
                )
   )
