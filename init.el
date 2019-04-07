@@ -252,6 +252,8 @@
               fill-column 80
               ;; Highlight end of buffer?
               indicate-empty-lines t
+              ;; Inhibit backups?
+              backup-inhibited t
               )
 
 ;; Enable show-trailing-whitespace.
@@ -293,7 +295,8 @@
       confirm-kill-emacs nil
       ;; Send deleted files to trash.
       delete-by-moving-to-trash t
-      make-backup-files t
+      ;; Make backup files when creating a file?
+      make-backup-files nil
       ;; Silently delete old backup versions.
       delete-old-versions t
       ;; Delay for displaying function/variable information.
