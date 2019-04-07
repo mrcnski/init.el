@@ -347,10 +347,21 @@
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
 
+;; Set up gpg.
+
 ;; Fix EasyPG error.
 ;; From https://colinxy.github.io/software-installation/2016/09/24/emacs25-easypg-issue.html.
 (defvar epa-pinentry-mode)
 (setq epa-pinentry-mode 'loopback)
+
+(setenv "GPG_AGENT_INFO" nil)
+(setq epg-gpg-program "/usr/local/bin/gpg2")
+(require 'epa-file)
+
+(require 'password-cache)
+
+(setq password-cache-expiry (* 15 60))
+(setq epa-file-cache-passphrase-for-symmetric-encryption t)
 
 ;; Set some built-in modes.
 
