@@ -112,16 +112,11 @@
 (use-package bug-hunter
   :defer t)
 
-;; Diminish modeline clutter.
-(use-package diminish)
-(diminish 'abbrev-mode)
-
 ;;; Helm
 
 (use-package helm
   :init
   (require 'helm-config)
-  :diminish
   :config
   (helm-mode t)
 
@@ -519,7 +514,6 @@
 
 ;; Code folding.
 (require 'hideshow)
-(diminish 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 (define-key hs-minor-mode-map (kbd "C-z") 'hs-toggle-hiding)
 
@@ -1034,7 +1028,6 @@ into one."
 
 ;; Display number of matches when searching.
 (use-package anzu
-  :diminish anzu-mode
   :config
   (setq anzu-cons-mode-line-p nil)
   (global-anzu-mode))
@@ -1122,6 +1115,7 @@ into one."
   ;; Make sure bookmarks is saved before check-in (and revert-buffer).
   (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
 
+  ;; Use helm to quickly jump to bookmarks in all open buffers.
   (use-package helm-bm
     :bind ("s-b" . helm-bm))
   )
@@ -1245,7 +1239,6 @@ into one."
 ;; Fontify symbols representing faces with that face.
 (use-package fontify-face
   :defer t
-  :diminish fontify-face-mode
   :hook (emacs-lisp-mode . fontify-face-mode)
   )
 
@@ -1255,7 +1248,6 @@ into one."
 
 ;; Highlight indentation.
 (use-package highlight-indent-guides
-  :diminish
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
   (setq highlight-indent-guides-method 'character
@@ -1281,7 +1273,6 @@ into one."
 
 ;; Highlight surrounding parentheses.
 (use-package highlight-parentheses
-  :diminish highlight-parentheses-mode
   :hook (prog-mode . highlight-parentheses-mode)
   :config
   (setq hl-paren-colors '("cyan2")
@@ -1341,7 +1332,6 @@ into one."
 ;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode
   :defer t
-  :diminish rainbow-mode
   )
 
 ;; Open current directory in Finder on Mac.
@@ -1360,6 +1350,10 @@ into one."
 (use-package spaceline
   :config
   (require 'spaceline-config)
+
+  (defvar spaceline-minor-modes-p)
+  (setq spaceline-minor-modes-p nil)
+
   (spaceline-spacemacs-theme)
   (spaceline-helm-mode)
   )
@@ -1382,12 +1376,10 @@ into one."
 
 ;; Highlight some recent changes such as undos.
 (use-package volatile-highlights
-  :diminish volatile-highlights-mode
   :config (volatile-highlights-mode))
 
 ;; Display available keys.
 (use-package which-key
-  :diminish which-key-mode
   :config
   (which-key-mode)
   (setq which-key-sort-order 'which-key-key-order-alpha)
@@ -1395,7 +1387,6 @@ into one."
 
 ;; Highlight the parts of lines that exceed certain column numbers.
 (use-package whitespace
-  :diminish whitespace-mode
   :config
   (setq whitespace-style '(face
                            empty lines-tail tabs trailing))
@@ -1456,7 +1447,6 @@ into one."
 
 ;; Automatically clean up extraneous whitespace.
 (use-package ws-butler
-  :diminish ws-butler-mode
   :hook (
          (prog-mode . ws-butler-mode)
          (text-mode . ws-butler-mode)
@@ -1481,7 +1471,6 @@ into one."
 
 ;; Git client in Emacs.
 (use-package magit
-  :diminish auto-revert-mode
   :bind (("C-x g" . magit-status)
          ("s-g" . magit-status))
 
@@ -1500,7 +1489,6 @@ into one."
 ;; ;; Company mode for auto-completion.
 ;; REMOVED: Heavy-weight. Tab's completion-at-point seems more useful.
 ;; (use-package company
-;;   :diminish company-mode
 ;;   :bind ("M-/" . company-complete)
 ;;   :hook (after-init . global-company-mode)
 ;;   :init
@@ -1541,7 +1529,6 @@ into one."
 
 ;; On-the-fly syntax checker.
 (use-package flycheck
-  :diminish flycheck-mode
   :hook ((prog-mode . flycheck-mode)
          (text-mode . flycheck-mode)
          )
@@ -1592,7 +1579,6 @@ into one."
 
 ;; Project manager.
 (use-package projectile
-  :diminish
   :defer 1
   :hook (prog-mode . projectile-mode)
   :config
@@ -1613,7 +1599,6 @@ into one."
 ;; (use-package yasnippet-snippets)
 ;; (use-package yasnippet
 ;;   :requires yasnippet-snippets
-;;   :diminish yas-minor-mode
 ;;   :config
 ;;   (yas-global-mode)
 
@@ -1686,7 +1671,6 @@ into one."
 ;; Rust
 
 (use-package racer
-  :diminish racer-mode
   :hook ((rust-mode . racer-mode))
   :config
   ;; Don't insert argument placeholders when completing a function.
@@ -1721,9 +1705,6 @@ into one."
   :mode (("\\.org$" . org-mode))
   :hook ((org-mode . org-mode-hook-fun)
          (org-agenda-mode . org-agenda-mode-hook-fun))
-
-  :diminish visual-line-mode
-  :diminish org-indent-mode
 
   :init
 
