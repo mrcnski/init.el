@@ -2037,6 +2037,16 @@ into one."
                  :tag "cleaning"
                  :order 4
                  )
+          (:name "Hygiene"
+                 :category "hygiene"
+                 :tag "hygiene"
+                 :order 5
+                 )
+          (:name "Health"
+                 :category "health"
+                 :tag "health"
+                 :order 6
+                 )
 
           ;; After the last group, the agenda will display items that didn't
           ;; match any of these groups, with the default order position of 99
