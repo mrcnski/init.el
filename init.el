@@ -62,6 +62,7 @@
 ;;; Package settings
 
 (require 'package)
+;; Prefer the newest version of a package.
 (setq load-prefer-newer t)
 ;; Only enable packages found in this file (not all installed packages).
 (setq package-enable-at-startup nil)
@@ -99,6 +100,7 @@
     :config
     (exec-path-from-shell-initialize)
     (exec-path-from-shell-copy-env "RUST_SRC_PATH")
+    (exec-path-from-shell-copy-env "HISTSIZE")
     ))
 
 ;; ;; Ensure system binaries exist and download them if not
@@ -993,6 +995,10 @@ into one."
 
               ;; Save all buffers before running a command.
               (add-hook 'eshell-pre-command-hook 'save-all)
+
+              ;; Use HISTSIZE as the history size.
+              (defvar eshell-history-size)
+              (setq eshell-history-size nil)
               ))
 
 ;; Open a new eshell buffer.
