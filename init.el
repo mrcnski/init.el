@@ -1203,7 +1203,7 @@ into one."
   (setq eyebrowse-new-workspace t)
   (setq eyebrowse-close-window-config-prompt t)
 
-  (setq eyebrowse-mode-line-separator "," )
+  (setq eyebrowse-mode-line-separator ",")
   (setq eyebrowse-mode-line-left-delimiter "[")
   (setq eyebrowse-mode-line-right-delimiter "]")
 
@@ -1213,17 +1213,25 @@ into one."
 
   ;; Only recalculate the workspaces string when it actually changes.
   (defvar eyebrowse-workspaces)
+  (defun eyebrowse-current-workspace ()
+    "Get the current workspace number."
+    (eyebrowse--get 'current-slot))
   (defun eyebrowse-workspaces-string ()
     "Get the current workspaces as a string."
     (let ((workspaces (substring-no-properties (eyebrowse-mode-line-indicator))))
-      (setq eyebrowse-workspaces (if (string-blank-p workspaces) "[1]" workspaces))))
+      (setq eyebrowse-workspaces workspaces)))
+  (defun eyebrowse-workspaces-string-rename (arg1 arg2)
+    "Advice for `eyebrowse-rename-window-config'. Requires two
+arguments ARG1 and ARG2 to work..."
+    (eyebrowse-workspaces-string))
   (eyebrowse-workspaces-string)
   (add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-string)
-  (advice-add 'eyebrowse-close-window-config :after 'eyebrowse-workspaces-string)
+  (advice-add 'eyebrowse-close-window-config :after #'eyebrowse-workspaces-string)
+  (advice-add 'eyebrowse-rename-window-config :after #'eyebrowse-workspaces-string-rename)
 
   ;; Append to title list.
   (add-to-list 'frame-title-format
-               '(:eval (format " - %s:%s" eyebrowse-workspaces (eyebrowse--get 'current-slot)))
+               '(:eval (format " - %s~%s" eyebrowse-workspaces (eyebrowse-current-workspace)))
                t
                )
   )
@@ -1311,15 +1319,6 @@ into one."
   (setq mc/always-run-for-all t)
   )
 
-;; Mode for writing.
-(use-package olivetti
-  :bind ("s-m" . olivetti-mode)
-  :init
-  (setq olivetti-hide-mode-line t
-        olivetti-body-width 0.9
-        )
-  )
-
 ;; Synonym lookup.
 (use-package powerthesaurus
   :defer t)
@@ -1351,8 +1350,12 @@ into one."
   :config
   (require 'spaceline-config)
 
+  ;; Don't display minor modes (too messy).
   (defvar spaceline-minor-modes-p)
   (setq spaceline-minor-modes-p nil)
+  ;; Don't display eyebrowse workspace numbers (displayed in title bar instead).
+  (defvar spaceline-workspace-number-p)
+  (setq spaceline-workspace-number-p nil)
 
   (spaceline-spacemacs-theme)
   (spaceline-helm-mode)
@@ -1443,6 +1446,21 @@ into one."
 
   :config
   (winum-mode)
+  )
+
+;; Wrap regions with pairs.
+(use-package wrap-region
+  :config
+  (wrap-region-add-wrappers
+   '(
+     ("`" "`")
+     ("*" "*")
+     ))
+
+  ;; Kepe the region active after adding a pair.
+  (setq wrap-region-keep-mark t)
+
+  (wrap-region-global-mode t)
   )
 
 ;; Automatically clean up extraneous whitespace.
@@ -1543,39 +1561,21 @@ into one."
   (setq sentence-end-double-space nil) ;; Stupid check.
 
   ;; Disable checkers.
-  (setq-default flycheck-disabled-checkers '(rust rust-cargo rust-clippy))
+  (setq-default flycheck-disabled-checkers '(proselint rust rust-cargo rust-clippy))
   ;; (setq-default flycheck-disabled-checkers '(rust)) ;; Doesn't work.
 
   ;; (flycheck-add-next-checker 'rust-cargo 'rust-clippy)
-
-  ;; REMOVED: Causes huge spikes in CPU.
-  ;; (flycheck-add-mode 'proselint 'text-mode)
-  ;; (flycheck-add-mode 'proselint 'org-mode)
-  ;; (flycheck-add-next-checker 'markdown-mdl 'proselint)
   )
 
 ;; Elisp package lints.
 (use-package flycheck-package
   :hook (flycheck-mode . flycheck-package-setup))
 
+;; Helm interface for projectile.
 (use-package helm-projectile
   :bind ("s-;" . helm-projectile)
   :config
   (helm-projectile-on))
-
-;; ;; Quick switching between buffers.
-;; REMOVED: Don't really see this being that useful.
-;; (use-package nswbuff
-;;   :ensure t
-;;   :bind* (("<C-tab>" . nswbuff-switch-to-next-buffer)
-;;           ("<C-S-tab>" . nswbuff-switch-to-previous-buffer))
-;;   :config (setq nswbuff-buffer-list-function #'nswbuff-projectile-buffer-list
-;;                 nswbuff-exclude-buffer-regexps '("^ .*" "^magit*" "^\\*.*\\*")
-;;                 nswbuff-display-intermediate-buffers t
-;;                 nswbuff-recent-buffers-first nil
-;;                 nswbuff-header "Buffers: "
-;;                 )
-;;   )
 
 ;; Project manager.
 (use-package projectile
@@ -1652,7 +1652,17 @@ into one."
 
 (use-package markdown-mode
   :mode "\\.md\\'"
+  :hook (markdown-mode . markdown-mode-hook-fun)
+  :init
+  (defun markdown-mode-hook-fun ()
+    "Initialize markdown-mode"
+
+    ;; Unbind keys stolen by this idiotic mode.
+    (local-unset-key (kbd "M-n"))
+    (local-unset-key (kbd "M-p"))
+    )
   )
+
 (use-package markdown-toc
   :after markdown-mode
   :defer t)
