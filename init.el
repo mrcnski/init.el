@@ -29,16 +29,17 @@
 
 ;;; User-Defined Variables
 
-(defvar user-text-location "~/Dropbox/Text/")
-(defvar user-scratchpad-location (concat user-text-location "scratchpad.txt"))
+(defvar user-text-directory "~/Dropbox/Text/")
+(defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
+(defvar user-org-directory (concat user-text-directory "org/"))
 
-(defvar user-org-directory (concat user-text-location "org/"))
-(defvar user-physical-location (concat user-org-directory "physical.org"))
-(defvar user-dreams-location (concat user-org-directory "dreams.org"))
-(defvar user-ideas-location (concat user-org-directory "ideas.org"))
-(defvar user-notes-location (concat user-org-directory "notes.org"))
-(defvar user-todo-location (concat user-org-directory "todo.org"))
-(defvar user-work-location (concat user-org-directory "work.org"))
+(defvar user-dreams-org (concat user-org-directory "dreams.org"))
+(defvar user-ideas-org (concat user-org-directory "ideas.org"))
+(defvar user-notes-org (concat user-org-directory "notes.org"))
+(defvar user-physical-org (concat user-org-directory "physical.org"))
+(defvar user-projects-org (concat user-org-directory "notes.org"))
+(defvar user-todo-org (concat user-org-directory "todo.org"))
+(defvar user-work-org (concat user-org-directory "work.org"))
 
 (defvar highlight-delay .03)
 (defvar info-delay .25)
@@ -55,7 +56,7 @@
 (defun open-scratchpad-file ()
   "Open scratchpad file."
   (interactive)
-  (find-file user-scratchpad-location))
+  (find-file user-scratchpad-path))
 
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
 
@@ -1152,7 +1153,7 @@ into one."
   (setq eyebrowse-new-workspace t)
   (setq eyebrowse-close-window-config-prompt t)
 
-  (setq eyebrowse-mode-line-separator ",")
+  (setq eyebrowse-mode-line-separator " ")
   (setq eyebrowse-mode-line-left-delimiter "[")
   (setq eyebrowse-mode-line-right-delimiter "]")
 
@@ -1558,20 +1559,6 @@ arguments ARG1 and ARG2 to work..."
 
 ;;; Language packages
 
-;; Clojure
-
-(use-package clojure-mode
-  :defer t)
-
-(use-package cider
-  :after clojure-mode
-  :config
-  (setq cider-use-overlays nil)
-  )
-
-(use-package flycheck-clojure
-  :defer t)
-
 ;; Javascript
 
 (use-package js2-mode
@@ -1767,10 +1754,12 @@ arguments ARG1 and ARG2 to work..."
 
   ;; Refresh org-agenda after an org-capture.
   (add-hook 'org-capture-after-finalize-hook 'org-agenda-refresh)
+  ;; ;; Refresh org-agenda on a timer (refreshes the agenda on a new day).
+  ;; (run-with-idle-timer 5 t 'org-agenda-refresh)
 
   ;; Set location of agenda files.
-  (setq org-agenda-files (list user-todo-location
-                               user-work-location
+  (setq org-agenda-files (list user-todo-org
+                               user-work-org
                                ))
   ;; Stop org-agenda from messing up my windows!!
   (defvar org-agenda-window-setup)
@@ -1791,10 +1780,12 @@ arguments ARG1 and ARG2 to work..."
   ;; Go down in steps when completing a path.
   (setq org-outline-path-complete-in-steps nil)
   (setq org-refile-targets '((org-agenda-files . (:maxlevel . 99))
-                             (user-notes-location . (:maxlevel . 99))
-                             (user-dreams-location . (:maxlevel . 99))
-                             (user-work-location . (:maxlevel . 99))
-                             (user-ideas-location . (:maxlevel . 99))
+
+                             (user-notes-org . (:maxlevel . 99))
+                             (user-dreams-org . (:maxlevel . 99))
+                             (user-work-org . (:maxlevel . 99))
+                             (user-ideas-org . (:maxlevel . 99))
+                             (user-projects-org . (:maxlevel . 99))
                              ))
   ;; Jump to headings with completion.
   (setq org-goto-interface 'outline-path-interface
@@ -2040,9 +2031,9 @@ arguments ARG1 and ARG2 to work..."
 (defun emacs-welcome()
   "Display Emacs welcome screen."
   (interactive)
-  (find-file user-notes-location)
+  (find-file user-notes-org)
   (split-window-right-focus)
-  (find-file user-todo-location)
+  (find-file user-todo-org)
   (split-window-right-focus)
   (org-agenda-list)
   )
