@@ -1252,6 +1252,13 @@ arguments ARG1 and ARG2 to work..."
   (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
   )
 
+;; Leetcode interface.
+(use-package leetcode
+  :config
+  (setq leetcode-prefer-language "python3")
+  (setq leetcode-prefer-sql "mysql")
+  )
+
 ;; A package for choosing a color by updating text sample.
 ;; See https://www.emacswiki.org/emacs/MakeColor.
 (use-package make-color
@@ -1941,13 +1948,23 @@ arguments ARG1 and ARG2 to work..."
          (org-agenda-mode . org-recur-agenda-mode))
   :demand t
   :config
+  (defun org-recur-schedule-tomorrow ()
+    (interactive)
+    (org-recur-schedule-date "|+1|"))
+
   (defvar org-recur-mode-map)
   (define-key org-recur-mode-map (kbd "C-c d") 'org-recur-finish)
+  (define-key org-recur-mode-map (kbd "C-c 0") 'org-recur-schedule-today)
+  (define-key org-recur-mode-map (kbd "C-c 1") 'org-recur-schedule-tomorrow)
 
   ;; Rebind the 'd' key in org-agenda (default: `org-agenda-day-view').
   (defvar org-recur-agenda-mode-map)
   (define-key org-recur-agenda-mode-map (kbd "d") 'org-recur-finish)
+  (define-key org-recur-agenda-mode-map (kbd "0") 'org-recur-schedule-today)
+  (define-key org-recur-agenda-mode-map (kbd "1") 'org-recur-schedule-tomorrow)
   (define-key org-recur-agenda-mode-map (kbd "C-c d") 'org-recur-finish)
+  (define-key org-recur-agenda-mode-map (kbd "C-c 0") 'org-recur-schedule-today)
+  (define-key org-recur-agenda-mode-map (kbd "C-c 1") 'org-recur-schedule-tomorrow)
 
   (setq org-recur-finish-done t
         org-recur-finish-archive t)
@@ -1997,6 +2014,11 @@ arguments ARG1 and ARG2 to work..."
                  :category "health"
                  :tag "health"
                  :order 6
+                 )
+          (:name "Financial"
+                 :category "financial"
+                 :tag "financial"
+                 :order 7
                  )
 
           ;; After the last group, the agenda will display items that didn't
