@@ -211,6 +211,9 @@
 
   ;; ag with helm.
   (use-package helm-ag
+    :demand t
+    :bind ("s-o" . helm-ag-pop-stack)
+
     :init
     (setq helm-ag-insert-at-point 'symbol)
     )
@@ -303,8 +306,8 @@
       ;; Open files in existing frames.
       pop-up-frames nil
       pop-up-windows t
-      ;; Tab will first try to indent, then complete.
-      tab-always-indent 'complete
+      ;; Tab will always just try to indent.
+      tab-always-indent 't
       ;; Resize the minibuffer when needed.
       resize-mini-windows t
       ;; Enable recursive editing of minibuffer?
@@ -420,10 +423,6 @@
 (global-set-key (kbd "s-y") 'helm-show-kill-ring)
 (global-set-key (kbd "s-h") 'helm-mark-ring)
 
-(global-set-key (kbd "s-i") 'helm-projectile-ag-inexact)
-(global-set-key (kbd "s-u") 'helm-projectile-ag-exact)
-(global-set-key (kbd "s-o") 'helm-ag-pop-stack)
-
 (global-set-key [f12] 'toggle-frame-fullscreen)
 
 (defun other-window-reverse ()
@@ -470,24 +469,6 @@
       (setq-local display-line-numbers line-numbers))))
 
 (global-set-key (kbd "s-l") 'goto-line-show)
-
-(defun helm-projectile-ag-inexact ()
-  "Run helm-projectile-ag case-insensitive and without word boundaries."
-  (interactive)
-  (save-all)
-  (setq helm-ag-base-command "ag --hidden --nocolor --nogroup --ignore-case")
-  (setq helm-ag-insert-at-point nil)
-  (helm-projectile-ag)
-  )
-(defun helm-projectile-ag-exact ()
-  "Run helm-projectile-ag case-sensitive and with word boundaries."
-  (interactive)
-  (save-all)
-  (setq helm-ag-base-command
-        "ag --hidden --nocolor --nogroup --word-regexp --case-sensitive")
-  (setq helm-ag-insert-at-point 'symbol)
-  (helm-projectile-ag)
-  )
 
 ;; Commands to split window and move focus to other window.
 (defun split-window-below-focus ()
@@ -1144,7 +1125,7 @@ into one."
          ("s-8" . eyebrowse-switch-to-window-config-8)
          ("s-9" . eyebrowse-switch-to-window-config-9)
          ("s-/" . eyebrowse-close-window-config)
-         ("s-t" . eyebrowse-rename-window-config)
+         ("s--" . eyebrowse-rename-window-config)
          )
   :config
   (eyebrowse-mode t)
@@ -1205,15 +1186,16 @@ arguments ARG1 and ARG2 to work..."
 (use-package free-keys
   :defer t)
 
-;; Highlight indentation.
-(use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :config
-  (setq highlight-indent-guides-method 'character
-        highlight-indent-guides-character ?\|
-        highlight-indent-guides-auto-enabled nil
-        )
-  )
+;; REMOVED: Caused too much slowness.
+;; ;; Highlight indentation.
+;; (use-package highlight-indent-guides
+;;   :hook (prog-mode . highlight-indent-guides-mode)
+;;   :config
+;;   (setq highlight-indent-guides-method 'character
+;;         highlight-indent-guides-character ?\|
+;;         highlight-indent-guides-auto-enabled nil
+;;         )
+;;   )
 
 ;; Highlight numbers in code.
 (use-package highlight-numbers
@@ -1230,14 +1212,15 @@ arguments ARG1 and ARG2 to work..."
          )
   )
 
-;; Highlight surrounding parentheses.
-(use-package highlight-parentheses
-  :hook (prog-mode . highlight-parentheses-mode)
-  :config
-  (setq hl-paren-colors '("cyan2")
-        hl-paren-delay highlight-delay
-        )
-  )
+;; REMOVED: Caused too much slowness.
+;; ;; Highlight surrounding parentheses.
+;; (use-package highlight-parentheses
+;;   :hook (prog-mode . highlight-parentheses-mode)
+;;   :config
+;;   (setq hl-paren-colors '("cyan2")
+;;         hl-paren-delay highlight-delay
+;;         )
+;;   )
 
 ;; Highlight more elisp syntax.
 (use-package highlight-quoted
@@ -1250,13 +1233,6 @@ arguments ARG1 and ARG2 to work..."
   (global-hl-todo-mode)
 
   (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
-  )
-
-;; Leetcode interface.
-(use-package leetcode
-  :config
-  (setq leetcode-prefer-language "python3")
-  (setq leetcode-prefer-sql "mysql")
   )
 
 ;; A package for choosing a color by updating text sample.
@@ -1281,10 +1257,12 @@ arguments ARG1 and ARG2 to work..."
 (use-package powerthesaurus
   :defer t)
 
-;; ;; Highlight delimiters with colors depending on depth.
-;; REMOVED: Too slow in large files.
-;; (use-package rainbow-delimiters
-;;   :hook (prog-mode . rainbow-delimiters-mode))
+;; Highlight delimiters with colors depending on depth.
+(use-package rainbow-delimiters
+  :defer t
+  ;; REMOVED: Too slow in large files.
+  ;; :hook (prog-mode . rainbow-delimiters-mode)
+  )
 
 ;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode
@@ -1462,15 +1440,34 @@ arguments ARG1 and ARG2 to work..."
 
 ;;; Project packages
 
-;; ;; Company mode for auto-completion.
-;; REMOVED: Heavy-weight. Tab's completion-at-point seems more useful.
-;; (use-package company
-;;   :bind ("M-/" . company-complete)
-;;   :hook (after-init . global-company-mode)
-;;   :init
-;;   (setq company-idle-delay nil)
-;;   (setq company-tooltip-align-annotations t) ;; Align tooltips to right border.
-;;   )
+;; Company mode for auto-completion.
+(use-package company
+  :bind ("M-/" . company-complete)
+  :hook (after-init . global-company-mode)
+  :init
+  ;; Trigger completion immediately.
+  (setq company-idle-delay 0)
+  ;; Align tooltips to right border.
+  (setq company-tooltip-align-annotations t)
+  ;; Number the candidates (use M-1, M-2 etc to select completions).
+  (setq company-show-numbers t)
+
+  :config
+  ;; Make TAB always complete the current selection.
+  ;; <tab> is for windowed Emacs and TAB is for terminal Emacs.
+  (define-key company-active-map (kbd "<tab>") 'company-complete-selection)
+  (define-key company-active-map (kbd "TAB") 'company-complete-selection)
+  (define-key company-active-map (kbd "<return>") nil)
+  (define-key company-active-map (kbd "RET") nil)
+  )
+
+;; Complete anything.
+(use-package company-tabnine
+  :after company
+  :ensure t
+  :config
+  (add-to-list 'company-backends #'company-tabnine)
+  )
 
 ;; Show markers in margin indicating changes.
 (use-package diff-hl
@@ -1531,9 +1528,33 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Helm interface for projectile.
 (use-package helm-projectile
-  :bind ("s-;" . helm-projectile)
+  :after (helm-ag projectile)
+  :bind (
+         ("s-;" . helm-projectile)
+         ("s-i" . helm-projectile-ag-inexact)
+         ("s-u" . helm-projectile-ag-exact)
+         )
   :config
-  (helm-projectile-on))
+  (defun helm-projectile-ag-inexact ()
+    "Run helm-projectile-ag case-insensitive and without word boundaries."
+    (interactive)
+    (save-all)
+    (setq helm-ag-base-command "ag --hidden --nocolor --nogroup --ignore-case")
+    (setq helm-ag-insert-at-point nil)
+    (helm-projectile-ag)
+    )
+  (defun helm-projectile-ag-exact ()
+    "Run helm-projectile-ag case-sensitive and with word boundaries."
+    (interactive)
+    (save-all)
+    (setq helm-ag-base-command
+          "ag --hidden --nocolor --nogroup --word-regexp --case-sensitive")
+    (setq helm-ag-insert-at-point 'symbol)
+    (helm-projectile-ag)
+    )
+
+  (helm-projectile-on)
+  )
 
 ;; Project manager.
 (use-package projectile
@@ -1566,13 +1587,15 @@ arguments ARG1 and ARG2 to work..."
 
 ;;; Language packages
 
+;; Fish
+
+(use-package fish-mode
+  :defer t)
+
 ;; Javascript
 
 (use-package js2-mode
   :mode "\\.js\\'"
-  :config
-  ;; TODO: use smart-jump here instead. Do we even need to define a key here?
-  (define-key js-mode-map (kbd "M-.") 'dumb-jump-go)
   )
 
 ;; JSON
@@ -1589,10 +1612,6 @@ arguments ARG1 and ARG2 to work..."
   )
 
 ;; Markdown
-
-;; On-the-fly markdown preview. M-x flymd-flyit
-(use-package flymd
-  :defer t)
 
 (use-package markdown-mode
   :mode "\\.md\\'"
@@ -1614,13 +1633,15 @@ arguments ARG1 and ARG2 to work..."
 ;; Nim
 
 (use-package nim-mode
+  :defer t
   :config
   (define-key nim-mode-map (kbd "RET") 'newline-and-indent)
   )
 
 ;; Processing
 
-(use-package processing-mode)
+(use-package processing-mode
+  :defer t)
 
 ;; Rust
 
