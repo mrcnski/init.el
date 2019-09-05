@@ -118,24 +118,26 @@
 ;;; Helm
 
 (use-package helm
+  :bind (
+         ("M-x" . helm-M-x)
+         ("C-x C-f" . helm-find-files)
+         ("C-h C-a" . helm-apropos)
+         ("M-i" . helm-semantic-or-imenu)
+
+         :map helm-map
+
+         ;; Rebind tab to run persistent action.
+         ("<tab>" . helm-execute-persistent-action)
+         ;; Alternate TAB key that works in terminal.
+         ("C-i" . helm-execute-persistent-action)
+         ("C-z" . helm-select-action) ;; List actions using C-z.
+         ("M-x" . helm-select-action)
+         )
   :init
   (require 'helm-config)
   :config
   (helm-mode t)
 
-  ;; Rebind tab to run persistent action.
-  (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
-  ;; Alternate TAB key that works in terminal.
-  (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
-  (define-key helm-map (kbd "C-z") 'helm-select-action) ;; List actions using C-z.
-  (define-key helm-map (kbd "M-x") 'helm-select-action)
-
-  (global-set-key (kbd "M-x") 'helm-M-x)
-  (global-set-key (kbd "C-x C-f") 'helm-find-files)
-  (global-set-key (kbd "C-h C-a") 'helm-apropos)
-  (global-set-key (kbd "M-i") 'helm-semantic-or-imenu)
-
-  (setq helm-follow-mode-persistent t)
 
   (defvar helm-buffers-fuzzy-matching)
   (defvar helm-recentf-fuzzy-match)
@@ -161,6 +163,9 @@
    helm-scroll-amount 8
    helm-ff-file-name-history-use-recentf t
    helm-echo-input-in-header-line t
+   helm-follow-mode-persistent t
+   ;; How long to wait before executing helm-follow persistent action.
+   helm-follow-input-idle-delay highlight-delay
    )
 
   (defvar helm-buffers-column-separator)
@@ -192,30 +197,39 @@
   (use-package helm-swoop
     ;; To prevent bug where `helm-swoop-from-isearch' doesn't work the first time.
     :demand t
-    :bind (("C-;" . helm-swoop-without-pre-input)
-           ("C-:" . helm-multi-swoop-all))
+    :bind (
+           ("C-;" . helm-swoop-without-pre-input)
+           ("C-:" . helm-multi-swoop-all)
+
+           :map helm-swoop-map
+
+           ;; Move up and down like isearch
+           ("C-r" . helm-previous-line)
+           ("C-s" . helm-next-line)
+
+           ;; From helm-swoop to helm-multi-swoop-all.
+           ("C-;" . helm-multi-swoop-all-from-helm-swoop)
+
+           :map helm-multi-swoop-map
+
+           ("C-r" . helm-previous-line)
+           ("C-s" . helm-next-line)
+
+           :map isearch-mode-map
+
+           ;; When doing isearch, hand the word over to helm-swoop.
+           ("C-;" . helm-swoop-from-isearch)
+           )
     :config
-    ;; Move up and down like isearch
-    (define-key helm-swoop-map (kbd "C-r") 'helm-previous-line)
-    (define-key helm-swoop-map (kbd "C-s") 'helm-next-line)
-    (define-key helm-multi-swoop-map (kbd "C-r") 'helm-previous-line)
-    (define-key helm-multi-swoop-map (kbd "C-s") 'helm-next-line)
-
-    ;; When doing isearch, hand the word over to helm-swoop.
-    (define-key isearch-mode-map (kbd "C-;") 'helm-swoop-from-isearch)
-    ;; From helm-swoop to helm-multi-swoop-all.
-    (define-key helm-swoop-map (kbd "C-;") 'helm-multi-swoop-all-from-helm-swoop)
-
-    (setq helm-swoop-speed-or-color t) ;; Show syntax highlighting in results.
-    )
-
-  ;; ag with helm.
-  (use-package helm-ag
-    :demand t
-    :bind ("s-o" . helm-ag-pop-stack)
-
-    :init
-    (setq helm-ag-insert-at-point 'symbol)
+    (setq
+     ;; Show syntax highlighting in results.
+     helm-swoop-speed-or-color t
+     ;; Fix line number face issue.
+     helm-swoop-use-line-number-face t
+     ;; Split the window vertically.
+     helm-swoop-split-with-multiple-windows t
+     helm-swoop-split-direction 'split-window-vertically
+     )
     )
   )
 
@@ -248,14 +262,15 @@
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
 
-(setq-default indent-tabs-mode nil
-              tab-width 4
-              fill-column 80
-              ;; Highlight end of buffer?
-              indicate-empty-lines t
-              ;; Inhibit backups?
-              backup-inhibited t
-              )
+(setq-default
+ indent-tabs-mode nil
+ tab-width 4
+ fill-column 80
+ ;; Highlight end of buffer?
+ indicate-empty-lines t
+ ;; Inhibit backups?
+ backup-inhibited t
+ )
 
 ;; Enable show-trailing-whitespace.
 (defun enable-trailing-whitespace ()
@@ -303,6 +318,8 @@
       ;; Delay for displaying function/variable information.
       eldoc-idle-delay info-delay
 
+      ;; Where should we open new buffers?
+      display-buffer-base-action '(display-buffer-below-selected)
       ;; Open files in existing frames.
       pop-up-frames nil
       pop-up-windows t
@@ -423,6 +440,9 @@
 (global-set-key (kbd "s-y") 'helm-show-kill-ring)
 (global-set-key (kbd "s-h") 'helm-mark-ring)
 
+;; Disable annoying popup on OSX.
+(global-set-key (kbd "s-t") nil)
+
 (global-set-key [f12] 'toggle-frame-fullscreen)
 
 (defun other-window-reverse ()
@@ -456,6 +476,9 @@
 
 ;; Automatically save all file-visiting buffers when Emacs loses focus.
 (add-hook 'focus-out-hook 'save-all)
+;; Run `save-all' when idle for a while.
+;; Shouldn't run too quickly as it is a bit distracting.
+(run-with-idle-timer 60 t 'save-all)
 
 (defun goto-line-show ()
   "Show line numbers temporarily, while prompting for the line number input."
@@ -565,12 +588,11 @@ another window."
 ;; Select from point onwards instead of the entire line.
 ;; + Behaves like C-k.
 ;; + Can choose whether to keep indentation (run either C-a or M-m beforehand).
-;; + Being able to select  from point onwards comes in handy much of the time.
+;; + Being able to select from point onwards comes in handy much of the time.
 (defun select-line ()
   "Select the rest of the current line."
   (interactive)
   (push-mark (line-end-position) nil t)
-  ;; (kill-ring-save nil nil t) ;; Save the current region.
   )
 
 ;; Replace default C-l, it's useless.
@@ -749,7 +771,8 @@ into one."
 
 ;; Turn on blinking/flashing cursor.
 (blink-cursor-mode t)
-(setq blink-cursor-blinks 0) ;; Blink forever!
+;; Blink forever!
+(setq blink-cursor-blinks 0)
 (when (display-graphic-p)
   (setq-default cursor-type 'box))
 ;; Stretch cursor to be as wide as the character at point.
@@ -1063,24 +1086,6 @@ into one."
 (use-package copy-as-format
   :defer t)
 
-;; ;; Wrap parentheses or quotes around word.
-;; REMOVED: Took up too many useful keybindings.
-;;          Looking for a more intuitive replacement.
-;; (use-package corral
-;;   :bind (
-;;          ("M-(" . corral-parentheses-backward)
-;;          ("M-)" . corral-parentheses-forward)
-;;          ("M-[" . corral-brackets-backward)
-;;          ("M-]" . corral-brackets-forward)
-;;          ;; ("M-{" . corral-braces-backward) ;; Useful keys by default.
-;;          ;; ("M-}" . corral-braces-forward)
-;;          ("M-`" . corral-backquote-forward)
-;;          ("M-~" . corral-backquote-backward)
-;;          ;; ("M-'"  . corral-double-quotes-forward)
-;;          ;; ("M-\"" . corral-double-quotes-backward)
-;;          )
-;;   :config (setq corral-preserve-point t))
-
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover
   :defer 2)
@@ -1186,16 +1191,17 @@ arguments ARG1 and ARG2 to work..."
 (use-package free-keys
   :defer t)
 
-;; REMOVED: Caused too much slowness.
-;; ;; Highlight indentation.
-;; (use-package highlight-indent-guides
-;;   :hook (prog-mode . highlight-indent-guides-mode)
-;;   :config
-;;   (setq highlight-indent-guides-method 'character
-;;         highlight-indent-guides-character ?\|
-;;         highlight-indent-guides-auto-enabled nil
-;;         )
-;;   )
+;; Highlight indentation.
+(use-package highlight-indent-guides
+  :defer t
+  ;; REMOVED: Caused too much slowness.
+  ;; :hook (prog-mode . highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'character
+        highlight-indent-guides-character ?\|
+        highlight-indent-guides-auto-enabled nil
+        )
+  )
 
 ;; Highlight numbers in code.
 (use-package highlight-numbers
@@ -1242,13 +1248,21 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Multiple cursors.
 (use-package multiple-cursors
+  :bind (
+         ("C-{" . mc/mark-previous-like-this)
+         ("C-}" . mc/mark-next-like-this)
+
+         ;; Add cursors with the mouse!
+         ("C-S-<mouse-1>" . mc/add-cursor-on-click)
+
+         :map mc/keymap
+
+         ;; Reclaim RET.
+         ("<return>" . nil)
+         )
   :config
-  (global-set-key (kbd "C-{") 'mc/mark-previous-like-this)
-  (global-set-key (kbd "C-}") 'mc/mark-next-like-this)
-  (define-key mc/keymap (kbd "<return>") nil)
-  ;; Add cursors with the mouse!
+  ;; TODO: Don't remember why.
   (global-unset-key (kbd "M-<down-mouse-1>"))
-  (global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 
   (setq mc/always-run-for-all t)
   )
@@ -1292,6 +1306,9 @@ arguments ARG1 and ARG2 to work..."
   ;; Don't display eyebrowse workspace numbers (displayed in title bar instead).
   (defvar spaceline-workspace-number-p)
   (setq spaceline-workspace-number-p nil)
+  ;; Don't display line ending type.
+  (defvar spaceline-buffer-encoding-abbrev-p)
+  (setq spaceline-buffer-encoding-abbrev-p nil)
 
   (spaceline-spacemacs-theme)
   (spaceline-helm-mode)
@@ -1401,8 +1418,7 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Automatically clean up extraneous whitespace.
 (use-package ws-butler
-  :hook (
-         (prog-mode . ws-butler-mode)
+  :hook ((prog-mode . ws-butler-mode)
          (text-mode . ws-butler-mode)
          ))
 
@@ -1410,7 +1426,8 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Interface with GitHub etc. from Magit.
 (use-package forge
-  :defer 2)
+  :after magit
+  )
 
 ;; Generate links to Github for current code location.
 (use-package git-link
@@ -1432,6 +1449,7 @@ arguments ARG1 and ARG2 to work..."
   (setq
    ;; Show fine differences for all displayed diff hunks.
    magit-diff-refine-hunk `all
+   ;; How to display new magit buffers?
    magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
    ;; Don't ask before saving repository buffers.
    magit-save-repository-buffers 'dontask
@@ -1442,31 +1460,72 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Company mode for auto-completion.
 (use-package company
-  :bind ("M-/" . company-complete)
-  :hook (after-init . global-company-mode)
+  :bind (
+         ("M-/" . company-complete)
+
+         :map company-active-map
+
+         ("C-h" . nil)
+         ("C-s" . company-isearch-forward)
+         ("C-r" . company-isearch-backward)
+
+         ;; ;; Prevent SPC from ever triggering a completion.
+         ;; ("SPC" . nil)
+
+         ;; Make TAB always complete the current selection.
+         ;; <tab> is for windowed Emacs and TAB is for terminal Emacs.
+         ("<tab>" . company-complete-selection)
+         ("TAB" . company-complete-selection)
+
+         ;; Do not complete with RET; should start a new line.
+         ("<return>" . nil)
+         ("RET" . nil)
+         )
+  :hook (prog-mode . company-mode)
   :init
   ;; Trigger completion immediately.
   (setq company-idle-delay 0)
+  (setq company-minimum-prefix-length 1)
   ;; Align tooltips to right border.
   (setq company-tooltip-align-annotations t)
-  ;; Number the candidates (use M-1, M-2 etc to select completions).
+  ;; Number the candidates? (Use C-M-1, C-M-2 etc to select completions.)
   (setq company-show-numbers t)
 
   :config
-  ;; Make TAB always complete the current selection.
-  ;; <tab> is for windowed Emacs and TAB is for terminal Emacs.
-  (define-key company-active-map (kbd "<tab>") 'company-complete-selection)
-  (define-key company-active-map (kbd "TAB") 'company-complete-selection)
-  (define-key company-active-map (kbd "<return>") nil)
-  (define-key company-active-map (kbd "RET") nil)
+  (defun company-isearch-backward ()
+    "Abort company and search backward."
+    (interactive)
+    (company-abort)
+    (isearch-backward)
+    )
+  (defun company-isearch-forward ()
+    "Abort company and search forward."
+    (interactive)
+    (company-abort)
+    (isearch-forward)
+    )
+
+  ;; Rebind the M-digit keys to prevent conflict with winum.
+  (dotimes (i 10)
+    (define-key company-active-map (kbd (format "M-%d" i)) nil)
+    (define-key company-active-map (read-kbd-macro (format "C-M-%d" i)) 'company-complete-number))
+
+  ;; Allow typing normally.
+  (setq company-require-match nil)
+
+  ;; Add commands that should abort completion.
+  (add-to-list 'company-continue-commands 'rust-format-buffer t)
+  (add-to-list 'company-continue-commands 'indent-buffer t)
   )
 
 ;; Complete anything.
 (use-package company-tabnine
   :after company
-  :ensure t
   :config
   (add-to-list 'company-backends #'company-tabnine)
+
+  (setq company-tabnine-always-trigger t)
+  (setq company-tabnine-auto-balance nil)
   )
 
 ;; Show markers in margin indicating changes.
@@ -1504,6 +1563,7 @@ arguments ARG1 and ARG2 to work..."
 (use-package flycheck
   :hook ((prog-mode . flycheck-mode)
          (text-mode . flycheck-mode)
+         (conf-mode . flycheck-mode)
          )
   :commands flycheck-mode
   :bind ("C-!" . flycheck-list-errors)
@@ -1526,6 +1586,12 @@ arguments ARG1 and ARG2 to work..."
 (use-package flycheck-package
   :hook (flycheck-mode . flycheck-package-setup))
 
+;; ag/rg with helm.
+(use-package helm-ag
+  :demand t
+  :bind ("s-o" . helm-ag-pop-stack)
+  )
+
 ;; Helm interface for projectile.
 (use-package helm-projectile
   :after (helm-ag projectile)
@@ -1536,15 +1602,18 @@ arguments ARG1 and ARG2 to work..."
          )
   :config
   (defun helm-projectile-ag-inexact ()
-    "Run helm-projectile-ag case-insensitive and without word boundaries."
+    "Run helm-projectile-ag, case-insensitive and without word
+boundaries."
     (interactive)
     (save-all)
-    (setq helm-ag-base-command "ag --hidden --nocolor --nogroup --ignore-case")
+    (setq helm-ag-base-command
+          "ag --hidden --nocolor --nogroup --ignore-case")
     (setq helm-ag-insert-at-point nil)
     (helm-projectile-ag)
     )
   (defun helm-projectile-ag-exact ()
-    "Run helm-projectile-ag case-sensitive and with word boundaries."
+    "Run helm-projectile-ag, case-sensitive and with word
+boundaries."
     (interactive)
     (save-all)
     (setq helm-ag-base-command
@@ -1566,9 +1635,10 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Jump to definitions using dumb-jump as a fallback.
 (use-package smart-jump
-  :ensure t
   :config
-  (smart-jump-setup-default-registers))
+  (smart-jump-setup-default-registers)
+  (setq dumb-jump-selector 'helm)
+  )
 
 ;; ;; Yasnippet.
 ;; ;; NOTE: list all snippets for current mode with M-x `yas-describe-tables'.
@@ -1586,6 +1656,9 @@ arguments ARG1 and ARG2 to work..."
 ;;   )
 
 ;;; Language packages
+
+(use-package csharp-mode
+  :defer t)
 
 ;; Fish
 
@@ -1613,17 +1686,12 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Markdown
 
+;; Markdown previews.
+(use-package grip-mode
+  :commands grip-mode)
+
 (use-package markdown-mode
   :mode "\\.md\\'"
-  :hook (markdown-mode . markdown-mode-hook-fun)
-  :init
-  (defun markdown-mode-hook-fun ()
-    "Initialize markdown-mode"
-
-    ;; Unbind keys stolen by this idiotic mode.
-    (local-unset-key (kbd "M-n"))
-    (local-unset-key (kbd "M-p"))
-    )
   )
 
 (use-package markdown-toc
@@ -1633,9 +1701,8 @@ arguments ARG1 and ARG2 to work..."
 ;; Nim
 
 (use-package nim-mode
+  :bind (:map nim-mode-map ("RET" . newline-and-indent))
   :defer t
-  :config
-  (define-key nim-mode-map (kbd "RET") 'newline-and-indent)
   )
 
 ;; Processing
@@ -1646,21 +1713,21 @@ arguments ARG1 and ARG2 to work..."
 ;; Rust
 
 (use-package racer
+  :bind (
+         :map racer-mode-map
+         ("M-," . smart-jump-back)
+         ("M-." . smart-jump-go)
+         )
   :hook ((rust-mode . racer-mode))
   :config
   ;; Don't insert argument placeholders when completing a function.
   (setq racer-complete-insert-argument-placeholders nil)
-
-  (define-key racer-mode-map (kbd "M-,") 'smart-jump-back)
-  (define-key racer-mode-map (kbd "M-.") 'smart-jump-go)
   )
 
 (use-package rust-mode
-  :mode "\\.rs\\'"
+  :bind (:map rust-mode-map ("C-c n" . rust-format-buffer))
   :config
   (setq rust-format-on-save nil)
-
-  (define-key rust-mode-map (kbd "C-c n") 'rust-format-buffer)
   )
 
 ;; TOML
@@ -1677,6 +1744,30 @@ arguments ARG1 and ARG2 to work..."
 ;;; Org Mode
 
 (use-package org
+  :bind (
+         ("C-c l" . org-store-link)
+         ("C-c a" . org-agenda-list)
+         ;; ("C-c c" . org-note-capture)
+         ;; ("C-c v" . org-task-capture)
+
+         ("s-'" . org-refile-goto)
+         ("s-\"" . org-refile)
+         ;; Jump to last refile or capture.
+         ("C-c j" . org-refile-goto-last-stored)
+
+         :map org-mode-map
+
+         ("<s-return>" . org-meta-return-end)
+         ("C-S-n" . org-metadown)
+         ("C-S-p" . org-metaup)
+         ("C-<" . org-shiftmetaleft)
+         ("C->" . org-shiftmetaright)
+         ("M-m" . org-beginning-of-line)
+         ("C-^" . org-up-element)
+         ("C-j" . join-next-line)
+
+         ("<mouse-3>" . mouse-org-cycle)
+         )
   :mode (("\\.org$" . org-mode))
   :hook ((org-mode . org-mode-hook-fun)
          (org-agenda-mode . org-agenda-mode-hook-fun))
@@ -1703,6 +1794,7 @@ arguments ARG1 and ARG2 to work..."
     (visual-line-mode)
     (toggle-word-wrap t)
 
+    ;; Set this on initialization of org-agenda to prevent errors.
     (defvar org-agenda-mode-map)
     (define-key org-agenda-mode-map (kbd "s-\"") 'org-agenda-refile)
     )
@@ -1717,11 +1809,14 @@ arguments ARG1 and ARG2 to work..."
 
   ;; Don't align tags.
   ;; Keep this in :init so that no org-files are opened without these settings.
-  ;; Should (hopefully) fix tag alignment getting messed up.
+  ;; NOTE: Doesn't seem to fix tag alignment getting messed up.
   (setq org-tags-column 0
         org-auto-align-tags nil)
 
   :config
+
+  ;; Markdown export.
+  (use-package ox-gfm)
 
   ;;; Settings
 
@@ -1749,6 +1844,7 @@ arguments ARG1 and ARG2 to work..."
   ;; M-RET should not split the heading if point is not at the end of a line.
   ;; (setq org-M-RET-may-split-line nil)
 
+  ;; Should ‘org-insert-heading’ leave a blank line before new heading/item?
   (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
 
   ;; Custom to-do states.
@@ -1807,14 +1903,15 @@ arguments ARG1 and ARG2 to work..."
   (setq org-refile-use-outline-path t)
   ;; Go down in steps when completing a path.
   (setq org-outline-path-complete-in-steps nil)
-  (setq org-refile-targets '((org-agenda-files . (:maxlevel . 99))
+  (setq org-refile-targets
+        '((org-agenda-files . (:maxlevel . 99))
 
-                             (user-notes-org . (:maxlevel . 99))
-                             (user-dreams-org . (:maxlevel . 99))
-                             (user-work-org . (:maxlevel . 99))
-                             (user-ideas-org . (:maxlevel . 99))
-                             (user-projects-org . (:maxlevel . 99))
-                             ))
+          (user-notes-org . (:maxlevel . 99))
+          (user-dreams-org . (:maxlevel . 99))
+          (user-work-org . (:maxlevel . 99))
+          (user-ideas-org . (:maxlevel . 99))
+          (user-projects-org . (:maxlevel . 99))
+          ))
   ;; Jump to headings with completion.
   (setq org-goto-interface 'outline-path-interface
         org-goto-max-level 99)
@@ -1823,14 +1920,14 @@ arguments ARG1 and ARG2 to work..."
   ;; is asinine.
   (setq org-show-context-detail '((default . tree)))
 
-  ;; org-capture template.
-  (defvar org-capture-templates
-    '(("t" "My TODO task format." entry
-       (file+headline "todo.org" "General")
-       "* %?\nSCHEDULED: %t")
-      ("n" "My note format." entry
-       (file "notes.org")
-       "* %?")))
+  ;; ;; org-capture template.
+  ;; (defvar org-capture-templates
+  ;;   '(("t" "My TODO task format." entry
+  ;;      (file+headline "todo.org" "General")
+  ;;      "* %?\nSCHEDULED: %t")
+  ;;     ("n" "My note format." entry
+  ;;      (file "notes.org")
+  ;;      "* %?")))
 
   ;; Shortcuts/Keybindings
 
@@ -1840,15 +1937,15 @@ arguments ARG1 and ARG2 to work..."
     (let ((current-prefix-arg '(4))) (call-interactively 'org-refile))
     )
 
-  ;; org-capture with template as default behavior.
-  (defun org-task-capture ()
-    "Capture a task with my todo template."
-    (interactive)
-    (org-capture nil "t"))
-  (defun org-note-capture ()
-    "Capture a note with my note template."
-    (interactive)
-    (org-capture nil "n"))
+  ;; ;; org-capture with template as default behavior.
+  ;; (defun org-task-capture ()
+  ;;   "Capture a task with my todo template."
+  ;;   (interactive)
+  ;;   (org-capture nil "t"))
+  ;; (defun org-note-capture ()
+  ;;   "Capture a note with my note template."
+  ;;   (interactive)
+  ;;   (org-capture nil "n"))
 
   (defun org-meta-return-end ()
     "Go to end of visual line before calling org-meta-return."
@@ -1863,32 +1960,6 @@ arguments ARG1 and ARG2 to work..."
       (call-interactively 'org-cycle)
       )
     )
-
-  ;; Local keybindings.
-
-  (define-key org-mode-map (kbd "<s-return>") 'org-meta-return-end)
-  (define-key org-mode-map (kbd "C-S-n") 'org-metadown)
-  (define-key org-mode-map (kbd "C-S-p") 'org-metaup)
-  (define-key org-mode-map (kbd "C-<") 'org-shiftmetaleft)
-  (define-key org-mode-map (kbd "C->") 'org-shiftmetaright)
-  (define-key org-mode-map (kbd "M-m") 'org-beginning-of-line)
-  (define-key org-mode-map (kbd "C-^") 'org-up-element)
-  (define-key org-mode-map (kbd "s-\"") 'org-refile)
-  (define-key org-mode-map (kbd "C-j") 'join-next-line)
-
-  (define-key org-mode-map (kbd "<mouse-3>") 'mouse-org-cycle)
-
-  ;; Global keybindings.
-
-  (global-set-key (kbd "s-'") 'org-refile-goto)
-
-  (global-set-key (kbd "C-c l") 'org-store-link)
-  (global-set-key (kbd "C-c a") 'org-agenda-list) ;; Switch to org-agenda.
-  (global-set-key (kbd "C-c c") 'org-note-capture) ;; org-capture.
-  (global-set-key (kbd "C-c v") 'org-task-capture)
-
-  ;; Jump to last capture.
-  (global-set-key (kbd "C-c j") 'org-refile-goto-last-stored)
   )
 
 ;; Try to fix the annoying tendency of this function to scroll the point to some
@@ -1965,27 +2036,36 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Recurring org-mode tasks.
 (use-package org-recur
+  :bind (
+         :map org-recur-mode-map
+
+         ("C-c d" . org-recur-finish)
+         ("C-c 0" . org-recur-schedule-today)
+         ("C-c 1" . org-recur-schedule-1)
+         ("C-c 2" . org-recur-schedule-2)
+
+         :map org-recur-agenda-mode-map
+
+         ;; Rebind the 'd' key in org-agenda (default: `org-agenda-day-view').
+         ("d" . org-recur-finish)
+         ("0" . org-recur-schedule-today)
+         ("1" . org-recur-schedule-1)
+         ("2" . org-recur-schedule-2)
+         ("C-c d" . org-recur-finish)
+         ("C-c 0" . org-recur-schedule-today)
+         ("C-c 1" . org-recur-schedule-1)
+         ("C-c 2" . org-recur-schedule-2)
+         )
   :hook ((org-mode . org-recur-mode)
          (org-agenda-mode . org-recur-agenda-mode))
   :demand t
   :config
-  (defun org-recur-schedule-tomorrow ()
+  (defun org-recur-schedule-1 ()
     (interactive)
     (org-recur-schedule-date "|+1|"))
-
-  (defvar org-recur-mode-map)
-  (define-key org-recur-mode-map (kbd "C-c d") 'org-recur-finish)
-  (define-key org-recur-mode-map (kbd "C-c 0") 'org-recur-schedule-today)
-  (define-key org-recur-mode-map (kbd "C-c 1") 'org-recur-schedule-tomorrow)
-
-  ;; Rebind the 'd' key in org-agenda (default: `org-agenda-day-view').
-  (defvar org-recur-agenda-mode-map)
-  (define-key org-recur-agenda-mode-map (kbd "d") 'org-recur-finish)
-  (define-key org-recur-agenda-mode-map (kbd "0") 'org-recur-schedule-today)
-  (define-key org-recur-agenda-mode-map (kbd "1") 'org-recur-schedule-tomorrow)
-  (define-key org-recur-agenda-mode-map (kbd "C-c d") 'org-recur-finish)
-  (define-key org-recur-agenda-mode-map (kbd "C-c 0") 'org-recur-schedule-today)
-  (define-key org-recur-agenda-mode-map (kbd "C-c 1") 'org-recur-schedule-tomorrow)
+  (defun org-recur-schedule-2 ()
+    (interactive)
+    (org-recur-schedule-date "|+2|"))
 
   (setq org-recur-finish-done t
         org-recur-finish-archive t)
