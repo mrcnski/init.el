@@ -1109,7 +1109,6 @@ into one."
   :bind ("C-=" . er/expand-region)
   :config
   ;; Fix region not highlighting.
-  ;; See https://github.com/magnars/expand-region.el/issues/229
   (setq shift-select-mode nil)
   (setq expand-region-fast-keys-enabled nil)
   )
@@ -1171,6 +1170,11 @@ arguments ARG1 and ARG2 to work..."
                          (format " - %s - %s" eyebrowse-workspaces (eyebrowse-current-workspace))))
                t
                )
+  )
+
+;; Use a fancy battery.
+(use-package fancy-battery
+  :hook (after-init . fancy-battery-mode)
   )
 
 ;; Fix the capitalization commands.
@@ -1309,6 +1313,9 @@ arguments ARG1 and ARG2 to work..."
   ;; Don't display line ending type.
   (defvar spaceline-buffer-encoding-abbrev-p)
   (setq spaceline-buffer-encoding-abbrev-p nil)
+
+  ;; Change the modeline display when the buffer has been modified or is read-only.
+  (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified)
 
   (spaceline-spacemacs-theme)
   (spaceline-helm-mode)
