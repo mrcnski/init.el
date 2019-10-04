@@ -29,7 +29,7 @@
 
 ;;; User-Defined Variables
 
-(defvar user-text-directory "~/Dropbox/Text/")
+(defvar user-text-directory "~/Text/")
 (defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
 (defvar user-org-directory (concat user-text-directory "org/"))
 
@@ -804,7 +804,7 @@ into one."
 
 ;; Nimbus is my personal theme, available on Melpa.
 (use-package nimbus-theme
-  :load-path "~/Dropbox/Code/Elisp/nimbus-theme")
+  :load-path "~/Code/Elisp/nimbus-theme")
 
 ;; Set font only if we're not in the terminal.
 (when (display-graphic-p)
@@ -1172,11 +1172,6 @@ arguments ARG1 and ARG2 to work..."
                )
   )
 
-;; Use a fancy battery.
-(use-package fancy-battery
-  :hook (after-init . fancy-battery-mode)
-  )
-
 ;; Fix the capitalization commands.
 (use-package fix-word
   :bind (("M-u" . fix-word-upcase)
@@ -1221,16 +1216,6 @@ arguments ARG1 and ARG2 to work..."
          ;; (rust-mode . highlight-operators-mode)
          )
   )
-
-;; REMOVED: Caused too much slowness.
-;; ;; Highlight surrounding parentheses.
-;; (use-package highlight-parentheses
-;;   :hook (prog-mode . highlight-parentheses-mode)
-;;   :config
-;;   (setq hl-paren-colors '("cyan2")
-;;         hl-paren-delay highlight-delay
-;;         )
-;;   )
 
 ;; Highlight more elisp syntax.
 (use-package highlight-quoted
@@ -1532,7 +1517,7 @@ arguments ARG1 and ARG2 to work..."
   (add-to-list 'company-backends #'company-tabnine)
 
   (setq company-tabnine-always-trigger t)
-  (setq company-tabnine-auto-balance nil)
+  (setq company-tabnine-auto-balance t)
   )
 
 ;; Show markers in margin indicating changes.
@@ -1888,19 +1873,20 @@ boundaries."
   ;; ;; Refresh org-agenda on a timer (refreshes the agenda on a new day).
   ;; (run-with-idle-timer 5 t 'org-agenda-refresh)
 
-  ;; Set location of agenda files.
-  (setq org-agenda-files (list user-todo-org
-                               user-work-org
-                               ))
-  ;; Stop org-agenda from messing up my windows!!
   (defvar org-agenda-window-setup)
-  (setq org-agenda-window-setup 'current-window)
-  ;; Start org-agenda from the current day.
   (defvar org-agenda-start-on-weekday)
-  (setq org-agenda-start-on-weekday nil)
-  ;; Don't align tags in the org-agenda (sometimes it messes up the display).
   (defvar org-agenda-tags-column)
-  (setq org-agenda-tags-column 0)
+  (setq
+   ;; Set location of agenda files.
+   org-agenda-files (list user-todo-org
+                          user-work-org
+                          )
+   ;; Stop org-agenda from messing up my windows!!
+   org-agenda-window-setup 'current-window
+   ;; Start org-agenda from the current day.
+   org-agenda-start-on-weekday nil
+   ;; Don't align tags in the org-agenda (sometimes it messes up the display).
+   org-agenda-tags-column 0)
 
   ;; org-refile settings
 
