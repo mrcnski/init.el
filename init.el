@@ -100,8 +100,6 @@
   (use-package exec-path-from-shell
     :config
     (exec-path-from-shell-initialize)
-    (exec-path-from-shell-copy-env "RUST_SRC_PATH")
-    (exec-path-from-shell-copy-env "HISTSIZE")
     ))
 
 ;; ;; Ensure system binaries exist and download them if not
@@ -132,6 +130,11 @@
          ("C-i" . helm-execute-persistent-action)
          ("C-z" . helm-select-action) ;; List actions using C-z.
          ("M-x" . helm-select-action)
+
+         :map minibuffer-local-isearch-map
+
+         ;; No reason, and annoying, to bring up `helm-minibuffer-history' here.
+         ("C-r" . isearch-reverse-exit-minibuffer)
          )
   :init
   (require 'helm-config)
@@ -318,8 +321,18 @@
       ;; Delay for displaying function/variable information.
       eldoc-idle-delay info-delay
 
-      ;; Where should we open new buffers?
+      ;; Where should we open new buffers by default?
       display-buffer-base-action '(display-buffer-below-selected)
+      ;; Specify custom behavior for misbehaving buffers.
+      display-buffer-alist
+      '(("\\*Help\\*"
+         (display-buffer-reuse-window
+          display-buffer-below-selected))
+        ("\\*Ibuffer\\*"
+         (display-buffer-same-window))
+        ;; ("\\*diff-hl\\*"
+        ;;  (display-buffer-same-window))
+        )
       ;; Open files in existing frames.
       pop-up-frames nil
       pop-up-windows t
@@ -342,11 +355,12 @@
       )
 
 ;; Change window name to be more descriptive.
-(setq frame-title-format '((:eval (when (and (buffer-modified-p) buffer-file-name) "*"))
-                           "Emacs - "
-                           (buffer-file-name
-                            "%f" (dired-directory dired-directory "%b"))
-                           ))
+(setq frame-title-format
+      '((:eval (when (and (buffer-modified-p) buffer-file-name) "*"))
+        "Emacs - "
+        (buffer-file-name
+         "%f" (dired-directory dired-directory "%b"))
+        ))
 
 ;; Set c-style comments to be "//" by default (these are just better, sorry).
 (add-hook 'c-mode-common-hook
@@ -364,22 +378,6 @@
 (add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
 (add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
-
-;; Set up gpg.
-
-;; Fix EasyPG error.
-;; From https://colinxy.github.io/software-installation/2016/09/24/emacs25-easypg-issue.html.
-(defvar epa-pinentry-mode)
-(setq epa-pinentry-mode 'loopback)
-
-(setenv "GPG_AGENT_INFO" nil)
-(setq epg-gpg-program "/usr/local/bin/gpg2")
-(require 'epa-file)
-
-(require 'password-cache)
-
-(setq password-cache-expiry (* 15 60))
-(setq epa-file-cache-passphrase-for-symmetric-encryption t)
 
 ;; Set some built-in modes.
 
@@ -418,6 +416,22 @@
 (defvar show-paren-delay)
 (setq show-paren-delay highlight-delay)
 (show-paren-mode t)
+
+;; Set up gpg.
+;; For full instructions, see https://emacs.stackexchange.com/a/12213.
+
+;; Don't bring up key recipient dialogue.
+(require 'epa-file)
+(setq epa-file-select-keys nil)
+(setq epa-file-encrypt-to '("scatman@bu.edu"))
+
+;; Fix EasyPG error.
+;; From https://colinxy.github.io/software-installation/2016/09/24/emacs25-easypg-issue.html.
+(defvar epa-pinentry-mode)
+(setq epa-pinentry-mode 'loopback)
+
+;; Increase the password cache expiry time.
+(setq password-cache-expiry (* 60 15))
 
 ;; Mouse settings
 
@@ -804,7 +818,7 @@ into one."
 
 ;; Nimbus is my personal theme, available on Melpa.
 (use-package nimbus-theme
-  :load-path "~/Code/Elisp/nimbus-theme")
+  :load-path "~/projects/nimbus-theme")
 
 ;; Set font only if we're not in the terminal.
 (when (display-graphic-p)
@@ -1230,6 +1244,10 @@ arguments ARG1 and ARG2 to work..."
   (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
   )
 
+;; Convert buffer text and decorations to HTML.
+(use-package htmlize
+  :defer t)
+
 ;; A package for choosing a color by updating text sample.
 ;; See https://www.emacswiki.org/emacs/MakeColor.
 (use-package make-color
@@ -1445,6 +1463,8 @@ arguments ARG1 and ARG2 to work..."
    magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
    ;; Don't ask before saving repository buffers.
    magit-save-repository-buffers 'dontask
+   ;; Stop magit from stupidly messing up my window configuration when quitting buffers.
+   magit-bury-buffer-function 'quit-window
    )
   )
 
@@ -1522,6 +1542,7 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Show markers in margin indicating changes.
 (use-package diff-hl
+  :load-path "~/repos/diff-hl"
   :bind (
          ("C-?" . diff-hl-revert-hunk)
          ("M-[" . diff-hl-previous-hunk)
@@ -1542,8 +1563,6 @@ arguments ARG1 and ARG2 to work..."
 
   ;; Show diffs in margin when running in terminal.
   (unless (window-system) (diff-hl-margin-mode))
-  ;; No need to save before seeing diffs.
-  ;; (diff-hl-flydiff-mode)
 
   ;; Refresh diffs after a Magit commit.
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
@@ -1789,6 +1808,7 @@ boundaries."
     ;; Set this on initialization of org-agenda to prevent errors.
     (defvar org-agenda-mode-map)
     (define-key org-agenda-mode-map (kbd "s-\"") 'org-agenda-refile)
+    (define-key org-agenda-mode-map (kbd "M") 'org-agenda-bulk-mark-all)
     )
 
   (defun org-agenda-refresh ()
@@ -1816,7 +1836,7 @@ boundaries."
   (setq org-directory user-org-directory)
 
   ;; The ellipsis to use in the org-mode outline.
-  (setq org-ellipsis "...")
+  (setq org-ellipsis nil)
   ;; Try to keep cursor before ellipses.
   (setq org-special-ctrl-a/e t)
   ;; Smart editing of invisible region around ellipses.
@@ -1843,50 +1863,6 @@ boundaries."
   (setq org-todo-keywords
         '((sequence "TODO(t)" "TODAY(y)" "WAITING(w)" "|" "DONE(d)")
           (sequence "|" "CANCELED(x)")))
-
-  ;; Org-agenda settings
-
-  ;; Show scheduled items in order from most to least recent.
-  (defvar org-agenda-sorting-strategy)
-  (setq org-agenda-sorting-strategy
-        '((agenda habit-down time-up scheduled-down priority-down category-keep)
-          (todo   priority-down category-keep)
-          (tags   priority-down category-keep)
-          (search category-keep)))
-
-  ;; Customize columns (remove filename/category, mostly redundant).
-  (defvar org-agenda-prefix-format)
-  (setq org-agenda-prefix-format '((agenda . " %i %?-12t% s")
-                                   (todo . " %i %-12:c")
-                                   (tags . " %i %-12:c")
-                                   (search . " %i %-12:c")))
-
-  ;; Refresh org-agenda after changing an item status.
-  ;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
-  ;; Refresh org-agenda after rescheduling a task.
-  (defadvice org-schedule (after refresh-agenda activate)
-    "Refresh org-agenda."
-    (org-agenda-refresh))
-
-  ;; Refresh org-agenda after an org-capture.
-  (add-hook 'org-capture-after-finalize-hook 'org-agenda-refresh)
-  ;; ;; Refresh org-agenda on a timer (refreshes the agenda on a new day).
-  ;; (run-with-idle-timer 5 t 'org-agenda-refresh)
-
-  (defvar org-agenda-window-setup)
-  (defvar org-agenda-start-on-weekday)
-  (defvar org-agenda-tags-column)
-  (setq
-   ;; Set location of agenda files.
-   org-agenda-files (list user-todo-org
-                          user-work-org
-                          )
-   ;; Stop org-agenda from messing up my windows!!
-   org-agenda-window-setup 'current-window
-   ;; Start org-agenda from the current day.
-   org-agenda-start-on-weekday nil
-   ;; Don't align tags in the org-agenda (sometimes it messes up the display).
-   org-agenda-tags-column 0)
 
   ;; org-refile settings
 
@@ -1955,9 +1931,52 @@ boundaries."
     )
   )
 
+;; org-agenda settings
+
+(require 'org-agenda)
+
+;; Set default span of agenda view.
+(setq org-agenda-span 'day)
+
+;; Show scheduled items in order from most to least recent.
+(setq org-agenda-sorting-strategy
+      '((agenda habit-down time-up scheduled-down priority-down category-keep)
+        (todo   priority-down category-keep)
+        (tags   priority-down category-keep)
+        (search category-keep)))
+
+;; Customize columns (remove filename/category, mostly redundant).
+(setq org-agenda-prefix-format '((agenda . " %i %?-12t% s")
+                                 (todo . " %i %-12:c")
+                                 (tags . " %i %-12:c")
+                                 (search . " %i %-12:c")))
+
+;; Refresh org-agenda after changing an item status.
+;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
+;; Refresh org-agenda after rescheduling a task.
+(defadvice org-schedule (after refresh-agenda activate)
+  "Refresh `org-agenda'."
+  (org-agenda-refresh))
+
+;; Refresh org-agenda after an org-capture.
+(add-hook 'org-capture-after-finalize-hook 'org-agenda-refresh)
+;; ;; Refresh org-agenda on a timer (refreshes the agenda on a new day).
+;; (run-with-idle-timer 5 t 'org-agenda-refresh)
+
+(setq
+ ;; Set location of agenda files.
+ org-agenda-files (list user-todo-org
+                        user-work-org
+                        )
+ ;; Stop org-agenda from messing up my windows!!
+ org-agenda-window-setup 'current-window
+ ;; Start org-agenda from the current day.
+ org-agenda-start-on-weekday nil
+ ;; Don't align tags in the org-agenda (sometimes it messes up the display).
+ org-agenda-tags-column 0)
+
 ;; Try to fix the annoying tendency of this function to scroll the point to some
 ;; random place and mess up my view of the agenda.
-(require 'org-agenda)
 (defun org-agenda-redo (&optional all)
   "Rebuild possibly ALL agenda view(s) in the current buffer."
   (interactive "P")
@@ -2138,6 +2157,9 @@ boundaries."
           ;;        :priority "C"
           ;;        :order 200)
           )))
+
+;; Export org to Reveal.js.
+(use-package ox-reveal)
 
 ;;; Final
 
