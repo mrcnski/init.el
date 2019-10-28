@@ -31,9 +31,9 @@
 
 (defvar user-text-directory "~/Text/")
 (defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
+;; Symlink in my home directory.
 (defvar user-org-directory (concat user-text-directory "org/"))
 
-(defvar user-dreams-org (concat user-org-directory "dreams.org"))
 (defvar user-ideas-org (concat user-org-directory "ideas.org"))
 (defvar user-notes-org (concat user-org-directory "notes.org"))
 (defvar user-physical-org (concat user-org-directory "physical.org"))
@@ -191,6 +191,8 @@
                                     helm-source-files-in-current-dir
                                     ;; helm-source-buffer-not-found
                                     ))
+
+  ;;; helm packages.
 
   ;; Better mode help.
   (use-package helm-describe-modes
@@ -744,6 +746,12 @@ into one."
   (interactive)
   (scroll-other-window-down (window-fraction-height 3)))
 
+;; Enable these commands in isearch.
+(put 'scroll-up-third 'isearch-scroll t)
+(put 'scroll-down-third 'isearch-scroll t)
+(put 'scroll-other-window-up-third 'isearch-scroll t)
+(put 'scroll-other-window-down-third 'isearch-scroll t)
+
 (global-set-key (kbd "C-v") 'scroll-up-third)
 (global-set-key (kbd "M-v") 'scroll-down-third)
 (global-set-key (kbd "C-S-v") 'scroll-other-window-up-third)
@@ -845,29 +853,30 @@ into one."
 
 ;;; Built-in mode settings
 
-;; isearch
+(use-package isearch
+  :ensure nil
+  :config
+  (setq
+   ;; Can scroll using C-v and M-v.
+   isearch-allow-scroll t
+   ;; Highlight more matches after a delay.
+   isearch-lazy-highlight t
+   lazy-highlight-initial-delay info-delay
+   )
 
-(setq
- isearch-allow-scroll t ;; Can scroll using C-v and M-v.
- isearch-lazy-highlight t ;; Highlight more matches after a delay.
- lazy-highlight-initial-delay info-delay
- )
-
-;; Display last searched string in minibuffer prompt.
-(setq-default isearch-mode-hook nil)
-(add-hook 'isearch-mode-hook
-          (lambda () (interactive)
-            (setq isearch-message
-                  (format "%s[%s] "
-                          isearch-message
-                          (if search-ring
-                              (propertize (car search-ring)
-                                          'face '(:inherit font-lock-string-face))
-                            ""))
-                  )
-            (isearch-search-and-update)))
-
-;; Dired settings
+  ;; Display last searched string in minibuffer prompt.
+  (add-hook 'isearch-mode-hook
+            (lambda () (interactive)
+              (setq isearch-message
+                    (format "%s[%s] "
+                            isearch-message
+                            (if search-ring
+                                (propertize (car search-ring)
+                                            'face '(:inherit font-lock-string-face))
+                              ""))
+                    )
+              (isearch-search-and-update)))
+  )
 
 (use-package dired
   :ensure nil
@@ -1727,7 +1736,7 @@ boundaries."
          ("M-," . smart-jump-back)
          ("M-." . smart-jump-go)
          )
-  :hook ((rust-mode . racer-mode))
+  :hook (rust-mode . racer-mode)
   :config
   ;; Don't insert argument placeholders when completing a function.
   (setq racer-complete-insert-argument-placeholders nil)
@@ -1753,9 +1762,9 @@ boundaries."
 ;;; Org Mode
 
 (use-package org
+  :ensure nil
   :bind (
          ("C-c l" . org-store-link)
-         ("C-c a" . org-agenda-list)
          ;; ("C-c c" . org-note-capture)
          ;; ("C-c v" . org-task-capture)
 
@@ -1777,18 +1786,20 @@ boundaries."
 
          ("<mouse-3>" . mouse-org-cycle)
          )
-  :mode (("\\.org$" . org-mode))
-  :hook ((org-mode . org-mode-hook-fun)
-         (org-agenda-mode . org-agenda-mode-hook-fun))
+  :mode ("\\.org$" . org-mode)
+  :hook (
+         (org-mode . org-mode-hook-fun)
+
+         ;; Word-wrap.
+         (org-mode . visual-line-mode)
+         ;; Indented entries.
+         (org-mode . org-indent-mode)
+         )
 
   :init
 
   (defun org-mode-hook-fun ()
     "Initialize `org-mode'."
-
-    (visual-line-mode) ;; Word-wrap.
-    (toggle-word-wrap t)
-    (org-indent-mode) ;; Indented entries.
 
     ;; Unbind keys stolen by org-mode.
     (local-unset-key (kbd "C-,"))
@@ -1796,26 +1807,6 @@ boundaries."
     ;; Fix tags alignment getting messed up (still not sure of the cause).
     (add-hook 'before-save-hook 'org-align-all-tags nil t)
     )
-
-  (defun org-agenda-mode-hook-fun ()
-    "Initialize `org-agenda-mode'."
-
-    (visual-line-mode)
-    (toggle-word-wrap t)
-
-    ;; Set this on initialization of org-agenda to prevent errors.
-    (defvar org-agenda-mode-map)
-    (define-key org-agenda-mode-map (kbd "s-\"") 'org-agenda-refile)
-    (define-key org-agenda-mode-map (kbd "M") 'org-agenda-bulk-mark-all)
-    )
-
-  (defun org-agenda-refresh ()
-    "Refresh all `org-agenda' buffers."
-    (dolist (buffer (buffer-list))
-      (with-current-buffer buffer
-        (when (derived-mode-p 'org-agenda-mode)
-          (org-agenda-maybe-redo)
-          ))))
 
   ;; Don't align tags.
   ;; Keep this in :init so that no org-files are opened without these settings.
@@ -1825,67 +1816,69 @@ boundaries."
 
   :config
 
-  ;; Markdown export.
-  (use-package ox-gfm)
-
   ;;; Settings
 
-  ;; Default org directory.
-  (setq org-directory user-org-directory)
+  (setq
+   ;; Default org directory.
+   org-directory user-org-directory
+   ;; Set location of agenda files.
+   org-agenda-files (list
+                     user-todo-org
+                     user-work-org
+                     )
 
-  ;; The ellipsis to use in the org-mode outline.
-  (setq org-ellipsis nil)
-  ;; Try to keep cursor before ellipses.
-  (setq org-special-ctrl-a/e t)
-  ;; Smart editing of invisible region around ellipses.
-  (setq org-catch-invisible-edits 'smart)
+   ;; Try to keep cursor before ellipses.
+   org-special-ctrl-a/e t
+   ;; Smart editing of invisible region around ellipses.
+   org-catch-invisible-edits 'smart
 
-  ;; All subtasks must be Done before marking a task as Done.
-  (setq org-enforce-todo-dependencies t)
-  ;; Log time a task was set to Done.
-  (setq org-log-done (quote time))
-  ;; Don't log the time a task was rescheduled or redeadlined.
-  (setq org-log-reschedule nil)
-  (setq org-log-redeadline nil)
+   ;; All subtasks must be Done before marking a task as Done.
+   org-enforce-todo-dependencies t
+   ;; Log time a task was set to Done.
+   org-log-done (quote time)
+   ;; Don't log the time a task was rescheduled or redeadlined.
+   org-log-reschedule nil
+   org-log-redeadline nil
 
-  ;; Prefer rescheduling to future dates and times.
-  (setq org-read-date-prefer-future 'time)
+   ;; Prefer rescheduling to future dates and times.
+   org-read-date-prefer-future 'time
 
-  ;; M-RET should not split the heading if point is not at the end of a line.
-  ;; (setq org-M-RET-may-split-line nil)
+   ;; M-RET should not split the heading if point is not at the end of a line.
+   ;; (setq org-M-RET-may-split-line nil)
 
-  ;; Should ‘org-insert-heading’ leave a blank line before new heading/item?
-  (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
+   ;; Should ‘org-insert-heading’ leave a blank line before new heading/item?
+   org-blank-before-new-entry '((heading . nil) (plain-list-item . nil))
 
-  ;; Custom to-do states.
-  (setq org-todo-keywords
-        '((sequence "TODO(t)" "TODAY(y)" "WAITING(w)" "|" "DONE(d)")
-          (sequence "|" "CANCELED(x)")))
+   ;; Custom to-do states.
+   org-todo-keywords
+   '((sequence "TODO(t)" "TODAY(y)" "WAITING(w)" "|" "DONE(d)")
+     (sequence "|" "CANCELED(x)"))
 
-  ;; org-refile settings
+   ;; org-refile settings
 
-  ;; Refile notes to the top of the list.
-  (setq org-reverse-note-order t)
-  ;; Use headline paths (level1/level2/...)
-  (setq org-refile-use-outline-path t)
-  ;; Go down in steps when completing a path.
-  (setq org-outline-path-complete-in-steps nil)
-  (setq org-refile-targets
-        '((org-agenda-files . (:maxlevel . 99))
+   ;; Refile notes to the top of the list.
+   org-reverse-note-order t
+   ;; Use headline paths (level1/level2/...)
+   org-refile-use-outline-path t
+   ;; Go down in steps when completing a path.
+   org-outline-path-complete-in-steps nil
+   org-refile-targets
+   '(
+     (org-agenda-files . (:maxlevel . 99))
 
-          (user-notes-org . (:maxlevel . 99))
-          (user-dreams-org . (:maxlevel . 99))
-          (user-work-org . (:maxlevel . 99))
-          (user-ideas-org . (:maxlevel . 99))
-          (user-projects-org . (:maxlevel . 99))
-          ))
-  ;; Jump to headings with completion.
-  (setq org-goto-interface 'outline-path-interface
-        org-goto-max-level 99)
-  ;; Always show full context, no matter how we get to a certain heading (e.g.
-  ;; `isearch', `org-goto', whatever). The default behavior of hiding headings
-  ;; is asinine.
-  (setq org-show-context-detail '((default . tree)))
+     (user-notes-org . (:maxlevel . 99))
+     (user-work-org . (:maxlevel . 99))
+     (user-ideas-org . (:maxlevel . 99))
+     (user-projects-org . (:maxlevel . 99))
+     )
+   ;; Jump to headings with completion.
+   org-goto-interface 'outline-path-interface
+   org-goto-max-level 99
+   ;; Always show full context, no matter how we get to a certain heading (e.g.
+   ;; `isearch', `org-goto', whatever). The default behavior of hiding headings
+   ;; is asinine.
+   org-show-context-detail '((default . tree))
+   )
 
   ;; ;; org-capture template.
   ;; (defvar org-capture-templates
@@ -1927,125 +1920,151 @@ boundaries."
       (call-interactively 'org-cycle)
       )
     )
+
+  ;;; org packages
+
+  ;; Markdown export.
+  (use-package ox-gfm)
+
+  ;; Export org to Reveal.js.
+  (use-package ox-reveal)
   )
 
-;; org-agenda settings
+(use-package org-agenda
+  :ensure nil
+  :hook (org-agenda-mode . visual-line-mode)
+  :bind (
+         ("C-c a" . org-agenda-list)
 
-(require 'org-agenda)
+         :map org-agenda-mode-map
 
-;; Set default span of agenda view.
-(setq org-agenda-span 'day)
+         ("s-\"" . org-agenda-refile)
+         ("M" . org-agenda-bulk-mark-all)
+         )
 
-;; Show scheduled items in order from most to least recent.
-(setq org-agenda-sorting-strategy
-      '((agenda habit-down time-up scheduled-down priority-down category-keep)
-        (todo   priority-down category-keep)
-        (tags   priority-down category-keep)
-        (search category-keep)))
+  :config
 
-;; Customize columns (remove filename/category, mostly redundant).
-(setq org-agenda-prefix-format '((agenda . " %i %?-12t% s")
-                                 (todo . " %i %-12:c")
-                                 (tags . " %i %-12:c")
-                                 (search . " %i %-12:c")))
+  ;; Set default span of agenda view.
+  (setq org-agenda-span 'day)
 
-;; Refresh org-agenda after changing an item status.
-;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
-;; Refresh org-agenda after rescheduling a task.
-(defadvice org-schedule (after refresh-agenda activate)
-  "Refresh `org-agenda'."
-  (org-agenda-refresh))
+  ;; Show scheduled items in order from most to least recent.
+  (setq org-agenda-sorting-strategy
+        '((agenda habit-down time-up scheduled-down priority-down category-keep)
+          (todo   priority-down category-keep)
+          (tags   priority-down category-keep)
+          (search category-keep)))
 
-;; Refresh org-agenda after an org-capture.
-(add-hook 'org-capture-after-finalize-hook 'org-agenda-refresh)
-;; ;; Refresh org-agenda on a timer (refreshes the agenda on a new day).
-;; (run-with-idle-timer 5 t 'org-agenda-refresh)
+  ;; Customize columns (remove filename/category, mostly redundant).
+  (setq org-agenda-prefix-format '((agenda . " %i %?-12t% s")
+                                   (todo . " %i %-12:c")
+                                   (tags . " %i %-12:c")
+                                   (search . " %i %-12:c")))
 
-(setq
- ;; Set location of agenda files.
- org-agenda-files (list user-todo-org
-                        user-work-org
-                        )
- ;; Stop org-agenda from messing up my windows!!
- org-agenda-window-setup 'current-window
- ;; Start org-agenda from the current day.
- org-agenda-start-on-weekday nil
- ;; Don't align tags in the org-agenda (sometimes it messes up the display).
- org-agenda-tags-column 0)
+  (setq
+   ;; Stop org-agenda from messing up my windows!!
+   org-agenda-window-setup 'current-window
+   ;; Start org-agenda from the current day.
+   org-agenda-start-on-weekday nil
+   ;; Don't align tags in the org-agenda (sometimes it messes up the display).
+   org-agenda-tags-column 0)
 
-;; Try to fix the annoying tendency of this function to scroll the point to some
-;; random place and mess up my view of the agenda.
-(defun org-agenda-redo (&optional all)
-  "Rebuild possibly ALL agenda view(s) in the current buffer."
-  (interactive "P")
-  (let* ((p (or (and (looking-at "\\'") (1- (point))) (point)))
-         (cpa (unless (eq all t) current-prefix-arg))
-         (org-agenda-doing-sticky-redo org-agenda-sticky)
-         (org-agenda-sticky nil)
-         (org-agenda-buffer-name (or org-agenda-this-buffer-name
-                                     org-agenda-buffer-name))
-         (org-agenda-keep-modes t)
-         (tag-filter org-agenda-tag-filter)
-         (tag-preset (get 'org-agenda-tag-filter :preset-filter))
-         (top-hl-filter org-agenda-top-headline-filter)
-         (cat-filter org-agenda-category-filter)
-         (cat-preset (get 'org-agenda-category-filter :preset-filter))
-         (re-filter org-agenda-regexp-filter)
-         (re-preset (get 'org-agenda-regexp-filter :preset-filter))
-         (effort-filter org-agenda-effort-filter)
-         (effort-preset (get 'org-agenda-effort-filter :preset-filter))
-         (cols org-agenda-columns-active)
-         (line (org-current-line))
-         ;; (window-line (- line (org-current-line (window-start))))
-         (lprops (get 'org-agenda-redo-command 'org-lprops))
-         (redo-cmd (get-text-property p 'org-redo-cmd))
-         (last-args (get-text-property p 'org-last-args))
-         (org-agenda-overriding-cmd (get-text-property p 'org-series-cmd))
-         (org-agenda-overriding-cmd-arguments
-          (unless (eq all t)
-            (cond ((listp last-args)
-                   (cons (or cpa (car last-args)) (cdr last-args)))
-                  ((stringp last-args)
-                   last-args))))
-         (series-redo-cmd (get-text-property p 'org-series-redo-cmd)))
-    (put 'org-agenda-tag-filter :preset-filter nil)
-    (put 'org-agenda-category-filter :preset-filter nil)
-    (put 'org-agenda-regexp-filter :preset-filter nil)
-    (put 'org-agenda-effort-filter :preset-filter nil)
-    (and cols (org-columns-quit))
-    (message "Rebuilding agenda buffer...")
-    (if series-redo-cmd
-        (eval series-redo-cmd)
-      (org-let lprops redo-cmd))
-    (setq org-agenda-undo-list nil
-          org-agenda-pending-undo-list nil
-          org-agenda-tag-filter tag-filter
-          org-agenda-category-filter cat-filter
-          org-agenda-regexp-filter re-filter
-          org-agenda-effort-filter effort-filter
-          org-agenda-top-headline-filter top-hl-filter)
-    (message "Rebuilding agenda buffer...done")
-    (put 'org-agenda-tag-filter :preset-filter tag-preset)
-    (put 'org-agenda-category-filter :preset-filter cat-preset)
-    (put 'org-agenda-regexp-filter :preset-filter re-preset)
-    (put 'org-agenda-effort-filter :preset-filter effort-preset)
-    (let ((tag (or tag-filter tag-preset))
-          (cat (or cat-filter cat-preset))
-          (effort (or effort-filter effort-preset))
-          (re (or re-filter re-preset)))
-      (when tag (org-agenda-filter-apply tag 'tag t))
-      (when cat (org-agenda-filter-apply cat 'category))
-      (when effort (org-agenda-filter-apply effort 'effort))
-      (when re  (org-agenda-filter-apply re 'regexp)))
-    (and top-hl-filter (org-agenda-filter-top-headline-apply top-hl-filter))
-    (and cols (called-interactively-p 'any) (org-agenda-columns))
-    (org-goto-line line)
-    ;; Commenting out the following line stops the random scrolling.
-    ;; (recenter window-line)
-    ))
+  (defun org-agenda-refresh ()
+    "Refresh all `org-agenda' buffers."
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (derived-mode-p 'org-agenda-mode)
+          (org-agenda-maybe-redo)
+          ))))
+
+  ;; Refresh org-agenda after changing an item status.
+  ;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
+  ;; Refresh org-agenda after rescheduling a task.
+  (defadvice org-schedule (after refresh-agenda activate)
+    "Refresh `org-agenda'."
+    (org-agenda-refresh))
+
+  ;; Refresh org-agenda after an org-capture.
+  (add-hook 'org-capture-after-finalize-hook 'org-agenda-refresh)
+  ;; ;; Refresh org-agenda on a timer (refreshes the agenda on a new day).
+  ;; (run-with-idle-timer 5 t 'org-agenda-refresh)
+
+  ;; Try to fix the annoying tendency of this function to scroll the point to some
+  ;; random place and mess up my view of the agenda.
+  ;; NOTE: This is a copy-paste of the original `org-agenda-redo` function,
+  ;; with one line commented out.
+  (defun org-agenda-redo (&optional all)
+    "Rebuild possibly ALL agenda view(s) in the current buffer."
+    (interactive "P")
+    (let* ((p (or (and (looking-at "\\'") (1- (point))) (point)))
+           (cpa (unless (eq all t) current-prefix-arg))
+           (org-agenda-doing-sticky-redo org-agenda-sticky)
+           (org-agenda-sticky nil)
+           (org-agenda-buffer-name (or org-agenda-this-buffer-name
+                                       org-agenda-buffer-name))
+           (org-agenda-keep-modes t)
+           (tag-filter org-agenda-tag-filter)
+           (tag-preset (get 'org-agenda-tag-filter :preset-filter))
+           (top-hl-filter org-agenda-top-headline-filter)
+           (cat-filter org-agenda-category-filter)
+           (cat-preset (get 'org-agenda-category-filter :preset-filter))
+           (re-filter org-agenda-regexp-filter)
+           (re-preset (get 'org-agenda-regexp-filter :preset-filter))
+           (effort-filter org-agenda-effort-filter)
+           (effort-preset (get 'org-agenda-effort-filter :preset-filter))
+           (cols org-agenda-columns-active)
+           (line (org-current-line))
+           ;; (window-line (- line (org-current-line (window-start))))
+           (lprops (get 'org-agenda-redo-command 'org-lprops))
+           (redo-cmd (get-text-property p 'org-redo-cmd))
+           (last-args (get-text-property p 'org-last-args))
+           (org-agenda-overriding-cmd (get-text-property p 'org-series-cmd))
+           (org-agenda-overriding-cmd-arguments
+            (unless (eq all t)
+              (cond ((listp last-args)
+                     (cons (or cpa (car last-args)) (cdr last-args)))
+                    ((stringp last-args)
+                     last-args))))
+           (series-redo-cmd (get-text-property p 'org-series-redo-cmd)))
+      (put 'org-agenda-tag-filter :preset-filter nil)
+      (put 'org-agenda-category-filter :preset-filter nil)
+      (put 'org-agenda-regexp-filter :preset-filter nil)
+      (put 'org-agenda-effort-filter :preset-filter nil)
+      (and cols (org-columns-quit))
+      (message "Rebuilding agenda buffer...")
+      (if series-redo-cmd
+          (eval series-redo-cmd)
+        (org-let lprops redo-cmd))
+      (setq org-agenda-undo-list nil
+            org-agenda-pending-undo-list nil
+            org-agenda-tag-filter tag-filter
+            org-agenda-category-filter cat-filter
+            org-agenda-regexp-filter re-filter
+            org-agenda-effort-filter effort-filter
+            org-agenda-top-headline-filter top-hl-filter)
+      (message "Rebuilding agenda buffer...done")
+      (put 'org-agenda-tag-filter :preset-filter tag-preset)
+      (put 'org-agenda-category-filter :preset-filter cat-preset)
+      (put 'org-agenda-regexp-filter :preset-filter re-preset)
+      (put 'org-agenda-effort-filter :preset-filter effort-preset)
+      (let ((tag (or tag-filter tag-preset))
+            (cat (or cat-filter cat-preset))
+            (effort (or effort-filter effort-preset))
+            (re (or re-filter re-preset)))
+        (when tag (org-agenda-filter-apply tag 'tag t))
+        (when cat (org-agenda-filter-apply cat 'category))
+        (when effort (org-agenda-filter-apply effort 'effort))
+        (when re  (org-agenda-filter-apply re 'regexp)))
+      (and top-hl-filter (org-agenda-filter-top-headline-apply top-hl-filter))
+      (and cols (called-interactively-p 'any) (org-agenda-columns))
+      (org-goto-line line)
+      ;; Commenting out the following line stops the random scrolling.
+      ;; (recenter window-line)
+      ))
+  )
 
 ;; Recurring org-mode tasks.
 (use-package org-recur
+  :after org
   :bind (
          :map org-recur-mode-map
 
@@ -2083,6 +2102,7 @@ boundaries."
 
 ;; Display groups in org-agenda to make things a bit more organized.
 (use-package org-super-agenda
+  :after org-agenda
   :config
   (org-super-agenda-mode)
 
@@ -2156,14 +2176,11 @@ boundaries."
           ;;        :order 200)
           )))
 
-;; Export org to Reveal.js.
-(use-package ox-reveal)
-
 ;;; Final
 
 ;; Misc
 
-;; Display notes.org and Org Agenda on startup.
+;; Display some org files and Org Agenda on startup.
 (defun emacs-welcome()
   "Display Emacs welcome screen."
   (interactive)
