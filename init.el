@@ -869,56 +869,54 @@ into one."
 
 ;; Dired settings
 
-(defvar dired-mode-map)
-(add-hook 'dired-mode-hook
-          #'(lambda ()
-              ;; Create new file.
-              (define-key dired-mode-map "f" 'helm-find-files)
-              ))
+(use-package dired
+  :ensure nil
+  :bind (
+         :map dired-mode-map
+         ("f" . helm-find-files)
+         )
+  :hook (dired-mode . dired-hide-details-mode)
 
-;; Handle opening and editing zip directories in dired.
-(defvar dired-compress-file-suffixes)
-(eval-after-load "dired-aux"
-  '(add-to-list 'dired-compress-file-suffixes
-                '("\\.zip\\'" ".zip" "unzip")))
+  :config
+  (setq-default
+   ;; Always do recursive copies.
+   dired-recursive-copies 'always
+   ;; Make sizes human-readable by default and put dotfiles and capital-letters
+   ;; first.
+   dired-listing-switches "-alhv"
+   ;; Try suggesting dired targets.
+   dired-dwim-target t
+   ;; Update buffer when visiting.
+   dired-auto-revert-buffer t
+   ;; Don't confirm various actions.
+   dired-no-confirm t
+   )
 
-(setq-default dired-recursive-copies 'always ;; Always do recursive copies.
-              ;; Make sizes human-readable by default and put dotfiles and
-              ;; capital-letters first.
-              dired-listing-switches "-alhv"
-              ;; Try suggesting dired targets.
-              dired-dwim-target t
-              ;; Update buffer when visiting.
-              dired-auto-revert-buffer t
-              ;; Don't confirm various actions.
-              dired-no-confirm t
-              )
+  ;; Expanded dired.
+  ;; Enables jumping to the current directory in dired (default: C-x C-j).
+  (use-package dired-x
+    :ensure nil
+    ;; Prevent certain files from showing up.
+    ;; Use C-x M-o to show omitted files.
+    :hook (dired-mode . dired-omit-mode)
+    :bind ("s-d" . dired-jump)
+    :config
+    (setq dired-omit-files
+          (concat dired-omit-files
+                  "\\|\\.bk$\\|^\\.DS_Store$"))
+    )
 
-;; Expanded dired.
-;; Enables jumping to the current directory in dired (default: C-x C-j).
-(require 'dired-x)
-(global-set-key (kbd "s-d") 'dired-jump)
+  ;; More dired colors.
+  (use-package diredfl
+    :config (diredfl-global-mode))
 
-(add-hook 'dired-mode-hook (lambda ()
-                             ;; Prevent certain files from showing up.
-                             ;; Use C-x M-o to show omitted files.
-                             (dired-omit-mode)
-                             ;; Hide details by default.
-                             (dired-hide-details-mode)
-                             ))
-(setq dired-omit-files (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
-
-;; Allow changing file permissions in WDired.
-;; NOTE: WDired can be entered with C-x C-q and changes saved with C-c C-c.
-(defvar wdired-allow-to-change-permissions)
-(setq wdired-allow-to-change-permissions t)
-
-;; ;; Extensions to Dired. Includes more dired colors.
-;; (use-package dired+)
-
-;; More dired colors.
-(use-package diredfl
-  :config (diredfl-global-mode))
+  ;; Allow changing file permissions in WDired.
+  ;; NOTE: WDired can be entered with C-x C-q and changes saved with C-c C-c.
+  ;; (defvar wdired-allow-to-change-permissions)
+  (use-package wdired
+    :ensure nil
+    :config (setq wdired-allow-to-change-permissions t))
+  )
 
 ;; ibuffer settings
 
