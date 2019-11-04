@@ -332,8 +332,6 @@
           display-buffer-below-selected))
         ("\\*Ibuffer\\*"
          (display-buffer-same-window))
-        ;; ("\\*diff-hl\\*"
-        ;;  (display-buffer-same-window))
         )
       ;; Open files in existing frames.
       pop-up-frames nil
@@ -929,125 +927,165 @@ into one."
 
 ;; ibuffer settings
 
-(require 'ibuffer)
-
-;; Unbind ibuffer-visit-buffer-1-window.
-(define-key ibuffer-mode-map (kbd "M-o") nil)
-
-;; Don't show filter groups if there are no buffers in that group.
-(defvar ibuffer-show-empty-filter-groups)
-(setq ibuffer-show-empty-filter-groups nil)
-
-;; Don't ask for confirmation to delete marked buffers.
-(defvar ibuffer-expert)
-(setq ibuffer-expert t)
-
-;; Use human-readable Size column.
-(define-ibuffer-column size-h
-  (:name "Size" :inline t)
-  (let ((bs (buffer-size)))
-    (cond ((> bs 1e6) (format "%7.1fm" (/ bs 1e6)))
-          ((> bs 1e3) (format "%7.1fk" (/ bs 1e3)))
-          (t          (format "%7d" bs)))))
-
-(defvar ibuffer-formats)
-(setf ibuffer-formats
-      '((mark modified read-only vc-status-mini " "
-              (name 24 24 :left :elide)
-              " "
-              (size-h 8 -1 :right)
-              " "
-              (mode 16 16 :left :elide)
-              " "
-              (vc-status 12 16 :left)
-              " "
-              filename-and-process)))
-
-(use-package ibuffer-vc
+(use-package ibuffer
+  :ensure nil
+  :bind (
+         :map ibuffer-mode-map
+         ;; Unbind ibuffer-visit-buffer-1-window.
+         ("M-o" . nil)
+         )
   :config
-  (add-hook 'ibuffer-hook
-            (lambda ()
-              (ibuffer-vc-set-filter-groups-by-vc-root)
-              (unless (eq ibuffer-sorting-mode 'alphabetic)
-                (ibuffer-do-sort-by-alphabetic))))
+
+  ;; (define-key ibuffer-mode-map (kbd "M-o") nil)
+
+  (setq
+   ;; Don't show filter groups if there are no buffers in that group.
+   ibuffer-show-empty-filter-groups nil
+   ;; Don't ask for confirmation to delete marked buffers.
+   ibuffer-expert t
+   )
+
+  ;; Use human-readable Size column.
+  (define-ibuffer-column size-h
+    (:name "Size" :inline t)
+    (let ((bs (buffer-size)))
+      (cond ((> bs 1e6) (format "%7.1fm" (/ bs 1e6)))
+            ((> bs 1e3) (format "%7.1fk" (/ bs 1e3)))
+            (t          (format "%7d" bs)))))
+
+  (setf ibuffer-formats
+        '((mark modified read-only vc-status-mini " "
+                (name 24 24 :left :elide)
+                " "
+                (size-h 8 -1 :right)
+                " "
+                (mode 16 16 :left :elide)
+                " "
+                (vc-status 12 16 :left)
+                " "
+                filename-and-process)))
+
+  (use-package ibuffer-vc
+    :config
+    (add-hook 'ibuffer-hook
+              (lambda ()
+                (ibuffer-vc-set-filter-groups-by-vc-root)
+                (unless (eq ibuffer-sorting-mode 'alphabetic)
+                  (ibuffer-do-sort-by-alphabetic))))
+    )
   )
 
 ;; ERC settings
-
-(defvar erc-autojoin-channels-alist)
-(setq erc-autojoin-channels-alist
-      '(("freenode.net" "#emacs")
-        ("mozilla.org" "#rust")))
-;; (erc :server "irc.mozilla.org" :port 6667 :nick "m-cat")
-
-;; Notify in minibuffer when private messaged.
-(defvar erc-echo-notices-in-minibuffer-flag)
-(setq erc-echo-notices-in-minibuffer-flag t)
-
-;; Match keywords, highlight pals, ignore fools.
-(require 'erc-match)
-(setq erc-keywords '("rust"))
-(setq erc-pals  '())
-(setq erc-fools '())
-
-(use-package erc-scrolltoplace
+(use-package erc
+  :ensure nil
   :config
-  (add-to-list 'erc-modules 'scrolltoplace)
-  (erc-update-modules)
+
+  ;; Set up modules.
+
+  (use-package erc-join
+    :ensure nil
+    :config
+    (setq erc-autojoin-channels-alist
+          '(
+            ("freenode.net"
+             "#emacs"
+             "#org-mode"
+             "#emacsconf"
+             "#bash"
+             )
+            ))
+    )
+
+  (use-package erc-notify
+    :ensure nil
+    :config
+    ;; Notify in minibuffer when private messaged.
+    (setq erc-echo-notices-in-minibuffer-flag t)
+    )
+
+  ;; Match keywords, highlight pals, ignore fools.
+  (use-package erc-match
+    :ensure nil
+    :config
+    (setq erc-keywords '()
+          erc-pals  '()
+          erc-fools '()
+          )
+    )
+
+  (use-package erc-scrolltoplace
+    :config
+    (add-to-list 'erc-modules 'scrolltoplace)
+    (erc-update-modules)
+    )
+
+  ;; Settings
+
+  ;; How to open new channel buffers?
+  (setq erc-join-buffer 'window-noselect)
+
+  ;; Show ERC activity in mode-line.
+  (erc-track-mode)
   )
 
 ;; Eshell settings
 
-(defvar eshell-scroll-show-maximum-output)
-(defvar eshell-scroll-to-bottom-on-input)
-(defvar eshell-scroll-to-bottom-on-output)
-(defvar eshell-hist-ignoredups)
-(defvar eshell-history-file-name)
-(setq
- ;; Stop output from always going to the bottom.
- eshell-scroll-show-maximum-output nil
- eshell-scroll-to-bottom-on-output nil
- ;; Always insert at the bottom.
- eshell-scroll-to-bottom-on-input t
- eshell-hist-ignoredups t
- ;; Set the history file.
- eshell-history-file-name "~/.bash_history"
- )
+(use-package eshell
+  :ensure nil
+  :config
 
-(defvar eshell-mode-map)
-(add-hook 'eshell-mode-hook
-          #'(lambda ()
-              ;; Use helm to list eshell history.
-              (define-key eshell-mode-map (kbd "M-i") 'helm-eshell-history)
-              (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
-              (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
+  (setq
+   ;; Stop output from always going to the bottom.
+   eshell-scroll-show-maximum-output nil
+   eshell-scroll-to-bottom-on-output nil
+   ;; Always insert at the bottom.
+   eshell-scroll-to-bottom-on-input t
+   )
 
-              ;; Save all buffers before running a command.
-              (add-hook 'eshell-pre-command-hook 'save-all)
+  (add-hook 'eshell-mode-hook
+            #'(lambda ()
+                ;; Use helm to list eshell history.
+                (define-key eshell-mode-map (kbd "M-i") 'helm-eshell-history)
+                (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
+                (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
 
-              ;; Use HISTSIZE as the history size.
-              (defvar eshell-history-size)
-              (setq eshell-history-size nil)
-              ))
+                ;; Save all buffers before running a command.
+                (add-hook 'eshell-pre-command-hook 'save-all)
+                ))
 
-;; Open a new eshell buffer.
-(defun eshell-new ()
-  "Open a new eshell buffer."
-  (interactive)
-  (eshell t))
-(global-set-key [f1] 'projectile-run-eshell)
-(global-set-key [f2] 'eshell-new)
+  (use-package em-hist
+    :ensure nil
+    :config
+    (setq
+     eshell-hist-ignoredups t
+     ;; Set the history file.
+     eshell-history-file-name "~/.bash_history"
+     ;; Use HISTSIZE as the history size.
+     eshell-history-size nil
+     )
+    )
 
-;; Add up to eshell.
-;; Jump to a directory higher up in the directory hierarchy.
-(use-package eshell-up
-  :defer 2
-  :config (setq eshell-up-print-parent-dir nil))
+  ;; Open a new eshell buffer.
+  (defun eshell-new ()
+    "Open a new eshell buffer."
+    (interactive)
+    (eshell t))
+  (global-set-key [f1] 'projectile-run-eshell)
+  (global-set-key [f2] 'eshell-new)
 
-;; Add z to eshell.
-;; Jumps to most recently visited directories.
-(use-package eshell-z
-  :defer 2)
+  ;; Load packages.
+
+  ;; Add up to eshell.
+  ;; Jump to a directory higher up in the directory hierarchy.
+  (use-package eshell-up
+    :defer 2
+    :config (setq eshell-up-print-parent-dir nil))
+
+  ;; Add z to eshell.
+  ;; Jumps to most recently visited directories.
+  (use-package eshell-z
+    :defer 2)
+  )
 
 ;;; Load packages
 
@@ -2106,90 +2144,112 @@ boundaries."
   :config
   (org-super-agenda-mode)
 
-  (setq org-super-agenda-header-separator "")
-  (setq org-super-agenda-unmatched-name "Other")
-  (setq org-super-agenda-groups
-        '(;; Each group has an implicit OR operator between its selectors.
-          (:name "Today"  ; Optionally specify section name
-                 :time-grid t  ; Items that appear on the time grid.
-                 :todo "TODAY"   ; Items that have this todo keyword.
-                 )
-          (:name "Work"
-                 :category "work"
-                 )
-          (:name "High Priority"
-                 :priority "A"
-                 :order 1
-                 )
-          (:name "Physical"
-                 :category "physical"
-                 :tag "physical"
-                 :order 2
-                 )
-          (:name "Shopping List"
-                 :category "shopping"
-                 :tag "shopping"
-                 :order 3
-                 )
-          (:name "Cleaning"
-                 :category "cleaning"
-                 :tag "cleaning"
-                 :order 4
-                 )
-          (:name "Hygiene"
-                 :category "hygiene"
-                 :tag "hygiene"
-                 :order 5
-                 )
-          (:name "Health"
-                 :category "health"
-                 :tag "health"
-                 :order 6
-                 )
-          (:name "Financial"
-                 :category "financial"
-                 :tag "financial"
-                 :order 7
-                 )
+  (setq
+   org-super-agenda-header-separator ""
+   org-super-agenda-unmatched-name "Other"
+   org-super-agenda-groups
+   '(
+     ;; Each group has an implicit OR operator between its selectors.
+     (:name "Today"  ; Optionally specify section name
+            :time-grid t  ; Items that appear on the time grid.
+            :todo "TODAY"   ; Items that have this todo keyword.
+            )
+     (:name "Work"
+            :category "work"
+            :tag "work"
+            )
+     (:name "High Priority"
+            :priority "A"
+            :order 1
+            )
+     (:name "Physical"
+            :category "physical"
+            :tag "physical"
+            :order 2
+            )
+     (:name "Shopping List"
+            :category "shopping"
+            :tag "shopping"
+            :order 3
+            )
+     (:name "Cleaning"
+            :category "cleaning"
+            :tag "cleaning"
+            :order 4
+            )
+     (:name "Hygiene"
+            :category "hygiene"
+            :tag "hygiene"
+            :order 5
+            )
+     (:name "Health"
+            :category "health"
+            :tag "health"
+            :order 6
+            )
+     (:name "Financial"
+            :category "financial"
+            :tag "financial"
+            :order 7
+            )
 
-          ;; After the last group, the agenda will display items that didn't
-          ;; match any of these groups, with the default order position of 99
+     ;; After the last group, the agenda will display items that didn't
+     ;; match any of these groups, with the default order position of 99
 
-          (:name "Tech"
-                 :category "tech"
-                 :tag "tech"
-                 :order 180
-                 )
-          (:name "To Read"
-                 :category "read"
-                 :tag "read"
-                 :order 181
-                 )
-          (:name "To Watch"
-                 :category "watch"
-                 :tag "watch"
-                 :order 182
-                 )
-          (:todo "WAITING" :order 190)  ; Set order of this section
-          ;; (:name "Low priority"
-          ;;        :priority "C"
-          ;;        :order 200)
-          )))
+     (:name "Tech"
+            :category "tech"
+            :tag "tech"
+            :order 180
+            )
+     (:name "To Read"
+            :category "read"
+            :tag "read"
+            :order 181
+            )
+     (:name "To Watch"
+            :category "watch"
+            :tag "watch"
+            :order 182
+            )
+     (:todo "WAITING" :order 190)
+     ;; (:name "Low priority"
+     ;;        :priority "C"
+     ;;        :order 200)
+     )))
 
 ;;; Final
 
 ;; Misc
 
-;; Display some org files and Org Agenda on startup.
+;; Open stuff on startup.
 (defun emacs-welcome()
   "Display Emacs welcome screen."
   (interactive)
+
+  ;; Set up org files and agenda.
+
   (find-file user-notes-org)
   (split-window-right-focus)
   (find-file user-todo-org)
   (split-window-right-focus)
   (org-agenda-list)
+
+  ;; Connect to ERC on startup.
+
+  (eyebrowse-switch-to-window-config-0)
+
+  (erc :server "irc.freenode.net"
+       :port "6667"
+       :nick "bytedude")
+
+  (eyebrowse-switch-to-window-config-1)
+
+  ;; Name eyebrowse slots.
+
+  (eyebrowse-rename-window-config 1 "org")
+  (eyebrowse-rename-window-config 0 "irc")
   )
+
 (emacs-welcome)
 
 (message "init.el finished loading successfully!")
