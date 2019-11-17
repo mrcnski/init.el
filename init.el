@@ -975,9 +975,18 @@ into one."
     )
   )
 
+;; Ediff settings
+
+(use-package ediff
+  :ensure nil
+  :config
+  (setq ediff-split-window-function 'split-window-horizontally)
+  )
+
 ;; ERC settings
 (use-package erc
   :ensure nil
+  :hook (erc-mode . erc-settings)
   :config
 
   ;; Set up modules.
@@ -1013,16 +1022,20 @@ into one."
           )
     )
 
-  (use-package erc-scrolltoplace
-    :config
-    (add-to-list 'erc-modules 'scrolltoplace)
-    (erc-update-modules)
-    )
-
   ;; Settings
 
-  ;; How to open new channel buffers?
-  (setq erc-join-buffer 'window-noselect)
+  (defun erc-settings ()
+    "Set erc settings."
+    ;; Move prompt one line at a time when point goes off the screen
+    ;; (was centering the point before).
+    (setq-local scroll-conservatively 999)
+    )
+
+  (setq
+   erc-nick "bytedude"
+   ;; How to open new channel buffers?
+   erc-join-buffer 'window-noselect
+   )
 
   ;; Show ERC activity in mode-line.
   (erc-track-mode)
@@ -1032,6 +1045,14 @@ into one."
 
 (use-package eshell
   :ensure nil
+  ;; :after projectile
+  :bind (
+         ("<f1>" . projectile-run-eshell)
+         ("<f2>" . eshell-new)
+         )
+  ;; Save all buffers before running a command.
+  :hook (eshell-pre-command . save-all)
+
   :config
 
   (setq
@@ -1042,15 +1063,16 @@ into one."
    eshell-scroll-to-bottom-on-input t
    )
 
-  (add-hook 'eshell-mode-hook
+  ;; Set keys up in this hook. This doesn't work in :bind.
+  (add-hook 'eshell-first-time-mode-hook
             #'(lambda ()
+                (define-key eshell-mode-map (kbd "M-m") 'eshell-bol)
+                (define-key eshell-mode-map (kbd "C-a") 'beginning-of-line)
+
                 ;; Use helm to list eshell history.
                 (define-key eshell-mode-map (kbd "M-i") 'helm-eshell-history)
                 (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
                 (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
-
-                ;; Save all buffers before running a command.
-                (add-hook 'eshell-pre-command-hook 'save-all)
                 ))
 
   (use-package em-hist
@@ -1070,8 +1092,6 @@ into one."
     "Open a new eshell buffer."
     (interactive)
     (eshell t))
-  (global-set-key [f1] 'projectile-run-eshell)
-  (global-set-key [f2] 'eshell-new)
 
   ;; Load packages.
 
@@ -1133,13 +1153,14 @@ into one."
   :hook (image-mode . blimp-mode)
   )
 
-;; ;; Move buffers around.
-;; (use-package buffer-move
-;;   :bind (("<s-up>"    . buf-move-up)
-;;          ("<s-down>"  . buf-move-down)
-;;          ("<s-left>"  . buf-move-left)
-;;          ("<s-right>" . buf-move-right)
-;;          ))
+;; Move buffers around.
+(use-package buffer-move
+  :bind (
+         ("<s-up>"    . buf-move-up)
+         ("<s-down>"  . buf-move-down)
+         ("<s-left>"  . buf-move-left)
+         ("<s-right>" . buf-move-right)
+         ))
 
 ;; Copy selected region to be pasted into Slack/Github/etc.
 (use-package copy-as-format
@@ -1168,8 +1189,10 @@ into one."
   :bind ("C-=" . er/expand-region)
   :config
   ;; Fix region not highlighting.
-  (setq shift-select-mode nil)
-  (setq expand-region-fast-keys-enabled nil)
+  (setq
+   shift-select-mode nil
+   expand-region-fast-keys-enabled nil
+   )
   )
 
 ;; Workspaces.
@@ -1191,15 +1214,19 @@ into one."
          ("s--" . eyebrowse-rename-window-config)
          )
   :config
-  (eyebrowse-mode t)
-  (setq eyebrowse-wrap-around t)
-  (setq eyebrowse-switch-back-and-forth nil)
-  (setq eyebrowse-new-workspace t)
-  (setq eyebrowse-close-window-config-prompt t)
 
-  (setq eyebrowse-mode-line-separator " ")
-  (setq eyebrowse-mode-line-left-delimiter "[")
-  (setq eyebrowse-mode-line-right-delimiter "]")
+  (eyebrowse-mode t)
+
+  (setq
+   eyebrowse-wrap-around t
+   eyebrowse-switch-back-and-forth nil
+   eyebrowse-new-workspace t
+   eyebrowse-close-window-config-prompt t
+
+   eyebrowse-mode-line-separator " "
+   eyebrowse-mode-line-left-delimiter "["
+   eyebrowse-mode-line-right-delimiter "]"
+   )
 
   (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold t)
 
@@ -1270,9 +1297,6 @@ arguments ARG1 and ARG2 to work..."
 (use-package highlight-operators
   :hook (
          (c-mode-common . highlight-operators-mode)
-         ;; REMOVED: Results in higher CPU load and slowdown in large files,
-         ;; especially in `rust-mode'.
-         ;; (rust-mode . highlight-operators-mode)
          )
   )
 
@@ -1379,11 +1403,14 @@ arguments ARG1 and ARG2 to work..."
   :bind ("C-_" . undo-propose))
 
 ;; Use a sensible mechanism for making buffer names unique.
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'forward
-      uniquify-min-dir-content 1
-      uniquify-strip-common-suffix nil
-      )
+(use-package uniquify
+  :ensure nil
+  :config
+  (setq uniquify-buffer-name-style 'forward
+        uniquify-min-dir-content 1
+        uniquify-strip-common-suffix nil
+        )
+  )
 
 ;; Highlight some recent changes such as undos.
 (use-package volatile-highlights
@@ -1696,29 +1723,22 @@ boundaries."
   (setq dumb-jump-selector 'helm)
   )
 
-;; ;; Yasnippet.
-;; ;; NOTE: list all snippets for current mode with M-x `yas-describe-tables'.
-;; REMOVED: Takes a long time to load, sometimes can't open a buffer because of
-;; missing snippet files, sometimes I want to indent instead of expanding a
-;; snippet.
-;; (use-package yasnippet-snippets)
-;; (use-package yasnippet
-;;   :requires yasnippet-snippets
-;;   :config
-;;   (yas-global-mode)
-
-;;   (setq yas-triggers-in-field t) ; Enable nested triggering of snippets.
-;;   (setq yas-verbosity 1) ;; No need to be so verbose.
-;;   )
-
 ;;; Language packages
 
 (use-package csharp-mode
   :defer t)
 
+(use-package dockerfile-mode
+  :defer t)
+
 ;; Fish
 
 (use-package fish-mode
+  :defer t)
+
+;; Groovy
+
+(use-package groovy-mode
   :defer t)
 
 ;; Javascript
@@ -2234,20 +2254,9 @@ boundaries."
   (split-window-right-focus)
   (org-agenda-list)
 
-  ;; Connect to ERC on startup.
-
-  (eyebrowse-switch-to-window-config-0)
-
-  (erc :server "irc.freenode.net"
-       :port "6667"
-       :nick "bytedude")
-
-  (eyebrowse-switch-to-window-config-1)
-
   ;; Name eyebrowse slots.
 
   (eyebrowse-rename-window-config 1 "org")
-  (eyebrowse-rename-window-config 0 "irc")
   )
 
 (emacs-welcome)
