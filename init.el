@@ -1098,13 +1098,11 @@ into one."
   ;; Add up to eshell.
   ;; Jump to a directory higher up in the directory hierarchy.
   (use-package eshell-up
-    :defer 2
     :config (setq eshell-up-print-parent-dir nil))
 
   ;; Add z to eshell.
   ;; Jumps to most recently visited directories.
-  (use-package eshell-z
-    :defer 2)
+  (use-package eshell-z)
   )
 
 ;;; Load packages
