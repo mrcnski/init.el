@@ -396,6 +396,9 @@
 (setq display-line-numbers-grow-only t)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (add-hook 'conf-mode-hook 'display-line-numbers-mode)
+;; NOTE: Don't add `text-mode-hook', to prevent line numbers in org-mode.
+;; Add `yaml-mode-hook' manually (it derives from `text-mode-hook').
+(add-hook 'yaml-mode-hook 'display-line-numbers-mode)
 
 ;; Auto revert files that changed on disk.
 (global-auto-revert-mode t)
@@ -1681,6 +1684,7 @@ arguments ARG1 and ARG2 to work..."
          ("s-i" . helm-projectile-ag-inexact)
          ("s-u" . helm-projectile-ag-exact)
          )
+
   :config
   (defun helm-projectile-ag-inexact ()
     "Run helm-projectile-ag, case-insensitive and without word
@@ -1702,6 +1706,11 @@ boundaries."
     (setq helm-ag-insert-at-point 'symbol)
     (helm-projectile-ag)
     )
+
+  ;; Don't use projectile buffers as a source.
+  (setq helm-projectile-sources-list '(helm-source-projectile-files-list
+                                       helm-source-projectile-projects
+                                       ))
 
   (helm-projectile-on)
   )
