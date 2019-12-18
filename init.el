@@ -1360,9 +1360,9 @@ arguments ARG1 and ARG2 to work..."
   :defer t
   )
 
-;; Open current directory in Finder on Mac.
-(use-package reveal-in-osx-finder
-  :bind ("C-c f" . reveal-in-osx-finder)
+;; Open current directory.
+(use-package reveal-in-folder
+  :bind ("C-c f" . reveal-in-folder)
   )
 
 ;; Automatically save place in each file.
@@ -1507,10 +1507,11 @@ arguments ARG1 and ARG2 to work..."
 
 ;;; Git packages
 
-;; Interface with GitHub etc. from Magit.
-(use-package forge
-  :after magit
-  )
+;; REMOVED: Never used it.
+;; ;; Interface with GitHub etc. from Magit.
+;; (use-package forge
+;;   :after magit
+;;   )
 
 ;; Generate links to Github for current code location.
 (use-package git-link
@@ -1642,6 +1643,13 @@ arguments ARG1 and ARG2 to work..."
   ;; See diffs in Dired.
   (add-hook 'dired-mode-hook 'diff-hl-dired-mode)
   )
+
+;; EditorConfig helps maintain consistent coding styles for multiple developers
+;; working on the same project across various editors and IDEs.
+(use-package editorconfig
+  :ensure t
+  :config
+  (editorconfig-mode 1))
 
 ;; On-the-fly syntax checker.
 (use-package flycheck
@@ -2129,6 +2137,7 @@ boundaries."
 
 ;; Recurring org-mode tasks.
 (use-package org-recur
+  ;; :load-path "~/projects/org-recur/"
   :after org
   :bind (
          :map org-recur-mode-map
