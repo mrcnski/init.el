@@ -460,8 +460,6 @@
 ;; Disable annoying popup on OSX.
 (global-set-key (kbd "s-t") nil)
 
-(global-set-key [f12] 'toggle-frame-fullscreen)
-
 (defun other-window-reverse ()
   "Go to other window in reverse."
   (interactive)
@@ -481,7 +479,7 @@
   (interactive)
   (save-buffer)
   (revert-buffer))
-(global-set-key [f5]  'save-revert-buffer)
+(global-set-key (kbd "s-r") 'save-revert-buffer)
 
 (defun save-all ()
   "Save all file-visiting buffers without prompting."
@@ -1050,8 +1048,8 @@ into one."
   :ensure nil
   ;; :after projectile
   :bind (
-         ("<f1>" . projectile-run-eshell)
-         ("<f2>" . eshell-new)
+         ("s-w" . projectile-run-eshell)
+         ("s-e" . eshell-new)
          )
   ;; Save all buffers before running a command.
   :hook (eshell-pre-command . save-all)
@@ -1616,7 +1614,6 @@ arguments ARG1 and ARG2 to work..."
 
 ;; Show markers in margin indicating changes.
 (use-package diff-hl
-  :load-path "~/repos/diff-hl"
   :bind (
          ("C-?" . diff-hl-revert-hunk)
          ("M-[" . diff-hl-previous-hunk)
@@ -1632,7 +1629,6 @@ arguments ARG1 and ARG2 to work..."
     (setq-local left-fringe-width 16)
     (turn-on-diff-hl-mode))
 
-  ;; (global-diff-hl-mode)
   :config
 
   ;; Show diffs in margin when running in terminal.
@@ -1750,6 +1746,18 @@ boundaries."
 
 (use-package fish-mode
   :defer t)
+
+;; Go
+(use-package go-mode
+  :defer t
+  :bind (:map go-mode-map ("C-c n" . gofmt))
+  :config
+  (setq
+   ;; gofmt-args '("-s")
+   gofmt-args nil
+   gofmt-command "goimports"
+   )
+  )
 
 ;; Groovy
 
@@ -2227,6 +2235,11 @@ boundaries."
             :category "financial"
             :tag "financial"
             :order 7
+            )
+     (:name "Self-improvement"
+            :category "self-improvement"
+            :tag "self-improvement"
+            :order 8
             )
 
      ;; After the last group, the agenda will display items that didn't
