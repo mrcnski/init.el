@@ -141,6 +141,12 @@
   :config
   (helm-mode t)
 
+  ;; Set better keys to select helm candidates.
+  (dotimes (i 10)
+    (let ((key (format "s-%d" i))
+           (fn (lambda () (interactive) (helm-execute-selection-action-at-nth i))))
+      (define-key helm-map (kbd key) fn)
+      ))
 
   (defvar helm-buffers-fuzzy-matching)
   (defvar helm-recentf-fuzzy-match)
@@ -169,6 +175,8 @@
    helm-follow-mode-persistent t
    ;; How long to wait before executing helm-follow persistent action.
    helm-follow-input-idle-delay highlight-delay
+   ;; Allow using the mouse to select candidates!
+   helm-allow-mouse t
    )
 
   (defvar helm-buffers-column-separator)
@@ -235,6 +243,14 @@
      helm-swoop-split-with-multiple-windows t
      helm-swoop-split-direction 'split-window-vertically
      )
+    )
+
+  ;;; Misc.
+
+  ;; Number Helm candidates.
+  (use-package linum-relative
+    :config
+    (helm-linum-relative-mode t)
     )
   )
 
@@ -322,6 +338,8 @@
       delete-old-versions t
       ;; Delay for displaying function/variable information.
       eldoc-idle-delay info-delay
+      ;; Fix flickering in Emacs 26 on OSX.
+      recenter-redisplay nil
 
       ;; Where should we open new buffers by default?
       display-buffer-base-action '(display-buffer-below-selected)
@@ -446,7 +464,10 @@
 
 ;;; My Functions and Shortcuts/Keybindings
 
-;; Set up keys using super. s-a, s-s, s-x, s-c, and s-v correspond to
+;; Set s-s to save all buffers (default is only current buffer).
+(global-set-key (kbd "s-s") 'save-all)
+
+;; Set up keys using super. s-a, s-x, s-c, and s-v correspond to
 ;; select-all, save, cut, copy, and paste, which I've left for
 ;; consistency/utility on Macs.
 (global-set-key (kbd "s-j") 'helm-mini)
@@ -1196,7 +1217,9 @@ into one."
 
 ;; Workspaces.
 (use-package eyebrowse
-  :demand t ;; To prevent mode-line display errors.
+  ;; To prevent mode-line display errors.
+  :demand t
+
   :bind (("s-," . eyebrowse-prev-window-config)
          ("s-." . eyebrowse-next-window-config)
          ("s-0" . eyebrowse-switch-to-window-config-0)
@@ -1212,6 +1235,7 @@ into one."
          ("s-/" . eyebrowse-close-window-config)
          ("s--" . eyebrowse-rename-window-config)
          )
+
   :config
 
   (eyebrowse-mode t)
@@ -1568,7 +1592,7 @@ arguments ARG1 and ARG2 to work..."
   :hook (prog-mode . company-mode)
   :init
   ;; Trigger completion immediately.
-  (setq company-idle-delay 0)
+  (setq company-idle-delay nil)
   (setq company-minimum-prefix-length 1)
   ;; Align tooltips to right border.
   (setq company-tooltip-align-annotations t)
@@ -1592,7 +1616,7 @@ arguments ARG1 and ARG2 to work..."
   ;; Rebind the M-digit keys to prevent conflict with winum.
   (dotimes (i 10)
     (define-key company-active-map (kbd (format "M-%d" i)) nil)
-    (define-key company-active-map (read-kbd-macro (format "C-M-%d" i)) 'company-complete-number))
+    (define-key company-active-map (read-kbd-macro (format "s-%d" i)) 'company-complete-number))
 
   ;; Allow typing normally.
   (setq company-require-match nil)
@@ -1602,15 +1626,16 @@ arguments ARG1 and ARG2 to work..."
   (add-to-list 'company-continue-commands 'indent-buffer t)
   )
 
-;; Complete anything.
-(use-package company-tabnine
-  :after company
-  :config
-  (add-to-list 'company-backends #'company-tabnine)
+;; REMOVED: performance issues and tended to get in the way.
+;; ;; Complete anything.
+;; (use-package company-tabnine
+;;   :after company
+;;   :config
+;;   (add-to-list 'company-backends #'company-tabnine)
 
-  (setq company-tabnine-always-trigger t)
-  (setq company-tabnine-auto-balance t)
-  )
+;;   (setq company-tabnine-always-trigger t)
+;;   (setq company-tabnine-auto-balance t)
+;;   )
 
 ;; Show markers in margin indicating changes.
 (use-package diff-hl
@@ -1751,12 +1776,16 @@ boundaries."
 (use-package go-mode
   :defer t
   :bind (:map go-mode-map ("C-c n" . gofmt))
+  :hook (go-mode . subword-mode)
   :config
   (setq
    ;; gofmt-args '("-s")
    gofmt-args nil
    gofmt-command "goimports"
    )
+
+  (use-package godoctor)
+  (use-package go-errcheck)
   )
 
 ;; Groovy
