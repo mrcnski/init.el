@@ -144,7 +144,7 @@
   ;; Set better keys to select helm candidates.
   (dotimes (i 10)
     (let ((key (format "s-%d" i))
-           (fn (lambda () (interactive) (helm-execute-selection-action-at-nth i))))
+          (fn (lambda () (interactive) (helm-execute-selection-action-at-nth i))))
       (define-key helm-map (kbd key) fn)
       ))
 
@@ -438,6 +438,9 @@
 (setq show-paren-delay highlight-delay)
 (show-paren-mode t)
 
+;; Turn on subword-mode everywhere.
+(global-subword-mode t)
+
 ;; Set up gpg.
 ;; For full instructions, see https://emacs.stackexchange.com/a/12213.
 
@@ -681,7 +684,7 @@ region."
     (goto-char end)
     (setq end (line-end-position))
     (kill-region beg end)
-    (kill-append "\n" nil)
+    (kill-append "\n" t)
     ;; Are there more lines after this?
     (if (/= (line-end-position) (point-max))
         (delete-char 1))
@@ -1366,6 +1369,11 @@ arguments ARG1 and ARG2 to work..."
   (setq mc/always-run-for-all t)
   )
 
+(use-package paren-face
+  :config
+  (global-paren-face-mode t)
+  )
+
 ;; Synonym lookup.
 (use-package powerthesaurus
   :defer t)
@@ -1761,8 +1769,12 @@ boundaries."
 
 ;;; Language packages
 
+;; C#
+
 (use-package csharp-mode
   :defer t)
+
+;; Docker
 
 (use-package dockerfile-mode
   :defer t)
@@ -1773,15 +1785,17 @@ boundaries."
   :defer t)
 
 ;; Go
+
 (use-package go-mode
   :defer t
   :bind (:map go-mode-map ("C-c n" . gofmt))
-  :hook (go-mode . subword-mode)
   :config
   (setq
-   ;; gofmt-args '("-s")
-   gofmt-args nil
-   gofmt-command "goimports"
+   gofmt-args '("-s")
+   gofmt-command "gofmt"
+
+   ;; gofmt-args nil
+   ;; gofmt-command "goimports"
    )
 
   (use-package godoctor)
