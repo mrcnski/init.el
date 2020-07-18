@@ -286,6 +286,9 @@
 (setq-default
  indent-tabs-mode nil
  tab-width 4
+ ;; HTML tab width.
+ sgml-basic-offset 2
+ js-indent-level 2
  fill-column 80
  ;; Highlight end of buffer?
  indicate-empty-lines t
@@ -393,8 +396,6 @@
 (prefer-coding-system 'utf-8)
 
 ;; Setup selected file endings to open in certain modes.
-(add-to-list 'auto-mode-alist '("\\.hdl\\'" . c-mode))
-(add-to-list 'auto-mode-alist '("\\.jack\\'" . java-mode))
 (add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
 
 ;; Set some built-in modes.
@@ -811,8 +812,8 @@ into one."
 ;;; Visual settings
 
 ;; Set transparency.
-(set-frame-parameter (selected-frame) 'alpha '(98))
-;; (set-frame-parameter (selected-frame) 'alpha '(100))
+(set-frame-parameter (selected-frame) 'alpha '(100))
+;; (set-frame-parameter (selected-frame) 'alpha '(98))
 
 ;; Turn on blinking/flashing cursor.
 (blink-cursor-mode t)
@@ -833,7 +834,6 @@ into one."
 (setq frame-resize-pixelwise t)
 
 (toggle-frame-maximized) ;; Maximize!
-;; (toggle-frame-fullscreen) ;; Maximize MORE
 
 ;; Enable popup tooltips, use emacs tooltip implementation.
 (tooltip-mode nil)
@@ -863,13 +863,13 @@ into one."
   (cond
    ((font-exists-p "Iosevka")
     (set-face-attribute
-     'default nil :font "Iosevka:weight=Regular" :height 120)
+     'default nil :font "Iosevka:weight=Regular" :height 140)
     (setq-default line-spacing 0)
     )
    ((font-exists-p "Hack")
     (set-face-attribute
-     'default nil :font "Hack:weight=Regular" :height 120)
-    (setq-default line-spacing 0)
+     'default nil :font "Hack:weight=Regular" :height 140)
+    (setq-default line-spacing 1)
     )
    )
   )
@@ -1302,30 +1302,6 @@ arguments ARG1 and ARG2 to work..."
 (use-package free-keys
   :defer t)
 
-;; Highlight indentation.
-(use-package highlight-indent-guides
-  :defer t
-  ;; REMOVED: Caused too much slowness.
-  ;; :hook (prog-mode . highlight-indent-guides-mode)
-  :config
-  (setq highlight-indent-guides-method 'character
-        highlight-indent-guides-character ?\|
-        highlight-indent-guides-auto-enabled nil
-        )
-  )
-
-;; Highlight numbers in code.
-(use-package highlight-numbers
-  :hook (prog-mode . highlight-numbers-mode))
-
-;; Highlight operators.
-;; Breaks in lisp modes, which is why I enable this on a per-mode basis.
-(use-package highlight-operators
-  :hook (
-         (c-mode-common . highlight-operators-mode)
-         )
-  )
-
 ;; Highlight more elisp syntax.
 (use-package highlight-quoted
   :hook (emacs-lisp-mode . highlight-quoted-mode))
@@ -1338,10 +1314,6 @@ arguments ARG1 and ARG2 to work..."
 
   (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
   )
-
-;; Convert buffer text and decorations to HTML.
-(use-package htmlize
-  :defer t)
 
 ;; A package for choosing a color by updating text sample.
 ;; See https://www.emacswiki.org/emacs/MakeColor.
@@ -1367,11 +1339,6 @@ arguments ARG1 and ARG2 to work..."
   (global-unset-key (kbd "M-<down-mouse-1>"))
 
   (setq mc/always-run-for-all t)
-  )
-
-(use-package paren-face
-  :config
-  (global-paren-face-mode t)
   )
 
 ;; Synonym lookup.
@@ -1423,6 +1390,10 @@ arguments ARG1 and ARG2 to work..."
   (spaceline-spacemacs-theme)
   (spaceline-helm-mode)
   )
+
+;; TODO: Try this, requires Emacs 26.2
+;; (use-package spell-fu)
+;; (global-spell-fu-mode)
 
 ;; Open current directory in an external terminal emulator.
 (use-package terminal-here
@@ -1523,7 +1494,7 @@ arguments ARG1 and ARG2 to work..."
      ("*" "*")
      ))
 
-  ;; Kepe the region active after adding a pair.
+  ;; Keep the region active after adding a pair.
   (setq wrap-region-keep-mark t)
 
   (wrap-region-global-mode t)
@@ -1536,12 +1507,6 @@ arguments ARG1 and ARG2 to work..."
          ))
 
 ;;; Git packages
-
-;; REMOVED: Never used it.
-;; ;; Interface with GitHub etc. from Magit.
-;; (use-package forge
-;;   :after magit
-;;   )
 
 ;; Generate links to Github for current code location.
 (use-package git-link
@@ -1634,17 +1599,6 @@ arguments ARG1 and ARG2 to work..."
   (add-to-list 'company-continue-commands 'indent-buffer t)
   )
 
-;; REMOVED: performance issues and tended to get in the way.
-;; ;; Complete anything.
-;; (use-package company-tabnine
-;;   :after company
-;;   :config
-;;   (add-to-list 'company-backends #'company-tabnine)
-
-;;   (setq company-tabnine-always-trigger t)
-;;   (setq company-tabnine-auto-balance t)
-;;   )
-
 ;; Show markers in margin indicating changes.
 (use-package diff-hl
   :bind (
@@ -1693,7 +1647,7 @@ arguments ARG1 and ARG2 to work..."
   ;; (setq flycheck-check-syntax-automatically nil)
 
   ;; Set shorter delay for displaying errors at point.
-  (setq flycheck-display-errors-delay (* 3 info-delay))
+  (setq flycheck-display-errors-delay (* 1 info-delay))
   (setq sentence-end-double-space nil) ;; Stupid check.
 
   ;; Disable checkers.
@@ -1811,12 +1765,22 @@ boundaries."
 
 (use-package js2-mode
   :mode "\\.js\\'"
+  :bind (
+         :map js2-mode-map
+         ("M-," . smart-jump-back)
+         ("M-." . smart-jump-go)
+         )
+  :config
+  (setq js2-basic-offset 2)
   )
 
 ;; JSON
 
 (use-package json-mode
-  :defer t)
+  :defer t
+  :config
+  (setq json-reformat:indent-width 2)
+  )
 
 ;; Lua
 
@@ -1851,6 +1815,14 @@ boundaries."
 
 (use-package processing-mode
   :defer t)
+
+;; Python
+
+(add-hook 'python-mode-hook
+          (lambda ()
+            (setq flycheck-python-pylint-executable "/usr/local/bin/pylint")
+            (setq flycheck-python-flake8-executable "/usr/local/bin/flake8")
+            ))
 
 ;; Rust
 
@@ -2069,7 +2041,7 @@ boundaries."
   :config
 
   ;; Set default span of agenda view.
-  (setq org-agenda-span 'day)
+  (setq org-agenda-span 'week)
 
   ;; Show scheduled items in order from most to least recent.
   (setq org-agenda-sorting-strategy
