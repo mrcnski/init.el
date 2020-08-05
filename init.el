@@ -418,6 +418,7 @@
 ;; NOTE: Don't add `text-mode-hook', to prevent line numbers in org-mode.
 ;; Add `yaml-mode-hook' manually (it derives from `text-mode-hook').
 (add-hook 'yaml-mode-hook 'display-line-numbers-mode)
+(add-hook 'markdown-mode-hook 'display-line-numbers-mode)
 
 ;; Auto revert files that changed on disk.
 (global-auto-revert-mode t)
@@ -901,6 +902,14 @@ into one."
               (isearch-search-and-update)))
   )
 
+(use-package diff-mode
+  :ensure nil
+  :bind (
+         :map diff-mode-map
+         ("M-o" . nil)
+         )
+  )
+
 (use-package dired
   :ensure nil
   :bind (
@@ -1009,6 +1018,7 @@ into one."
   )
 
 ;; ERC settings
+
 (use-package erc
   :ensure nil
   :hook (erc-mode . erc-settings)
