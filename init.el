@@ -135,6 +135,11 @@
 
          ;; No reason, and annoying, to bring up `helm-minibuffer-history' here.
          ("C-r" . isearch-reverse-exit-minibuffer)
+
+         :map minibuffer-local-map
+
+         ;; See above.
+         ("C-r" . isearch-reverse-exit-minibuffer)
          )
   :init
   (require 'helm-config)
@@ -171,7 +176,7 @@
    ;; Scroll 8 lines other window using M-<next>/M-<prior>.
    helm-scroll-amount 8
    helm-ff-file-name-history-use-recentf t
-   helm-echo-input-in-header-line t
+   helm-display-header-line nil
    helm-follow-mode-persistent t
    ;; How long to wait before executing helm-follow persistent action.
    helm-follow-input-idle-delay highlight-delay
@@ -182,22 +187,10 @@
   (defvar helm-buffers-column-separator)
   (setq helm-buffers-column-separator "  ")
 
-  (defun helm-hide-minibuffer-maybe ()
-    "Hide minibuffer in Helm session if we use the header line as input field."
-    (when (with-helm-buffer helm-echo-input-in-header-line)
-      (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
-        (overlay-put ov 'window (selected-window))
-        (overlay-put ov 'face
-                     (let ((bg-color (face-background 'default nil)))
-                       `(:background ,bg-color :foreground ,bg-color)))
-        (setq-local cursor-type nil))))
-  (add-hook 'helm-minibuffer-set-up-hook 'helm-hide-minibuffer-maybe)
-
   (defvar helm-mini-default-sources)
   (setq helm-mini-default-sources '(helm-source-buffers-list
                                     helm-source-recentf
                                     helm-source-files-in-current-dir
-                                    ;; helm-source-buffer-not-found
                                     ))
 
   ;;; helm packages.
@@ -243,14 +236,6 @@
      helm-swoop-split-with-multiple-windows t
      helm-swoop-split-direction 'split-window-vertically
      )
-    )
-
-  ;;; Misc.
-
-  ;; Number Helm candidates.
-  (use-package linum-relative
-    :config
-    (helm-linum-relative-mode t)
     )
   )
 
@@ -318,7 +303,8 @@
       require-final-newline t
       ;; Add newline at end of buffer with C-n.
       next-line-add-newlines t
-      visible-bell t
+      ;; Flash the frame on every error?
+      visible-bell nil
       ring-bell-function 'ignore
       ;; TODO: What does this do?
       ediff-window-setup-function 'ediff-setup-windows-plain
@@ -362,7 +348,7 @@
       ;; Resize the minibuffer when needed.
       resize-mini-windows t
       ;; Enable recursive editing of minibuffer?
-      enable-recursive-minibuffers nil
+      enable-recursive-minibuffers t
       ;; Move point to beginning or end of buffer when scrolling.
       scroll-error-top-bottom t
       mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
@@ -456,8 +442,29 @@
 (defvar epa-pinentry-mode)
 (setq epa-pinentry-mode 'loopback)
 
-;; Increase the password cache expiry time.
-(setq password-cache-expiry (* 60 15))
+;; How many seconds pass before an undisplayed .gpg buffer is killed.
+(defvar gpg-buffer-time 120)
+;; Adapted from https://stackoverflow.com/a/15854362/6085242.
+(defun kill-gpg-buffers ()
+  "Kill GPG buffers if they have been inactive."
+  (interactive)
+  ;; Kill gpg-agent.
+  (shell-command "gpgconf --kill gpg-agent")
+  (let ((buffers-killed 0))
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (string-match ".*\.gpg$" (buffer-name buffer))
+          (let ((current-time (time-to-seconds (current-time)))
+                (last-displayed-time (time-to-seconds buffer-display-time)))
+            (when (> (- current-time last-displayed-time) gpg-buffer-time)
+              (message "Auto killing .gpg buffer '%s'" (buffer-name buffer))
+              (when (buffer-modified-p buffer)
+                (save-buffer))
+              (kill-buffer buffer)
+              (setq buffers-killed (+ buffers-killed 1)))))))
+    (unless (zerop buffers-killed)
+      (message "%s .gpg buffers have been autosaved and killed" buffers-killed))))
+(run-with-idle-timer 10 t 'kill-gpg-buffers)
 
 ;; Mouse settings
 
@@ -850,7 +857,10 @@ into one."
 
 ;; Nimbus is my personal theme, available on Melpa.
 (use-package nimbus-theme
-  :load-path "~/projects/nimbus-theme")
+  :load-path "~/repos/github.com/m-cat/nimbus-theme"
+  :config
+  (nimbus-theme)
+  )
 
 ;; Set font only if we're not in the terminal.
 (when (display-graphic-p)
@@ -1181,10 +1191,11 @@ into one."
   (setq avy-background nil)
   )
 
-;; Imagemagick wrapper.
-(use-package blimp
-  :hook (image-mode . blimp-mode)
-  )
+;; REMOVED
+;; ;; Imagemagick wrapper.
+;; (use-package blimp
+;;   :hook (image-mode . blimp-mode)
+;;   )
 
 ;; Move buffers around.
 (use-package buffer-move
@@ -1202,11 +1213,6 @@ into one."
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover
   :defer 2)
-
-;; ;; Text separated by more than one space doesn't move.
-;; (use-package dynamic-spaces
-;;   :config
-;;   (dynamic-spaces-global-mode))
 
 ;; Show example usage when examining elisp functions.
 (use-package elisp-demos
@@ -1277,9 +1283,8 @@ into one."
     "Get the current workspaces as a string."
     (let ((workspaces (substring-no-properties (eyebrowse-mode-line-indicator))))
       (setq eyebrowse-workspaces workspaces)))
-  (defun eyebrowse-workspaces-string-rename (arg1 arg2)
-    "Advice for `eyebrowse-rename-window-config'. Requires two
-arguments ARG1 and ARG2 to work..."
+  (defun eyebrowse-workspaces-string-rename (_arg1 _arg2)
+    "Advice for `eyebrowse-rename-window-config'."
     (eyebrowse-workspaces-string))
   (eyebrowse-workspaces-string)
   (add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-string)
@@ -1345,21 +1350,7 @@ arguments ARG1 and ARG2 to work..."
          ("<return>" . nil)
          )
   :config
-  ;; TODO: Don't remember why.
-  (global-unset-key (kbd "M-<down-mouse-1>"))
-
   (setq mc/always-run-for-all t)
-  )
-
-;; Synonym lookup.
-(use-package powerthesaurus
-  :defer t)
-
-;; Highlight delimiters with colors depending on depth.
-(use-package rainbow-delimiters
-  :defer t
-  ;; REMOVED: Too slow in large files.
-  ;; :hook (prog-mode . rainbow-delimiters-mode)
   )
 
 ;; Highlight color strings with the corresponding color.
@@ -1400,10 +1391,6 @@ arguments ARG1 and ARG2 to work..."
   (spaceline-spacemacs-theme)
   (spaceline-helm-mode)
   )
-
-;; TODO: Try this, requires Emacs 26.2
-;; (use-package spell-fu)
-;; (global-spell-fu-mode)
 
 ;; Open current directory in an external terminal emulator.
 (use-package terminal-here
@@ -1495,20 +1482,21 @@ arguments ARG1 and ARG2 to work..."
   (winum-mode)
   )
 
-;; Wrap regions with pairs.
-(use-package wrap-region
-  :config
-  (wrap-region-add-wrappers
-   '(
-     ("`" "`")
-     ("*" "*")
-     ))
+;; REMOVED: not maintained.
+;; ;; Wrap regions with pairs.
+;; (use-package wrap-region
+;;   :config
+;;   (wrap-region-add-wrappers
+;;    '(
+;;      ("`" "`")
+;;      ("*" "*")
+;;      ))
 
-  ;; Keep the region active after adding a pair.
-  (setq wrap-region-keep-mark t)
+;;   ;; Keep the region active after adding a pair.
+;;   (setq wrap-region-keep-mark t)
 
-  (wrap-region-global-mode t)
-  )
+;;   (wrap-region-global-mode t)
+;;   )
 
 ;; Automatically clean up extraneous whitespace.
 (use-package ws-butler
@@ -1821,11 +1809,6 @@ boundaries."
   :defer t
   )
 
-;; Processing
-
-(use-package processing-mode
-  :defer t)
-
 ;; Python
 
 (add-hook 'python-mode-hook
@@ -2032,8 +2015,9 @@ boundaries."
   ;; Markdown export.
   (use-package ox-gfm)
 
-  ;; Export org to Reveal.js.
-  (use-package ox-reveal)
+  ;; REMOVED Package cl is deprecated.
+  ;; ;; Export org to Reveal.js.
+  ;; (use-package ox-reveal)
   )
 
 (use-package org-agenda
@@ -2265,6 +2249,11 @@ boundaries."
             :category "self-improvement"
             :tag "self-improvement"
             :order 8
+            )
+     (:name "Blog"
+            :category "blog"
+            :tag "blog"
+            :order 9
             )
 
      ;; After the last group, the agenda will display items that didn't
