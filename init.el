@@ -277,8 +277,6 @@
  fill-column 80
  ;; Highlight end of buffer?
  indicate-empty-lines t
- ;; Inhibit backups?
- backup-inhibited t
  )
 
 ;; Enable show-trailing-whitespace.
@@ -293,73 +291,81 @@
 (defvar apropos-do-all)
 (defvar ediff-window-setup-function)
 (defvar c-default-style)
-(setq select-enable-clipboard t
-      select-enable-primary t
-      save-interprogram-paste-before-kill t
-      ;; TODO: What does this do?
-      apropos-do-all t
-      kill-ring-max 1000
-      ;; Ensure that files end with a newline.
-      require-final-newline t
-      ;; Add newline at end of buffer with C-n.
-      next-line-add-newlines t
-      ;; Flash the frame on every error?
-      visible-bell nil
-      ring-bell-function 'ignore
-      ;; TODO: What does this do?
-      ediff-window-setup-function 'ediff-setup-windows-plain
-      window-combination-resize nil
-      ;; Display keystrokes immediately.
-      echo-keystrokes 0.01
-      ;; Disable startup screen.
-      inhibit-startup-message t
-      ;; Change the initial *scratch* buffer.
-      initial-scratch-message ""
-      ;; Focus new help windows when opened.
-      help-window-select t
-      ;; Always confirm before closing Emacs?
-      confirm-kill-emacs nil
-      ;; Send deleted files to trash.
-      delete-by-moving-to-trash t
-      ;; Make backup files when creating a file?
-      make-backup-files nil
-      ;; Silently delete old backup versions.
-      delete-old-versions t
-      ;; Delay for displaying function/variable information.
-      eldoc-idle-delay info-delay
-      ;; Fix flickering in Emacs 26 on OSX.
-      recenter-redisplay nil
+(setq
+ select-enable-clipboard t
+ select-enable-primary t
+ save-interprogram-paste-before-kill t
+ ;; TODO: What does this do?
+ apropos-do-all t
+ kill-ring-max 1000
+ ;; Ensure that files end with a newline.
+ require-final-newline t
+ ;; Add newline at end of buffer with C-n.
+ next-line-add-newlines t
+ ;; Flash the frame on every error?
+ visible-bell nil
+ ring-bell-function 'ignore
+ ;; TODO: What does this do?
+ ediff-window-setup-function 'ediff-setup-windows-plain
+ window-combination-resize nil
+ ;; Display keystrokes immediately.
+ echo-keystrokes 0.01
+ ;; Disable startup screen.
+ inhibit-startup-message t
+ ;; Change the initial *scratch* buffer.
+ initial-scratch-message ""
+ ;; Focus new help windows when opened.
+ help-window-select t
+ ;; Always confirm before closing Emacs?
+ confirm-kill-emacs nil
+ ;; Send deleted files to trash.
+ delete-by-moving-to-trash t
+ ;; Delay for displaying function/variable information.
+ eldoc-idle-delay info-delay
+ ;; Fix flickering in Emacs 26 on OSX.
+ recenter-redisplay nil
 
-      ;; Where should we open new buffers by default?
-      display-buffer-base-action '(display-buffer-below-selected)
-      ;; Specify custom behavior for misbehaving buffers.
-      display-buffer-alist
-      '(("\\*Help\\*"
-         (display-buffer-reuse-window
-          display-buffer-below-selected))
-        ("\\*Ibuffer\\*"
-         (display-buffer-same-window))
-        )
-      ;; Open files in existing frames.
-      pop-up-frames nil
-      pop-up-windows t
-      ;; Tab will always just try to indent.
-      tab-always-indent 't
-      ;; Resize the minibuffer when needed.
-      resize-mini-windows t
-      ;; Enable recursive editing of minibuffer?
-      enable-recursive-minibuffers t
-      ;; Move point to beginning or end of buffer when scrolling.
-      scroll-error-top-bottom t
-      mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
+ ;; Inhibit backups?
+ backup-inhibited t
+ ;; Make backup files when creating a file?
+ make-backup-files nil
+ ;; Silently delete old backup versions.
+ delete-old-versions t
+ ;; Auto save?
+ auto-save-default nil
+ ;; Create interlock files?
+ create-lockfiles nil
 
-      ;; Set a larger minimum window width. Smaller than this is hard to read.
-      window-min-width 30
-      window-min-height 10
+ ;; Where should we open new buffers by default?
+ display-buffer-base-action '(display-buffer-below-selected)
+ ;; Specify custom behavior for misbehaving buffers.
+ display-buffer-alist
+ '(("\\*Help\\*"
+    (display-buffer-reuse-window
+     display-buffer-below-selected))
+   ("\\*Ibuffer\\*"
+    (display-buffer-same-window))
+   )
+ ;; Open files in existing frames.
+ pop-up-frames nil
+ pop-up-windows t
+ ;; Tab will always just try to indent.
+ tab-always-indent 't
+ ;; Resize the minibuffer when needed.
+ resize-mini-windows t
+ ;; Enable recursive editing of minibuffer?
+ enable-recursive-minibuffers t
+ ;; Move point to beginning or end of buffer when scrolling.
+ scroll-error-top-bottom t
+ mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
 
-      ;; Language-specific settings?
-      c-default-style "stroustrup"
-      )
+ ;; Set a larger minimum window width. Smaller than this is hard to read.
+ window-min-width 30
+ window-min-height 10
+
+ ;; Language-specific settings?
+ c-default-style "stroustrup"
+ )
 
 ;; Change window name to be more descriptive.
 (setq frame-title-format
@@ -442,29 +448,27 @@
 (defvar epa-pinentry-mode)
 (setq epa-pinentry-mode 'loopback)
 
-;; How many seconds pass before an undisplayed .gpg buffer is killed.
-(defvar gpg-buffer-time 120)
+;; Kill inactive GPG buffers.
+
 ;; Adapted from https://stackoverflow.com/a/15854362/6085242.
 (defun kill-gpg-buffers ()
-  "Kill GPG buffers if they have been inactive."
+  "Kill GPG buffers."
   (interactive)
-  ;; Kill gpg-agent.
-  (shell-command "gpgconf --kill gpg-agent")
   (let ((buffers-killed 0))
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer
         (when (string-match ".*\.gpg$" (buffer-name buffer))
-          (let ((current-time (time-to-seconds (current-time)))
-                (last-displayed-time (time-to-seconds buffer-display-time)))
-            (when (> (- current-time last-displayed-time) gpg-buffer-time)
-              (message "Auto killing .gpg buffer '%s'" (buffer-name buffer))
-              (when (buffer-modified-p buffer)
-                (save-buffer))
-              (kill-buffer buffer)
-              (setq buffers-killed (+ buffers-killed 1)))))))
+          (message "Auto killing .gpg buffer '%s'" (buffer-name buffer))
+          (when (buffer-modified-p buffer)
+            (save-buffer))
+          (kill-buffer buffer)
+          (setq buffers-killed (+ buffers-killed 1)))))
     (unless (zerop buffers-killed)
+      ;; Kill gpg-agent.
+      (shell-command "gpgconf --kill gpg-agent")
       (message "%s .gpg buffers have been autosaved and killed" buffers-killed))))
-(run-with-idle-timer 10 t 'kill-gpg-buffers)
+
+(run-with-idle-timer 75 t 'kill-gpg-buffers)
 
 ;; Mouse settings
 
@@ -874,7 +878,8 @@ into one."
   (cond
    ((font-exists-p "Iosevka")
     (set-face-attribute
-     'default nil :font "Iosevka:weight=Regular" :height 140)
+     ;; 'default nil :font "Iosevka:weight=Regular" :height 140)
+     'default nil :font "Iosevka:weight=Light" :height 140)
     (setq-default line-spacing 0)
     )
    ((font-exists-p "Hack")
