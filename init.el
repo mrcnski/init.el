@@ -243,10 +243,6 @@
 
 ;;; Quality of life changes
 
-;; Tries to preserve last open window point when multiple buffers are open for
-;; the same file.
-(setq switch-to-buffer-preserve-window-point t)
-
 ;; Replace yes/no prompts with y/n.
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -257,13 +253,22 @@
   (recentf-mode t)
   )
 
-;; Enable functions that are disabled by default.
+;; Enable commands that are disabled by default.
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'scroll-left 'disabled nil)
 (put 'scroll-right 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
+
+;; Enable show-trailing-whitespace.
+(defun enable-trailing-whitespace ()
+  "Turn on trailing whitespace."
+  (setq show-trailing-whitespace t)
+  )
+(add-hook 'prog-mode-hook 'enable-trailing-whitespace)
+(add-hook 'conf-mode-hook 'enable-trailing-whitespace)
+(add-hook 'text-mode-hook 'enable-trailing-whitespace)
 
 (setq-default
  indent-tabs-mode nil
@@ -276,19 +281,13 @@
  indicate-empty-lines t
  )
 
-;; Enable show-trailing-whitespace.
-(defun enable-trailing-whitespace ()
-  "Turn on trailing whitespace."
-  (setq show-trailing-whitespace t)
-  )
-(add-hook 'prog-mode-hook 'enable-trailing-whitespace)
-(add-hook 'conf-mode-hook 'enable-trailing-whitespace)
-(add-hook 'text-mode-hook 'enable-trailing-whitespace)
-
 (defvar apropos-do-all)
 (defvar ediff-window-setup-function)
 (defvar c-default-style)
 (setq
+ ;; Tries to preserve last open window point when multiple buffers are open for
+ ;; the same file.
+ switch-to-buffer-preserve-window-point t
  select-enable-clipboard t
  select-enable-primary t
  save-interprogram-paste-before-kill t
