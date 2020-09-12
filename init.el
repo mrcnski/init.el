@@ -102,9 +102,6 @@
     (exec-path-from-shell-initialize)
     ))
 
-;; ;; Ensure system binaries exist and download them if not
-;; (use-package use-package-ensure-system-package)
-
 ;; Enable restarting Emacs from within Emacs.
 (use-package restart-emacs
   :defer t)
@@ -256,7 +253,7 @@
 ;; Track recently-opened files.
 (use-package recentf
   :config
-  (setq recentf-max-saved-items 10000)
+  (setq recentf-max-saved-items 5000)
   (recentf-mode t)
   )
 
