@@ -320,6 +320,8 @@
  eldoc-idle-delay info-delay
  ;; Fix flickering in Emacs 26 on OSX.
  recenter-redisplay nil
+ ;; Follow symlinks without asking?
+ vc-follow-symlinks t
 
  ;; Inhibit backups?
  backup-inhibited t
@@ -1139,7 +1141,12 @@ into one."
     (interactive)
     (eshell t))
 
-  ;; Load packages.
+  ;; Load eshell packages.
+
+  (use-package eshell-syntax-highlighting
+    :config
+    ;; Enable in all Eshell buffers.
+    (eshell-syntax-highlighting-global-mode 1))
 
   ;; Add up to eshell.
   ;; Jump to a directory higher up in the directory hierarchy.
@@ -1369,6 +1376,10 @@ into one."
   :config
   (save-place-mode t)
   )
+
+;; TODO: Included in Emacs 27, remove.
+(use-package so-long
+  :config (global-so-long-mode 1))
 
 ;; Actually a really nice mode-line package.
 ;; Requires little configuration.
@@ -1715,6 +1726,11 @@ boundaries."
 
 ;; Jump to definitions using dumb-jump as a fallback.
 (use-package smart-jump
+  :bind (
+         :map ruby-mode-map
+         ("M-," . smart-jump-back)
+         ("M-." . smart-jump-go)
+         )
   :config
   (smart-jump-setup-default-registers)
   (setq dumb-jump-selector 'helm)
