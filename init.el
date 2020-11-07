@@ -1116,6 +1116,8 @@ into one."
             #'(lambda ()
                 (define-key eshell-mode-map (kbd "M-m") 'eshell-bol)
                 (define-key eshell-mode-map (kbd "C-a") 'beginning-of-line)
+                ;; Allow M-s .
+                (define-key eshell-mode-map (kbd "M-s") nil)
 
                 ;; Use helm to list eshell history.
                 (define-key eshell-mode-map (kbd "M-i") 'helm-eshell-history)
@@ -1217,6 +1219,12 @@ into one."
 ;; Copy selected region to be pasted into Slack/Github/etc.
 (use-package copy-as-format
   :defer t)
+
+;; A better isearch.
+(use-package ctrlf
+  :config
+  (ctrlf-mode +1)
+  )
 
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover
@@ -1726,11 +1734,6 @@ boundaries."
 
 ;; Jump to definitions using dumb-jump as a fallback.
 (use-package smart-jump
-  :bind (
-         :map ruby-mode-map
-         ("M-," . smart-jump-back)
-         ("M-." . smart-jump-go)
-         )
   :config
   (smart-jump-setup-default-registers)
   (setq dumb-jump-selector 'helm)
@@ -1787,6 +1790,18 @@ boundaries."
          )
   :config
   (setq js2-basic-offset 2)
+  )
+
+;; Typescript
+(use-package tide
+  :ensure t
+  :after (typescript-mode company flycheck)
+  :hook ((typescript-mode . tide-setup)
+         (typescript-mode . tide-hl-identifier-mode)
+         ;; (before-save . tide-format-before-save)
+         )
+  :config
+  (setq typescript-indent-level 2)
   )
 
 ;; JSON
@@ -2298,6 +2313,10 @@ boundaries."
      )))
 
 ;;; Final
+
+;; Start server.
+
+(server-start)
 
 ;; Misc
 
