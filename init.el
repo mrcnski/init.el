@@ -1220,12 +1220,6 @@ into one."
 (use-package copy-as-format
   :defer t)
 
-;; A better isearch.
-(use-package ctrlf
-  :config
-  (ctrlf-mode +1)
-  )
-
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover
   :defer 2)
@@ -1756,7 +1750,7 @@ boundaries."
 (use-package fish-mode
   :defer t)
 
-;; Go
+;; Go / Golang
 
 (use-package go-mode
   :defer t
