@@ -275,7 +275,7 @@
  tab-width 4
  ;; HTML tab width.
  sgml-basic-offset 2
- js-indent-level 2
+ js-indent-level 4
  fill-column 80
  ;; Highlight end of buffer?
  indicate-empty-lines t
@@ -446,9 +446,8 @@
 (defvar epa-pinentry-mode)
 (setq epa-pinentry-mode 'loopback)
 
-;; Kill inactive GPG buffers.
+;; Kill GPG buffers when idle.
 
-;; Adapted from https://stackoverflow.com/a/15854362/6085242.
 (defun kill-gpg-buffers ()
   "Kill GPG buffers."
   (interactive)
@@ -466,7 +465,7 @@
       (shell-command "gpgconf --kill gpg-agent")
       (message "%s .gpg buffers have been autosaved and killed" buffers-killed))))
 
-(run-with-idle-timer 75 t 'kill-gpg-buffers)
+(run-with-idle-timer 120 t 'kill-gpg-buffers)
 
 ;; Mouse settings
 
@@ -1297,9 +1296,11 @@ into one."
     "Advice for `eyebrowse-rename-window-config'."
     (eyebrowse-workspaces-string))
   (eyebrowse-workspaces-string)
+
   (add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-string)
   (advice-add 'eyebrowse-close-window-config :after #'eyebrowse-workspaces-string)
   (advice-add 'eyebrowse-rename-window-config :after #'eyebrowse-workspaces-string-rename)
+  ;; TODO: Handle frame resize.
 
   ;; Append to title list.
   (add-to-list 'frame-title-format
@@ -1546,6 +1547,8 @@ into one."
    magit-save-repository-buffers 'dontask
    ;; Stop magit from stupidly messing up my window configuration when quitting buffers.
    magit-bury-buffer-function 'quit-window
+   ;; Show diffs in the commit flow?
+   magit-commit-show-diff nil
    )
   )
 
@@ -1768,6 +1771,13 @@ boundaries."
   (use-package go-errcheck)
   )
 
+;; Graphviz
+
+(use-package graphviz-dot-mode
+  :ensure t
+  :config
+  (setq graphviz-dot-indent-width 4))
+
 ;; Groovy
 
 (use-package groovy-mode
@@ -1784,7 +1794,15 @@ boundaries."
          )
   :config
   (setq js2-basic-offset 2)
+  (setq js2-strict-missing-semi-warning nil)
   )
+
+;; React
+(use-package rjsx-mode
+  :config
+  (define-key rjsx-mode-map "<" nil)
+  (define-key rjsx-mode-map (kbd "C-d") nil)
+  (define-key rjsx-mode-map ">" nil))
 
 ;; Typescript
 (use-package tide
@@ -2280,6 +2298,12 @@ boundaries."
             :category "blog"
             :tag "blog"
             :order 9
+            )
+
+     (:name "Move"
+            :category "move"
+            :tag "move"
+            :order 20
             )
 
      ;; After the last group, the agenda will display items that didn't
