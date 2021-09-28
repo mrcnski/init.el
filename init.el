@@ -1407,6 +1407,9 @@ into one."
   (spaceline-helm-mode)
   )
 
+;; Commands for converting between programmatic cases.
+(use-package string-inflection)
+
 ;; Open current directory in an external terminal emulator.
 (use-package terminal-here
   :bind ("C-c t" . terminal-here-launch)
@@ -1441,7 +1444,7 @@ into one."
 (use-package whitespace
   :config
   (setq whitespace-style '(face
-                           empty lines-tail tabs trailing))
+                           empty lines-tail trailing))
 
   (defun c-whitespace-mode ()
     "Set whitespace column for c-like modes and turn on `whitespace-mode'."
@@ -1896,6 +1899,7 @@ boundaries."
 
 (use-package org
   :ensure nil
+
   :bind (
          ("C-c l" . org-store-link)
          ;; ("C-c c" . org-note-capture)
@@ -1914,12 +1918,16 @@ boundaries."
          ("C-<" . org-shiftmetaleft)
          ("C->" . org-shiftmetaright)
          ("M-m" . org-beginning-of-line)
+         ("M-p" . org-previous-visible-heading)
+         ("M-n" . org-next-visible-heading)
          ("C-^" . org-up-element)
          ("C-j" . join-next-line)
 
          ("<mouse-3>" . mouse-org-cycle)
          )
+
   :mode ("\\.org$" . org-mode)
+
   :hook (
          (org-mode . org-mode-hook-fun)
 
@@ -1960,6 +1968,9 @@ boundaries."
                      user-work-org
                      )
 
+   ;; Initial visibility.
+   org-startup-folded 'folded
+
    ;; Try to keep cursor before ellipses.
    org-special-ctrl-a/e t
    ;; Smart editing of invisible region around ellipses.
@@ -1984,7 +1995,7 @@ boundaries."
 
    ;; Custom to-do states.
    org-todo-keywords
-   '((sequence "TODO(t)" "TODAY(y)" "WAITING(w)" "|" "DONE(d)")
+   '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
      (sequence "|" "CANCELED(x)"))
 
    ;; org-refile settings
