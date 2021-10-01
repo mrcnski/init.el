@@ -1,6 +1,6 @@
 ;;; init.el --- Emacs configuration file. -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2017-2019 Marcin Swieczkowski
+;; Copyright (C) 2017-2021 Marcin Swieczkowski
 ;;
 ;;; Commentary:
 ;;
@@ -1264,6 +1264,11 @@ into one."
          ("s--" . eyebrowse-rename-window-config)
          )
 
+  :init
+
+  ;; Free up keybindings unnecessarily stolen by eyebrowse.
+  (setq eyebrowse-keymap-prefix (kbd ""))
+
   :config
 
   (eyebrowse-mode t)
@@ -1271,6 +1276,7 @@ into one."
   (setq
    eyebrowse-wrap-around t
    eyebrowse-switch-back-and-forth nil
+   ;; Start out with as empty of a slate as possible (by just displaying a single window with the scratch buffer in it)
    eyebrowse-new-workspace t
    eyebrowse-close-window-config-prompt t
 
@@ -1905,8 +1911,6 @@ boundaries."
          ;; ("C-c c" . org-note-capture)
          ;; ("C-c v" . org-task-capture)
 
-         ("s-'" . org-refile-goto)
-         ("s-\"" . org-refile)
          ;; Jump to last refile or capture.
          ("C-c j" . org-refile-goto-last-stored)
 
@@ -1995,7 +1999,7 @@ boundaries."
 
    ;; Custom to-do states.
    org-todo-keywords
-   '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)")
+   '((sequence "TODO(t)" "CURRENT(c)" "WAITING(w)" "|" "DONE(d)")
      (sequence "|" "CANCELED(x)"))
 
    ;; org-refile settings
