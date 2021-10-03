@@ -1934,11 +1934,6 @@ boundaries."
 
   :hook (
          (org-mode . org-mode-hook-fun)
-
-         ;; Word-wrap.
-         (org-mode . visual-line-mode)
-         ;; Indented entries.
-         (org-mode . org-indent-mode)
          )
 
   :init
@@ -1946,18 +1941,12 @@ boundaries."
   (defun org-mode-hook-fun ()
     "Initialize `org-mode'."
 
-    ;; Unbind keys stolen by org-mode.
+    ;; Unbind key stolen by org-mode ('org-cycle-agenda-files').
     (local-unset-key (kbd "C-,"))
 
     ;; Fix tags alignment getting messed up (still not sure of the cause).
     (add-hook 'before-save-hook 'org-align-all-tags nil t)
     )
-
-  ;; Don't align tags.
-  ;; Keep this in :init so that no org-files are opened without these settings.
-  ;; NOTE: Doesn't seem to fix tag alignment getting messed up.
-  (setq org-tags-column 0
-        org-auto-align-tags nil)
 
   :config
 
@@ -1974,6 +1963,17 @@ boundaries."
 
    ;; Initial visibility.
    org-startup-folded 'folded
+
+   ;; Hide leading stars
+   org-hide-leading-stars t
+   org-adapt-indentation t
+   org-odd-levels-only t
+
+   org-ellipsis " …"
+
+  ;; Don't align tags.
+   org-tags-column 0
+   org-auto-align-tags nil
 
    ;; Try to keep cursor before ellipses.
    org-special-ctrl-a/e t
@@ -1995,7 +1995,7 @@ boundaries."
    ;; (setq org-M-RET-may-split-line nil)
 
    ;; Should ‘org-insert-heading’ leave a blank line before new heading/item?
-   org-blank-before-new-entry '((heading . nil) (plain-list-item . nil))
+   org-blank-before-new-entry '((heading . t) (plain-list-item . t))
 
    ;; Custom to-do states.
    org-todo-keywords
