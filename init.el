@@ -552,18 +552,21 @@
   (interactive)
   (split-window-below)
   (balance-windows)
+  (org-agenda-refresh)
   (other-window 1))
 (defun split-window-right-focus ()
   "Split window vertically and move focus to other window."
   (interactive)
   (split-window-right)
   (balance-windows)
+  (org-agenda-refresh)
   (other-window 1))
 (defun delete-window-balance ()
   "Delete window and rebalance the remaining ones."
   (interactive)
   (delete-window)
   (balance-windows)
+  (org-agenda-refresh)
   )
 (global-set-key (kbd "C-0") 'delete-window-balance)
 (global-set-key (kbd "C-1") 'delete-other-windows)
@@ -1941,11 +1944,11 @@ boundaries."
 
   :init
 
-  (defun org-align-tags-all()
+  (defun org-align-tags-all ()
     (interactive)
     (org-align-tags t))
 
-  (defun org-update-cookies-after-save()
+  (defun org-update-cookies-after-save ()
     (interactive)
     (let ((current-prefix-arg '(4)))
       (org-update-statistics-cookies "ALL")))
@@ -1981,29 +1984,15 @@ boundaries."
 
    org-ellipsis " …"
 
-   ;; Don't align tags.
-   ;; org-tags-column 0
-   ;; org-auto-align-tags nil
-
-   ;; Log into LOGBOOK drawer.
-   org-log-into-drawer t
-   ;; Should the ORDERED property also be shown as a tag?
-   org-track-ordered-property-with-tag t
    ;; Non-nil means unchecked boxes will block switching the parent to DONE.
-   org-enforce-todo-checkbox-dependencies t
+   org-enforce-todo-checkbox-dependencies nil
+   ;; All subtasks must be Done before marking a task as Done.
+   org-enforce-todo-dependencies t
 
    ;; Try to keep cursor before ellipses.
    org-special-ctrl-a/e t
    ;; Smart editing of invisible region around ellipses.
    org-catch-invisible-edits 'smart
-
-   ;; All subtasks must be Done before marking a task as Done.
-   org-enforce-todo-dependencies t
-   ;; Log time a task was set to Done.
-   org-log-done 'note
-   ;; Don't log the time a task was rescheduled or redeadlined.
-   org-log-reschedule nil
-   org-log-redeadline nil
 
    ;; Prefer rescheduling to future dates and times.
    org-read-date-prefer-future 'time
@@ -2019,6 +2008,25 @@ boundaries."
    '((sequence "TODO(t)" "CURRENT(c)" "WAITING(w)" "|" "DONE(d)")
      (sequence "|" "CANCELED(x)"))
 
+   ;; tags settings
+
+   ;; Don't align tags.
+   ;; org-tags-column 0
+   ;; org-auto-align-tags nil
+
+   ;; Should the ORDERED property also be shown as a tag?
+   org-track-ordered-property-with-tag t
+
+   ;; logging settings
+
+   ;; Log into LOGBOOK drawer.
+   org-log-into-drawer t
+   ;; Log time a task was set to Done.
+   org-log-done 'note
+   ;; Don't log the time a task was rescheduled or redeadlined.
+   org-log-reschedule nil
+   org-log-redeadline nil
+
    ;; org-refile settings
 
    ;; Refile notes to the top of the list.
@@ -2029,8 +2037,7 @@ boundaries."
    org-outline-path-complete-in-steps nil
    org-refile-targets
    '(
-     (org-agenda-files . (:maxlevel . 99))
-
+     (user-todo-org . (:maxlevel . 99))
      (user-notes-org . (:maxlevel . 99))
      (user-work-org . (:maxlevel . 99))
      (user-ideas-org . (:maxlevel . 99))
@@ -2044,6 +2051,8 @@ boundaries."
    ;; is asinine.
    org-show-context-detail '((default . tree))
    )
+
+  ;; org-capture settings
 
   ;; ;; org-capture template.
   ;; (defvar org-capture-templates
@@ -2171,8 +2180,6 @@ boundaries."
 
     ;; Refresh org-agenda after an org-capture.
     (add-hook 'org-capture-after-finalize-hook 'org-agenda-refresh)
-    ;; ;; Refresh org-agenda on a timer (refreshes the agenda on a new day).
-    ;; (run-with-idle-timer 5 t 'org-agenda-refresh)
     )
 
   ;; Recurring org-mode tasks.
