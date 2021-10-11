@@ -552,21 +552,24 @@
   (interactive)
   (split-window-below)
   (balance-windows)
-  (org-agenda-refresh)
+  ;; Update any visible org-agenda buffers.
+  (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
   (other-window 1))
 (defun split-window-right-focus ()
   "Split window vertically and move focus to other window."
   (interactive)
   (split-window-right)
   (balance-windows)
-  (org-agenda-refresh)
+  ;; Update any visible org-agenda buffers.
+  (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
   (other-window 1))
 (defun delete-window-balance ()
   "Delete window and rebalance the remaining ones."
   (interactive)
   (delete-window)
   (balance-windows)
-  (org-agenda-refresh)
+  ;; Update any visible org-agenda buffers.
+  (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
   )
 (global-set-key (kbd "C-0") 'delete-window-balance)
 (global-set-key (kbd "C-1") 'delete-other-windows)
@@ -1301,18 +1304,21 @@ into one."
   (defun eyebrowse-current-workspace ()
     "Get the current workspace number."
     (eyebrowse--get 'current-slot))
-  (defun eyebrowse-workspaces-string ()
-    "Get the current workspaces as a string."
+  (defun eyebrowse-workspaces-update ()
+    "Updates eyebrowse workspaces."
+    ;; Update any visible org-agenda buffers.
+    (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
+    ;; Update the workspaces string.
     (let ((workspaces (substring-no-properties (eyebrowse-mode-line-indicator))))
       (setq eyebrowse-workspaces workspaces)))
-  (defun eyebrowse-workspaces-string-rename (_arg1 _arg2)
+  (defun eyebrowse-workspaces-update-after-rename (_arg1 _arg2)
     "Advice for `eyebrowse-rename-window-config'."
-    (eyebrowse-workspaces-string))
-  (eyebrowse-workspaces-string)
+    (eyebrowse-workspaces-update))
+  (eyebrowse-workspaces-update)
 
-  (add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-string)
-  (advice-add 'eyebrowse-close-window-config :after #'eyebrowse-workspaces-string)
-  (advice-add 'eyebrowse-rename-window-config :after #'eyebrowse-workspaces-string-rename)
+  (add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-update)
+  (advice-add 'eyebrowse-close-window-config :after #'eyebrowse-workspaces-update)
+  (advice-add 'eyebrowse-rename-window-config :after #'eyebrowse-workspaces-update-after-rename)
   ;; TODO: Handle frame resize.
 
   ;; Append to title list.
