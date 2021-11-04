@@ -429,11 +429,6 @@
 ;; Save minibuffer history across Emacs sessions.
 (savehist-mode t)
 
-;; Show matching parentheses.
-(defvar show-paren-delay)
-(setq show-paren-delay highlight-delay)
-(show-paren-mode t)
-
 ;; Turn on subword-mode everywhere.
 (global-subword-mode t)
 
@@ -1167,6 +1162,16 @@ into one."
   ;; Add z to eshell.
   ;; Jumps to most recently visited directories.
   (use-package eshell-z)
+  )
+
+;; Show matching parentheses.
+(use-package paren
+  :ensure nil
+  :config
+  (setq show-paren-delay highlight-delay)
+  (setq show-paren-when-point-in-periphery t)
+  (setq show-paren-when-point-inside-paren t)
+  (show-paren-mode t)
   )
 
 ;;; Load packages
