@@ -727,30 +727,35 @@ into one."
 
 (global-set-key (kbd "C-j") 'join-next-line)
 
-(defun open-line-below ()
-  "Open a new line below while keeping proper indentation."
+(defun goto-line-below ()
+  "Open and goto a new line below while keeping proper indentation."
   (interactive)
   (end-of-line)
   (newline-and-indent))
-(defun open-line-above ()
-  "Open a new line above while keeping proper indentation."
+(defun goto-line-above ()
+  "Open and goto a new line above while keeping proper indentation."
   (interactive)
   (beginning-of-line)
   (newline-and-indent)
   (forward-line -1)
   (indent-according-to-mode))
-(global-set-key (kbd "<C-return>") 'open-line-below)
-(global-set-key (kbd "<S-return>") 'open-line-above)
+(global-set-key (kbd "<C-return>") 'goto-line-below)
+(global-set-key (kbd "<S-return>") 'goto-line-above)
 
 (defun open-line-indent ()
-  "Like the regular `open-line', but indent the next line."
+  "Like the regular `open-line', but indent the below line."
   (interactive)
-  (call-interactively #'open-line)
   (save-excursion
-    (forward-line)
-    (indent-according-to-mode)
+    (call-interactively #'goto-line-below)
+    ))
+(defun open-line-above-indent ()
+  "Like the regular `open-line', but open and indent the above line."
+  (interactive)
+  (save-excursion
+    (call-interactively #'goto-line-above)
     ))
 (global-set-key (kbd "C-o") 'open-line-indent)
+(global-set-key (kbd "C-S-o") 'open-line-above-indent)
 
 (defun clear-line ()
   "Clear the line, but don't delete it."
