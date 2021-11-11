@@ -1795,6 +1795,14 @@ boundaries."
 (use-package dockerfile-mode
   :defer t)
 
+;; Emmet
+
+(use-package emmet-mode
+  :hook ((sgml-mode . emmet-mode)
+         (css-mode . emmet-mode)
+         )
+  )
+
 ;; Fish
 
 (use-package fish-mode
@@ -1945,16 +1953,16 @@ boundaries."
   :ensure nil
 
   :bind (
+         ;; Insert link with C-c C-l.
          ("C-c l" . org-store-link)
-         ;; ("C-c c" . org-note-capture)
-         ;; ("C-c v" . org-task-capture)
+         ("C-c c" . org-capture)
 
          ;; Jump to last refile or capture.
          ("C-c j" . org-refile-goto-last-stored)
 
          :map org-mode-map
 
-         ("<s-return>" . org-meta-return-end)
+         ;; ("<s-return>" . org-meta-return-end)
          ("C-S-n" . org-metadown)
          ("C-S-p" . org-metaup)
          ("C-<" . org-shiftmetaleft)
@@ -2011,7 +2019,7 @@ boundaries."
    ;; Hide leading stars
    org-hide-leading-stars t
    org-adapt-indentation t
-   org-odd-levels-only t
+   org-odd-levels-only nil
 
    org-ellipsis " …"
 
@@ -2039,7 +2047,7 @@ boundaries."
    '((sequence "TODO(t)" "CURRENT(c)" "WAITING(w)" "|" "DONE(d)")
      (sequence "|" "CANCELED(x)"))
 
-   ;; tags settings
+   ;; tag settings
 
    ;; Don't align tags.
    ;; org-tags-column 0
@@ -2053,15 +2061,15 @@ boundaries."
    ;; Log into LOGBOOK drawer.
    org-log-into-drawer t
    ;; Log time a task was set to Done.
-   org-log-done 'note
+   org-log-done 'time
    ;; Don't log the time a task was rescheduled or redeadlined.
    org-log-reschedule nil
    org-log-redeadline nil
 
    ;; org-refile settings
 
-   ;; Refile notes to the top of the list.
-   org-reverse-note-order t
+   ;; Refile notes to the top of the list?
+   org-reverse-note-order nil
    ;; Use headline paths (level1/level2/...)
    org-refile-use-outline-path t
    ;; Go down in steps when completing a path.
@@ -2078,30 +2086,48 @@ boundaries."
    org-goto-interface 'outline-path-interface
    org-goto-max-level 99
    ;; Always show full context, no matter how we get to a certain heading (e.g.
-   ;; `isearch', `org-goto', whatever). The default behavior of hiding headings
-   ;; is asinine.
+   ;; `isearch', `org-goto', whatever).
    org-show-context-detail '((default . tree))
    )
 
   ;; org-capture settings
 
-  ;; ;; org-capture template.
-  ;; (defvar org-capture-templates
-  ;;   '(("t" "My TODO task format." entry
-  ;;      (file+headline "todo.org" "General")
-  ;;      "* %?\nSCHEDULED: %t")
-  ;;     ("n" "My note format." entry
-  ;;      (file "notes.org")
-  ;;      "* %?")))
+  ;; org-capture template.
+  (defvar org-capture-templates
+    '(
+      (
+       "o" "One-off task." entry
+       (file+headline "todo.org" "General")
+       "* %?\nSCHEDULED: %t"
+       :unnarrowed t
+       :empty-lines-before 1
+       )
+      (
+       "r" "Recurring task." entry
+       (file+olp "todo.org" "Recurring" "General")
+       "* |%^{Recurrence}| %?\nSCHEDULED: %t"
+       :unnarrowed t
+       :empty-lines-before 1
+       )
+      (
+       "w" "Work task." entry
+       (file+headline "work.org" "Misc")
+       "* TODO %?"
+       :unnarrowed t
+       :empty-lines-before 1
+       )
+      ))
 
   ;; Shortcuts/Keybindings
 
-  (defun org-refile-goto ()
-    "Use org-refile to conveniently choose and go to a heading."
-    (interactive)
-    (let ((current-prefix-arg '(4))) (call-interactively 'org-refile))
-    )
+  ;; REMOVED: Not using it for now.
+  ;; (defun org-refile-goto ()
+  ;;   "Use org-refile to conveniently choose and go to a heading."
+  ;;   (interactive)
+  ;;   (let ((current-prefix-arg '(4))) (call-interactively 'org-refile))
+  ;;   )
 
+  ;; REMOVED: Not using it for now.
   ;; ;; org-capture with template as default behavior.
   ;; (defun org-task-capture ()
   ;;   "Capture a task with my todo template."
@@ -2112,11 +2138,12 @@ boundaries."
   ;;   (interactive)
   ;;   (org-capture nil "n"))
 
-  (defun org-meta-return-end ()
-    "Go to end of visual line before calling org-meta-return."
-    (interactive)
-    (end-of-visual-line)
-    (org-meta-return))
+  ;; REMOVED: Not using it for now.
+  ;; (defun org-meta-return-end ()
+  ;;   "Go to end of visual line before calling org-meta-return."
+  ;;   (interactive)
+  ;;   (end-of-visual-line)
+  ;;   (org-meta-return))
 
   (defun mouse-org-cycle (@click)
     (interactive "e")
@@ -2229,9 +2256,9 @@ boundaries."
 
            ;; Rebind the 'd' key in org-agenda (default: `org-agenda-day-view').
            ("d" . org-recur-finish)
-           ;; ("0" . org-recur-schedule-today)
-           ;; ("1" . org-recur-schedule-1)
-           ;; ("2" . org-recur-schedule-2)
+           ("0" . org-recur-schedule-today)
+           ("1" . org-recur-schedule-1)
+           ("2" . org-recur-schedule-2)
            ("C-c d" . org-recur-finish)
            ("C-c 0" . org-recur-schedule-today)
            ("C-c 1" . org-recur-schedule-1)
@@ -2249,7 +2276,8 @@ boundaries."
       (org-recur-schedule-date "|+2|"))
 
     (setq org-recur-finish-done t
-          org-recur-finish-archive nil)
+          ;; `org-log-done' should not be 'note if this is t.
+          org-recur-finish-archive t)
     )
 
   ;; Display groups in org-agenda to make things a bit more organized.
@@ -2276,9 +2304,9 @@ boundaries."
               :priority "A"
               :order 1
               )
-       (:name "Physical"
-              :category "physical"
-              :tag "physical"
+       (:name "Deep Work"
+              :category "deep"
+              :tag "deep"
               :order 2
               )
        (:name "Shopping List"
@@ -2307,14 +2335,19 @@ boundaries."
               :order 7
               )
        (:name "Self-improvement"
-              :category "self-improvement"
-              :tag "self-improvement"
+              :category "self"
+              :tag "self"
               :order 8
               )
        (:name "Blog"
               :category "blog"
               :tag "blog"
               :order 9
+              )
+       (:name "Physical"
+              :category "physical"
+              :tag "physical"
+              :order 10
               )
 
        (:name "Move"
@@ -2341,10 +2374,14 @@ boundaries."
               :tag "watch"
               :order 182
               )
-       (:todo "WAITING" :order 190)
-       ;; (:name "Low priority"
-       ;;        :priority "C"
-       ;;        :order 200)
+       (:name "Waiting"
+              :todo "WAITING"
+              :order 190
+              )
+       (:name "Low priority"
+              :priority "C"
+              :order 200
+              )
        )))
   )
 
