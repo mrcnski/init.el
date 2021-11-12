@@ -22,8 +22,9 @@
 ;; First things first, increase GC threshold to speed up startup.
 ;; Reset the GC threshold after initialization, and GC whenever we tab out.
 (setq gc-cons-threshold (* 64 1000 1000))
-(add-hook 'after-init-hook #'(lambda ()
-                               (setq gc-cons-threshold (* 32 1000 1000))))
+(add-hook 'after-init-hook
+          #'(lambda ()
+              (setq gc-cons-threshold (* 32 1000 1000))))
 (add-hook 'focus-out-hook 'garbage-collect)
 (run-with-idle-timer 5 t 'garbage-collect)
 
@@ -359,7 +360,7 @@
  enable-recursive-minibuffers t
  ;; Move point to beginning or end of buffer when scrolling.
  scroll-error-top-bottom t
- mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control)))
+ mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control)))
 
  ;; Set a larger minimum window width. Smaller than this is hard to read.
  window-min-width 30
@@ -783,37 +784,38 @@ into one."
 (defun window-fraction-height (fraction)
   "Get specified FRACTION of the height of the current window."
   (max 1 (/ (1- (window-height (selected-window))) fraction)))
+(defvar scroll-fraction 4)
 
-(defun scroll-up-third ()
-  "Scrolls up by a third of the current window height."
+(defun scroll-up-fraction ()
+  "Scrolls up by a fraction of the current window height."
   (interactive)
-  (scroll-up (window-fraction-height 3)))
+  (scroll-up (window-fraction-height scroll-fraction)))
 
-(defun scroll-down-third ()
-  "Scrolls down by a third of the current window height."
+(defun scroll-down-fraction ()
+  "Scrolls down by a fraction of the current window height."
   (interactive)
-  (scroll-down (window-fraction-height 3)))
+  (scroll-down (window-fraction-height scroll-fraction)))
 
-(defun scroll-other-window-up-third ()
-  "Scrolls other window up by a third of the current window height."
+(defun scroll-other-window-up-fraction ()
+  "Scrolls other window up by a fraction of the current window height."
   (interactive)
-  (scroll-other-window (window-fraction-height 3)))
+  (scroll-other-window (window-fraction-height scroll-fraction)))
 
-(defun scroll-other-window-down-third ()
-  "Scrolls other window down by a third of the current window height."
+(defun scroll-other-window-down-fraction ()
+  "Scrolls other window down by a fraction of the current window height."
   (interactive)
-  (scroll-other-window-down (window-fraction-height 3)))
+  (scroll-other-window-down (window-fraction-height scroll-fraction)))
 
 ;; Enable these commands in isearch.
-(put 'scroll-up-third 'isearch-scroll t)
-(put 'scroll-down-third 'isearch-scroll t)
-(put 'scroll-other-window-up-third 'isearch-scroll t)
-(put 'scroll-other-window-down-third 'isearch-scroll t)
+(put 'scroll-up-fraction 'isearch-scroll t)
+(put 'scroll-down-fraction 'isearch-scroll t)
+(put 'scroll-other-window-up-fraction 'isearch-scroll t)
+(put 'scroll-other-window-down-fraction 'isearch-scroll t)
 
-(global-set-key (kbd "C-v") 'scroll-up-third)
-(global-set-key (kbd "M-v") 'scroll-down-third)
-(global-set-key (kbd "C-S-v") 'scroll-other-window-up-third)
-(global-set-key (kbd "M-V") 'scroll-other-window-down-third)
+(global-set-key (kbd "C-v") 'scroll-up-fraction)
+(global-set-key (kbd "M-v") 'scroll-down-fraction)
+(global-set-key (kbd "C-S-v") 'scroll-other-window-up-fraction)
+(global-set-key (kbd "M-V") 'scroll-other-window-down-fraction)
 
 ;; Globally bind these keys so they work in every mode.
 (bind-keys*
@@ -1188,7 +1190,7 @@ into one."
 (use-package paren
   :ensure nil
   :config
-  (setq show-paren-delay highlight-delay)
+  (setq show-paren-delay 0)
   (setq show-paren-when-point-in-periphery t)
   (setq show-paren-when-point-inside-paren t)
   (show-paren-mode t)
@@ -1372,6 +1374,20 @@ into one."
 (use-package free-keys
   :defer t)
 
+;; Highlight indentation.
+(use-package highlight-indent-guides
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :config
+  (setq
+   highlight-indent-guides-method 'column
+   ;; Automatically calculate faces?
+   highlight-indent-guides-auto-enabled nil
+   ;; Should the current indentation under point be highlighted?
+   highlight-indent-guides-responsive 'top
+   highlight-indent-guides-delay 0
+   )
+  )
+
 ;; Highlight more elisp syntax.
 (use-package highlight-quoted
   :hook (emacs-lisp-mode . highlight-quoted-mode))
@@ -1435,14 +1451,11 @@ into one."
   (require 'spaceline-config)
 
   ;; Don't display minor modes (too messy).
-  (defvar spaceline-minor-modes-p)
-  (setq spaceline-minor-modes-p nil)
+  (spaceline-toggle-minor-modes-off)
   ;; Don't display eyebrowse workspace numbers (displayed in title bar instead).
-  (defvar spaceline-workspace-number-p)
-  (setq spaceline-workspace-number-p nil)
+  (spaceline-toggle-workspace-number-off)
   ;; Don't display line ending type.
-  (defvar spaceline-buffer-encoding-abbrev-p)
-  (setq spaceline-buffer-encoding-abbrev-p nil)
+  (spaceline-toggle-buffer-encoding-abbrev-off)
 
   ;; Change the modeline display when the buffer has been modified or is read-only.
   (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified)
@@ -1484,17 +1497,23 @@ into one."
   (setq which-key-sort-order 'which-key-key-order-alpha)
   (setq which-key-sort-uppercase-first nil))
 
-;; Highlight the parts of lines that exceed certain column numbers.
 (use-package whitespace
-  :config
-  (setq whitespace-style '(face
-                           empty lines-tail trailing))
+  :hook (prog-mode . whitespace-mode)
 
+  :init
+
+  (setq whitespace-style
+        '(face
+          lines-tail
+          )
+        )
+
+  ;; Highlight the parts of lines that exceed certain column numbers, depending on
+  ;; mode.
   (defun c-whitespace-mode ()
     "Set whitespace column for c-like modes and turn on `whitespace-mode'."
     (setq whitespace-line-column 80
           fill-column 80)
-    (whitespace-mode)
     )
   (add-hook 'c-mode-common-hook 'c-whitespace-mode)
   (add-hook 'nim-mode-hook 'c-whitespace-mode)
@@ -1504,7 +1523,6 @@ into one."
     (setq whitespace-line-column 100
           fill-column 100
           )
-    (whitespace-mode)
     )
   (add-hook 'rust-mode-hook '100-whitespace-mode)
   (add-hook 'python-mode-hook '100-whitespace-mode)
