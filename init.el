@@ -1498,7 +1498,7 @@ into one."
   (setq which-key-sort-uppercase-first nil))
 
 (use-package whitespace
-  :hook (prog-mode . whitespace-mode)
+  ;; :hook (prog-mode . whitespace-mode)
 
   :init
 
@@ -1508,12 +1508,13 @@ into one."
           )
         )
 
-  ;; Highlight the parts of lines that exceed certain column numbers, depending on
-  ;; mode.
+  ;; Highlight the parts of lines that exceed certain column numbers, depending
+  ;; on mode.
   (defun c-whitespace-mode ()
     "Set whitespace column for c-like modes and turn on `whitespace-mode'."
     (setq whitespace-line-column 80
           fill-column 80)
+    (whitespace-mode)
     )
   (add-hook 'c-mode-common-hook 'c-whitespace-mode)
   (add-hook 'nim-mode-hook 'c-whitespace-mode)
@@ -1521,8 +1522,8 @@ into one."
   (defun 100-whitespace-mode ()
     "Set whitespace column at 100 and turn on `whitespace-mode'."
     (setq whitespace-line-column 100
-          fill-column 100
-          )
+          fill-column 100)
+    (whitespace-mode)
     )
   (add-hook 'rust-mode-hook '100-whitespace-mode)
   (add-hook 'python-mode-hook '100-whitespace-mode)
