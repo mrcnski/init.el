@@ -499,7 +499,6 @@
   (interactive)
   (other-window -1)
   )
-
 (global-set-key (kbd "M-o") 'other-window)
 (global-set-key (kbd "M-O") 'other-window-reverse)
 
@@ -595,7 +594,6 @@
   (indent-region (point-min) (point-max))
   )
 (global-set-key (kbd "C-c n") 'indent-buffer)
-;; (add-hook 'before-save-hook 'indent-buffer)
 
 (defun region-history-other (begin end)
   "Display the source controlled history of region from BEGIN to END in \
@@ -902,13 +900,13 @@ into one."
   (cond
    ((font-exists-p "Iosevka")
     (set-face-attribute
-     ;; 'default nil :font "Iosevka:weight=Regular" :height 140)
-     'default nil :font "Iosevka:weight=Light" :height 140)
-    (setq-default line-spacing 0)
+     'default nil :font "Iosevka:weight=Regular" :height 120)
+    ;; 'default nil :font "Iosevka:weight=Light" :height 120)
+    (setq-default line-spacing 1)
     )
    ((font-exists-p "Hack")
     (set-face-attribute
-     'default nil :font "Hack:weight=Regular" :height 140)
+     'default nil :font "Hack:weight=Regular" :height 120)
     (setq-default line-spacing 1)
     )
    )
@@ -1313,7 +1311,8 @@ into one."
   (setq
    eyebrowse-wrap-around t
    eyebrowse-switch-back-and-forth nil
-   ;; Start out with as empty of a slate as possible (by just displaying a single window with the scratch buffer in it)
+   ;; Start out with as empty of a slate as possible (by just displaying a
+   ;; single window with the scratch buffer in it)
    eyebrowse-new-workspace t
    eyebrowse-close-window-config-prompt t
 
@@ -1611,7 +1610,8 @@ into one."
    magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
    ;; Don't ask before saving repository buffers.
    magit-save-repository-buffers 'dontask
-   ;; Stop magit from stupidly messing up my window configuration when quitting buffers.
+   ;; Stop magit from stupidly messing up my window configuration when quitting
+   ;; buffers.
    magit-bury-buffer-function 'quit-window
    ;; Show diffs in the commit flow?
    magit-commit-show-diff nil
@@ -1820,6 +1820,8 @@ boundaries."
   :hook ((sgml-mode . emmet-mode)
          (css-mode . emmet-mode)
          )
+  :config
+  (define-key emmet-mode-keymap (kbd "<C-return>") nil)
   )
 
 ;; Fish
@@ -1871,6 +1873,14 @@ boundaries."
   (setq js2-strict-missing-semi-warning nil)
   )
 
+;; REMOVED: Annoying that it only formats on save. Would like to format on C-c n.
+;; ;; Formats prettier-compatible source code on save. Automatically finds and uses
+;; ;; prettier config.
+;; (use-package prettier
+;;   :config
+;;   (global-prettier-mode)
+;;   )
+
 ;; React
 (use-package rjsx-mode
   :config
@@ -1907,10 +1917,6 @@ boundaries."
   )
 
 ;; Markdown
-
-;; Markdown previews.
-(use-package grip-mode
-  :commands grip-mode)
 
 (use-package markdown-mode
   :mode "\\.md\\'"
