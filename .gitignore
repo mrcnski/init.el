@@ -1,4 +1,10 @@
+# Ignore everything...
 *
+
+# ... but not these files.
 !.gitignore
 !init.el
 !README.org
+
+!*/
+!var/mc-list.el
