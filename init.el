@@ -30,10 +30,10 @@
 
 ;;; User-Defined Variables
 
+(defvar user-sync-directory "~/iCloud/")
 (defvar user-text-directory "~/Text/")
-(defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
-;; Symlink in my home directory.
-(defvar user-org-directory (concat user-text-directory "org/"))
+(defvar user-scratchpad-path (concat user-sync-directory "scratchpad.txt"))
+(defvar user-org-directory (concat user-sync-directory "org/"))
 
 (defvar user-ideas-org (concat user-org-directory "ideas.org"))
 (defvar user-notes-org (concat user-org-directory "notes.org"))
@@ -296,7 +296,7 @@
  select-enable-clipboard t
  select-enable-primary t
  save-interprogram-paste-before-kill t
- ;; TODO: What does this do?
+ ;; Enable complete documentation for apropos functions?
  apropos-do-all t
  kill-ring-max 1000
  ;; Ensure that files end with a newline.
@@ -306,7 +306,7 @@
  ;; Flash the frame on every error?
  visible-bell nil
  ring-bell-function 'ignore
- ;; TODO: What does this do?
+ ;; Set up ediff windows in the same frame.
  ediff-window-setup-function 'ediff-setup-windows-plain
  window-combination-resize nil
  ;; Display keystrokes immediately.

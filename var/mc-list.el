@@ -21,6 +21,8 @@
 (setq mc/cmds-to-run-once
       '(
         dired-jump
+        magit-stage
+        magit-status
         mouse-set-region
         save-all
         split-window-below-focus
