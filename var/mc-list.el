@@ -11,6 +11,7 @@
         helm-M-x
         indent-for-tab-command
         join-next-line
+        markdown-outdent-or-delete
         org-beginning-of-line
         org-ctrl-c-ctrl-c
         org-ctrl-c-minus

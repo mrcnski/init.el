@@ -418,7 +418,8 @@
 ;; Auto revert files that changed on disk.
 (global-auto-revert-mode t)
 
-;; Disable eldoc mode, causes huge slowdown in Rust files.
+;; Disable eldoc mode, causes huge slowdown in Rust files and more annoying than
+;; useful.
 (global-eldoc-mode -1)
 
 ;; Highlight current line.
@@ -1920,6 +1921,10 @@ boundaries."
 
 (use-package markdown-mode
   :mode "\\.md\\'"
+  :config
+  ;; This mode overrides the return key! Stop!
+  (define-key markdown-mode-map (kbd "<return>") nil)
+  (define-key markdown-mode-map (kbd "RET") nil)
   )
 
 (use-package markdown-toc
@@ -2140,6 +2145,7 @@ boundaries."
        "* TODO %?"
        :unnarrowed t
        :empty-lines-before 1
+       :prepend 1
        )
       ))
 
@@ -2364,11 +2370,6 @@ boundaries."
               :tag "self"
               :order 8
               )
-       (:name "Blog"
-              :category "blog"
-              :tag "blog"
-              :order 9
-              )
        (:name "Physical"
               :category "physical"
               :tag "physical"
@@ -2381,31 +2382,40 @@ boundaries."
               :order 20
               )
 
-       ;; After the last group, the agenda will display items that didn't
-       ;; match any of these groups, with the default order position of 99
+       ;; Here, the agenda will display items that didn't match any of these
+       ;; groups, with the default order position of 99.
 
        (:name "Tech"
               :category "tech"
               :tag "tech"
-              :order 180
+              :order 200
+              )
+       (:name "Blog"
+              :category "blog"
+              :tag "blog"
+              :order 210
               )
        (:name "To Read"
               :category "read"
               :tag "read"
-              :order 181
+              :order 220
               )
        (:name "To Watch"
               :category "watch"
               :tag "watch"
-              :order 182
+              :order 230
               )
        (:name "Waiting"
               :todo "WAITING"
-              :order 190
+              :order 240
+              )
+       (:name "Reminders"
+              :tag "reminder"
+              :order 250
               )
        (:name "Low priority"
               :priority "C"
-              :order 200
+              :order 500
               )
        )))
   )
