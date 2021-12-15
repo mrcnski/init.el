@@ -15,6 +15,7 @@
         org-beginning-of-line
         org-ctrl-c-ctrl-c
         org-ctrl-c-minus
+        org-ctrl-c-star
         org-delete-char
         org-self-insert-command
         ))

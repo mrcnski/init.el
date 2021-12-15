@@ -278,7 +278,7 @@
 (setq-default
  indent-tabs-mode nil
  tab-width 4
- ;; HTML tab width.
+ ;; HTML tab width / indent level.
  sgml-basic-offset 2
  js-indent-level 4
  fill-column 80
@@ -414,6 +414,9 @@
 ;; Add `yaml-mode-hook' manually (it derives from `text-mode-hook').
 (add-hook 'yaml-mode-hook 'display-line-numbers-mode)
 (add-hook 'markdown-mode-hook 'display-line-numbers-mode)
+
+;; Auto refresh dired.
+(setq global-auto-revert-non-file-buffers t)
 
 ;; Auto revert files that changed on disk.
 (global-auto-revert-mode t)
@@ -953,6 +956,8 @@ into one."
   :bind (
          :map dired-mode-map
          ("f" . helm-find-files)
+         ("M-n" . dired-next-subdir)
+         ("M-p" . dired-prev-subdir)
          )
   :hook (dired-mode . dired-hide-details-mode)
 
@@ -1560,6 +1565,8 @@ into one."
           map))
 
   :config
+
+  (setq winum-scope 'frame-local)
   (winum-mode)
   )
 
@@ -1646,7 +1653,7 @@ into one."
          )
   :hook (prog-mode . company-mode)
   :init
-  ;; Trigger completion immediately.
+  ;; Completion delay (nil means no idle completion).
   (setq company-idle-delay nil)
   (setq company-minimum-prefix-length 1)
   ;; Align tooltips to right border.
@@ -1895,10 +1902,13 @@ boundaries."
   :after (typescript-mode company flycheck)
   :hook ((typescript-mode . tide-setup)
          (typescript-mode . tide-hl-identifier-mode)
+         ;; REMOVED: Messes up point position.
          ;; (before-save . tide-format-before-save)
          )
   :config
-  (setq typescript-indent-level 2)
+  (setq
+   typescript-indent-level 2
+   )
   )
 
 ;; JSON
@@ -2410,6 +2420,7 @@ boundaries."
               :order 240
               )
        (:name "Reminders"
+              :category "reminder"
               :tag "reminder"
               :order 250
               )
