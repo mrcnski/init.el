@@ -494,9 +494,18 @@
 
 (global-set-key (kbd "s-y") 'helm-show-kill-ring)
 (global-set-key (kbd "s-h") 'helm-mark-ring)
+;; Enable OSX full screen shortcut.
+(global-set-key (kbd "C-s-f") 'toggle-frame-fullscreen)
+
+;; Enable OSX CMD+backspace.
+(defun kill-line-backwards ()
+  "Kill the line backwards."
+  (interactive)
+  (kill-line 0))
+(global-set-key (kbd "s-<backspace>") 'kill-line-backwards)
 
 ;; Disable annoying popup on OSX.
-(global-set-key (kbd "s-t") nil)
+(global-set-key (kbd "s-t") 'make-frame)
 
 (defun other-window-reverse ()
   "Go to other window in reverse."
@@ -775,13 +784,15 @@ into one."
 (global-set-key (kbd "C-o") 'open-line-below-indent)
 (global-set-key (kbd "C-S-o") 'open-line-above-indent)
 
-(defun clear-line ()
-  "Clear the line, but don't delete it."
+(defun kill-line-indent ()
+  "Kills the whole line without removing it, and keeps it indented."
   (interactive)
   (beginning-of-line)
   (kill-line)
   (indent-according-to-mode)
   )
+;; REMOVED: Interferes with normal key for inserting new list items.
+;; (global-set-key (kbd "<M-return>") 'kill-line-indent)
 
 (defun window-fraction-height (fraction)
   "Get specified FRACTION of the height of the current window."
@@ -1200,6 +1211,24 @@ into one."
   (show-paren-mode t)
   )
 
+(use-package web-mode
+  :ensure nil
+  :mode (("\\.html?\\'" . web-mode)
+         ("\\.css?\\'" . web-mode))
+
+  :config
+
+  (define-key web-mode-map (kbd "M-;") nil)
+
+  (setq
+   web-mode-markup-indent-offset 4
+   web-mode-css-indent-offset 4
+   web-mode-code-indent-offset 4
+
+   web-mode-enable-current-element-highlight t
+   )
+  )
+
 ;;; Load packages
 
 ;; Stop execution here for terminal.
@@ -1241,11 +1270,6 @@ into one."
   (setq avy-background nil)
   )
 
-;; REMOVED
-;; ;; Imagemagick wrapper.
-;; (use-package blimp
-;;   :hook (image-mode . blimp-mode)
-;;   )
 
 ;; Move buffers around.
 (use-package buffer-move
@@ -1339,19 +1363,23 @@ into one."
   (defun eyebrowse-workspaces-update ()
     "Updates eyebrowse workspaces."
     ;; Update any visible org-agenda buffers.
-    (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
+    ;; (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
     ;; Update the workspaces string.
     (let ((workspaces (substring-no-properties (eyebrowse-mode-line-indicator))))
       (setq eyebrowse-workspaces workspaces)))
-  (defun eyebrowse-workspaces-update-after-rename (_arg1 _arg2)
-    "Advice for `eyebrowse-rename-window-config'."
+  (defun eyebrowse-workspaces-update-one-arg (_arg1)
+    "Advice for `eyebrowse-workspaces-update' with one arg."
+    (eyebrowse-workspaces-update))
+  (defun eyebrowse-workspaces-update-two-args (_arg1 _arg2)
+    "Advice for `eyebrowse-workspaces-update' with two args."
     (eyebrowse-workspaces-update))
   (eyebrowse-workspaces-update)
 
   (add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-update)
   (advice-add 'eyebrowse-close-window-config :after #'eyebrowse-workspaces-update)
-  (advice-add 'eyebrowse-rename-window-config :after #'eyebrowse-workspaces-update-after-rename)
-  ;; TODO: Handle frame resize.
+  (advice-add 'eyebrowse-rename-window-config :after #'eyebrowse-workspaces-update-two-args)
+  (advice-add 'other-frame :after #'eyebrowse-workspaces-update-one-arg)
+  (advice-add 'make-frame :after #'eyebrowse-workspaces-update)
 
   ;; Append to title list.
   (add-to-list 'frame-title-format
@@ -1827,6 +1855,7 @@ boundaries."
 (use-package emmet-mode
   :hook ((sgml-mode . emmet-mode)
          (css-mode . emmet-mode)
+         (web-mode . emmet-mode)
          )
   :config
   (define-key emmet-mode-keymap (kbd "<C-return>") nil)
@@ -1917,6 +1946,12 @@ boundaries."
   :defer t
   :config
   (setq json-reformat:indent-width 2)
+  )
+
+;; just
+
+(use-package just-mode
+  :ensure t
   )
 
 ;; Lua

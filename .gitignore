@@ -6,5 +6,5 @@
 !init.el
 !README.org
 
-!*/
+!*/var
 !var/mc-list.el
