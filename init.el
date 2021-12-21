@@ -241,7 +241,7 @@
 ;;     )
 ;;   )
 
-;;; vertico + consult + orderless
+;;; vertico + consult + orderless + marginalia
 
 ;; Enable vertico
 (use-package vertico
@@ -310,26 +310,14 @@
          ("C-c m" . consult-mode-command)
          ("C-c b" . consult-bookmark)
          ;; ("C-c k" . consult-kmacro)
-         ;; Custom M-# bindings for fast register access
-         ("M-#" . consult-register-load)
-         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-M-#" . consult-register)
          ;; M-s bindings (search-map)
-         ("M-s F" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
          ("M-s l" . consult-line)
-         ("M-s L" . consult-line-multi)
-         ("M-s m" . consult-multi-occur)
-         ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines)
          ;; Isearch integration
          ("M-s e" . consult-isearch-history)
          :map isearch-mode-map
          ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
          ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
          ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-         ("M-s L" . consult-line-multi)          ;; needed by consult-line to detect isearch
          )
 
   ;; Enable automatic preview at point in the *Completions* buffer. This is
@@ -402,6 +390,22 @@
   ;;;; 4. locate-dominating-file
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
   )
+
+;; Enable richer annotations using Marginalia.
+(use-package marginalia
+  :bind (
+         ;; Either bind `marginalia-cycle` globally or only in the minibuffer
+         ("M-A" . marginalia-cycle)
+         :map minibuffer-local-map
+         ("M-A" . marginalia-cycle)
+         )
+
+  ;; The :init configuration is always executed (Not lazy!)
+  :init
+
+  ;; Must be in the :init section of use-package such that the mode gets
+  ;; enabled right away. Note that this forces loading the package.
+  (marginalia-mode))
 
 ;;; Load customizations
 
