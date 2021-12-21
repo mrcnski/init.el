@@ -113,132 +113,294 @@
 
 ;;; Helm
 
-(use-package helm
-  :bind (
-         ("M-x" . helm-M-x)
-         ("C-x C-f" . helm-find-files)
-         ("C-h C-a" . helm-apropos)
-         ("M-i" . helm-semantic-or-imenu)
+;; (use-package helm
+;;   :bind (
+;;          ("M-x" . helm-M-x)
+;;          ("C-x C-f" . helm-find-files)
+;;          ("C-h C-a" . helm-apropos)
+;;          ("M-i" . helm-semantic-or-imenu)
 
-         :map helm-map
+;;          :map helm-map
 
-         ;; Rebind tab to run persistent action.
-         ("<tab>" . helm-execute-persistent-action)
-         ;; Alternate TAB key that works in terminal.
-         ("C-i" . helm-execute-persistent-action)
-         ("C-z" . helm-select-action) ;; List actions using C-z.
-         ("M-x" . helm-select-action)
+;;          ;; Rebind tab to run persistent action.
+;;          ("<tab>" . helm-execute-persistent-action)
+;;          ;; Alternate TAB key that works in terminal.
+;;          ("C-i" . helm-execute-persistent-action)
+;;          ("C-z" . helm-select-action) ;; List actions using C-z.
+;;          ("M-x" . helm-select-action)
 
-         :map minibuffer-local-isearch-map
+;;          :map minibuffer-local-isearch-map
 
-         ;; No reason, and annoying, to bring up `helm-minibuffer-history' here.
-         ("C-r" . isearch-reverse-exit-minibuffer)
+;;          ;; No reason, and annoying, to bring up `helm-minibuffer-history' here.
+;;          ("C-r" . isearch-reverse-exit-minibuffer)
 
-         :map minibuffer-local-map
+;;          :map minibuffer-local-map
 
-         ;; See above.
-         ("C-r" . isearch-reverse-exit-minibuffer)
-         )
+;;          ;; See above.
+;;          ("C-r" . isearch-reverse-exit-minibuffer)
+;;          )
 
+;;   :init
+
+;;   (require 'helm-config)
+
+;;   :config
+
+;;   (helm-mode t)
+
+;;   ;; Set better keys to select helm candidates.
+;;   (dotimes (i 10)
+;;     (let ((key (format "s-%d" i))
+;;           (fn (lambda () (interactive) (helm-execute-selection-action-at-nth i))))
+;;       (define-key helm-map (kbd key) fn)
+;;       ))
+
+;;   (defvar helm-buffers-fuzzy-matching)
+;;   (defvar helm-recentf-fuzzy-match)
+;;   (defvar helm-apropos-fuzzy-match)
+;;   (defvar helm-semantic-fuzzy-match)
+;;   (defvar helm-imenu-fuzzy-match)
+;;   (setq helm-buffers-fuzzy-matching t
+;;         helm-recentf-fuzzy-match t
+;;         helm-apropos-fuzzy-match t
+;;         helm-semantic-fuzzy-match t
+;;         helm-imenu-fuzzy-match t)
+
+;;   (defvar helm-ff-search-library-in-sexp)
+;;   (defvar helm-ff-file-name-history-use-recentf)
+;;   (setq
+;;    ;; Open helm buffer inside current window?
+;;    helm-split-window-inside-p t
+;;    ;; Move to end or beginning of source when reaching top/bottom of source.
+;;    helm-move-to-line-cycle-in-source t
+;;    ;; Search for library in `use-package' and `declare-function' sexp.
+;;    helm-ff-search-library-in-sexp t
+;;    ;; Scroll 8 lines other window using M-<next>/M-<prior>.
+;;    helm-scroll-amount 8
+;;    helm-ff-file-name-history-use-recentf t
+;;    helm-display-header-line nil
+;;    helm-follow-mode-persistent t
+;;    ;; How long to wait before executing helm-follow persistent action.
+;;    helm-follow-input-idle-delay highlight-delay
+;;    ;; Allow using the mouse to select candidates!
+;;    helm-allow-mouse t
+;;    )
+
+;;   (defvar helm-buffers-column-separator)
+;;   (setq helm-buffers-column-separator "  ")
+
+;;   (defvar helm-mini-default-sources)
+;;   (setq helm-mini-default-sources '(helm-source-buffers-list
+;;                                     helm-source-recentf
+;;                                     helm-source-files-in-current-dir
+;;                                     ))
+
+;;   ;;; helm packages.
+
+;;   ;; Better mode help.
+;;   (use-package helm-describe-modes
+;;     :bind ("C-h m" . helm-describe-modes))
+
+;;   ;; helm-swoop.
+;;   (use-package helm-swoop
+;;     ;; To prevent bug where `helm-swoop-from-isearch' doesn't work the first time.
+;;     :demand t
+;;     :bind (
+;;            ("C-;" . helm-swoop-without-pre-input)
+;;            ("C-:" . helm-multi-swoop-all)
+
+;;            :map helm-swoop-map
+
+;;            ;; Move up and down like isearch
+;;            ("C-r" . helm-previous-line)
+;;            ("C-s" . helm-next-line)
+
+;;            ;; From helm-swoop to helm-multi-swoop-all.
+;;            ("C-;" . helm-multi-swoop-all-from-helm-swoop)
+
+;;            :map helm-multi-swoop-map
+
+;;            ("C-r" . helm-previous-line)
+;;            ("C-s" . helm-next-line)
+
+;;            :map isearch-mode-map
+
+;;            ;; When doing isearch, hand the word over to helm-swoop.
+;;            ("C-;" . helm-swoop-from-isearch)
+;;            )
+;;     :config
+;;     (setq
+;;      ;; Show syntax highlighting in results.
+;;      helm-swoop-speed-or-color t
+;;      ;; Fix line number face issue.
+;;      helm-swoop-use-line-number-face t
+;;      ;; Split the window vertically.
+;;      helm-swoop-split-with-multiple-windows t
+;;      helm-swoop-split-direction 'split-window-vertically
+;;      )
+;;     )
+;;   )
+
+;;; vertico + consult + orderless
+
+;; Enable vertico
+(use-package vertico
   :init
+  (vertico-mode)
 
-  (require 'helm-config)
+  ;; Scroll margin.
+  (setq vertico-scroll-margin 2)
+
+  ;; Show more candidates
+  ;; (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  ;; (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  (setq vertico-cycle nil)
 
   :config
+  ;; Enable mouse support for vertico.
+  (use-package vertico-mouse
+    :ensure nil
+    :config
+    (vertico-mouse-mode)
+    )
 
-  (helm-mode t)
+  (use-package vertico-quick
+    :ensure nil
+    :bind (
+           :map vertico-map
+           ("C-," . vertico-quick-exit)
+           )
+    )
+  )
 
-  ;; Set better keys to select helm candidates.
-  (dotimes (i 10)
-    (let ((key (format "s-%d" i))
-          (fn (lambda () (interactive) (helm-execute-selection-action-at-nth i))))
-      (define-key helm-map (kbd key) fn)
-      ))
+;; Optionally use the `orderless' completion style. See
+;; `+orderless-dispatch' in the Consult wiki for an advanced Orderless style
+;; dispatcher. Additionally enable `partial-completion' for file path
+;; expansion. `partial-completion' is important for wildcard support.
+;; Multiple files can be opened at once with `find-file' if you enter a
+;; wildcard. You may also give the `initials' completion style a try.
+(use-package orderless
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (setq completion-styles '(orderless)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion))))
+  )
 
-  (defvar helm-buffers-fuzzy-matching)
-  (defvar helm-recentf-fuzzy-match)
-  (defvar helm-apropos-fuzzy-match)
-  (defvar helm-semantic-fuzzy-match)
-  (defvar helm-imenu-fuzzy-match)
-  (setq helm-buffers-fuzzy-matching t
-        helm-recentf-fuzzy-match t
-        helm-apropos-fuzzy-match t
-        helm-semantic-fuzzy-match t
-        helm-imenu-fuzzy-match t)
+;; Consult
+(use-package consult
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (
+         ("M-i" . consult-imenu)
+         ("s-j" . consult-buffer) ;; orig. switch-to-buffer
+         ("s-h" . consult-mark)
+         ("s-i" . consult-ripgrep)
+         ("s-l" . consult-goto-line) ;; orig. goto-line
+         ("s-y" . consult-yank-pop) ;; orig. yank-pop
+         ("s-'" . consult-org-heading)
+         ("<help> a" . consult-apropos) ;; orig. apropos-command
 
-  (defvar helm-ff-search-library-in-sexp)
-  (defvar helm-ff-file-name-history-use-recentf)
-  (setq
-   ;; Open helm buffer inside current window?
-   helm-split-window-inside-p t
-   ;; Move to end or beginning of source when reaching top/bottom of source.
-   helm-move-to-line-cycle-in-source t
-   ;; Search for library in `use-package' and `declare-function' sexp.
-   helm-ff-search-library-in-sexp t
-   ;; Scroll 8 lines other window using M-<next>/M-<prior>.
-   helm-scroll-amount 8
-   helm-ff-file-name-history-use-recentf t
-   helm-display-header-line nil
-   helm-follow-mode-persistent t
-   ;; How long to wait before executing helm-follow persistent action.
-   helm-follow-input-idle-delay highlight-delay
-   ;; Allow using the mouse to select candidates!
-   helm-allow-mouse t
+         ;; Consult bindings from readme
+         ("C-c m" . consult-mode-command)
+         ("C-c b" . consult-bookmark)
+         ;; ("C-c k" . consult-kmacro)
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; M-s bindings (search-map)
+         ("M-s F" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s m" . consult-multi-occur)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)          ;; needed by consult-line to detect isearch
+         )
+
+  ;; Enable automatic preview at point in the *Completions* buffer. This is
+  ;; relevant when you use the default completion UI. You may want to also
+  ;; enable `consult-preview-at-point-mode` in Embark Collect buffers.
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+
+  ;; The :init configuration is always executed (Not lazy)
+  :init
+
+  (setq consult-async-min-input 2)
+
+  ;; Optionally configure the register formatting. This improves the register
+  ;; preview for `consult-register', `consult-register-load',
+  ;; `consult-register-store' and the Emacs built-ins.
+  (setq register-preview-delay 0
+        register-preview-function #'consult-register-format)
+
+  ;; Optionally tweak the register preview window.
+  ;; This adds thin lines, sorting and hides the mode line of the window.
+  (advice-add #'register-preview :override #'consult-register-window)
+
+  ;; Optionally replace `completing-read-multiple' with an enhanced version.
+  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
+
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+
+  ;; Configure other variables and modes in the :config section,
+  ;; after lazily loading the package.
+  :config
+
+  ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key (kbd "M-."))
+  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme
+   consult-ripgrep
+   :preview-key '(:debounce 0.2 any)
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
+   :preview-key (kbd "M-.")
    )
 
-  (defvar helm-buffers-column-separator)
-  (setq helm-buffers-column-separator "  ")
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; (kbd "C-+")
 
-  (defvar helm-mini-default-sources)
-  (setq helm-mini-default-sources '(helm-source-buffers-list
-                                    helm-source-recentf
-                                    helm-source-files-in-current-dir
-                                    ))
+  ;; Optionally make narrowing help available in the minibuffer.
+  ;; You may want to use `embark-prefix-help-command' or which-key instead.
+  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
 
-  ;;; helm packages.
-
-  ;; Better mode help.
-  (use-package helm-describe-modes
-    :bind ("C-h m" . helm-describe-modes))
-
-  ;; helm-swoop.
-  (use-package helm-swoop
-    ;; To prevent bug where `helm-swoop-from-isearch' doesn't work the first time.
-    :demand t
-    :bind (
-           ("C-;" . helm-swoop-without-pre-input)
-           ("C-:" . helm-multi-swoop-all)
-
-           :map helm-swoop-map
-
-           ;; Move up and down like isearch
-           ("C-r" . helm-previous-line)
-           ("C-s" . helm-next-line)
-
-           ;; From helm-swoop to helm-multi-swoop-all.
-           ("C-;" . helm-multi-swoop-all-from-helm-swoop)
-
-           :map helm-multi-swoop-map
-
-           ("C-r" . helm-previous-line)
-           ("C-s" . helm-next-line)
-
-           :map isearch-mode-map
-
-           ;; When doing isearch, hand the word over to helm-swoop.
-           ("C-;" . helm-swoop-from-isearch)
-           )
-    :config
-    (setq
-     ;; Show syntax highlighting in results.
-     helm-swoop-speed-or-color t
-     ;; Fix line number face issue.
-     helm-swoop-use-line-number-face t
-     ;; Split the window vertically.
-     helm-swoop-split-with-multiple-windows t
-     helm-swoop-split-direction 'split-window-vertically
-     )
-    )
+  ;; Optionally configure a function which returns the project root directory.
+  ;; There are multiple reasonable alternatives to chose from.
+  ;;;; 1. project.el (project-roots)
+  (setq consult-project-root-function
+        (lambda ()
+          (when-let (project (project-current))
+            (car (project-roots project)))))
+  ;;;; 2. projectile.el (projectile-project-root)
+  ;; (autoload 'projectile-project-root "projectile")
+  ;; (setq consult-project-root-function #'projectile-project-root)
+  ;;;; 3. vc.el (vc-root-dir)
+  ;; (setq consult-project-root-function #'vc-root-dir)
+  ;;;; 4. locate-dominating-file
+  ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
   )
 
 ;;; Load customizations
@@ -487,13 +649,10 @@
 ;; Set up keys using super. s-a, s-x, s-c, and s-v correspond to
 ;; select-all, save, cut, copy, and paste, which I've left for
 ;; consistency/utility on Macs.
-(global-set-key (kbd "s-j") 'helm-mini)
 (global-set-key (kbd "s-p") 'previous-buffer)
 (global-set-key (kbd "s-n") 'next-buffer)
 (global-set-key (kbd "s-k") 'kill-this-buffer)
 
-(global-set-key (kbd "s-y") 'helm-show-kill-ring)
-(global-set-key (kbd "s-h") 'helm-mark-ring)
 ;; Enable OSX full screen shortcut.
 (global-set-key (kbd "C-s-f") 'toggle-frame-fullscreen)
 
@@ -541,18 +700,17 @@
 ;; Shouldn't run too quickly as it is a bit distracting.
 (run-with-idle-timer 60 t 'save-all)
 
-(defun goto-line-show ()
-  "Show line numbers temporarily, while prompting for the line number input."
-  (interactive)
-  (let ((line-numbers display-line-numbers))
-    (unwind-protect
-        (progn
-          (setq-local display-line-numbers t)
-          (call-interactively #'goto-line)
-          (end-of-line))
-      (setq-local display-line-numbers line-numbers))))
-
-(global-set-key (kbd "s-l") 'goto-line-show)
+;; REMOVED: Already have line numbers enabled.
+;; (defun goto-line-show ()
+;;   "Show line numbers temporarily, while prompting for the line number input."
+;;   (interactive)
+;;   (let ((line-numbers display-line-numbers))
+;;     (unwind-protect
+;;         (progn
+;;           (setq-local display-line-numbers t)
+;;           (call-interactively #'goto-line)
+;;           (end-of-line))
+;;       (setq-local display-line-numbers line-numbers))))
 
 ;; Commands to split window and move focus to other window.
 (defun split-window-below-focus ()
@@ -966,7 +1124,7 @@ into one."
   :ensure nil
   :bind (
          :map dired-mode-map
-         ("f" . helm-find-files)
+         ("f" . find-file)
          ("M-n" . dired-next-subdir)
          ("M-p" . dired-prev-subdir)
          )
@@ -1778,64 +1936,24 @@ into one."
 (use-package flycheck-package
   :hook (flycheck-mode . flycheck-package-setup))
 
-;; ag/rg with helm.
-(use-package helm-ag
-  :demand t
-  :bind ("s-o" . helm-ag-pop-stack)
-  )
-
-;; Helm interface for projectile.
-(use-package helm-projectile
-  :after (helm-ag projectile)
-  :bind (
-         ("s-;" . helm-projectile)
-         ("s-i" . helm-projectile-ag-inexact)
-         ("s-u" . helm-projectile-ag-exact)
-         )
-
-  :config
-  (defun helm-projectile-ag-inexact ()
-    "Run helm-projectile-ag, case-insensitive and without word
-boundaries."
-    (interactive)
-    (save-all)
-    (setq helm-ag-base-command
-          "ag --hidden --nocolor --nogroup --ignore-case")
-    (setq helm-ag-insert-at-point nil)
-    (helm-projectile-ag)
-    )
-  (defun helm-projectile-ag-exact ()
-    "Run helm-projectile-ag, case-sensitive and with word
-boundaries."
-    (interactive)
-    (save-all)
-    (setq helm-ag-base-command
-          "ag --hidden --nocolor --nogroup --word-regexp --case-sensitive")
-    (setq helm-ag-insert-at-point 'symbol)
-    (helm-projectile-ag)
-    )
-
-  ;; Don't use projectile buffers as a source.
-  (setq helm-projectile-sources-list '(helm-source-projectile-files-list
-                                       helm-source-projectile-projects
-                                       ))
-
-  (helm-projectile-on)
-  )
-
 ;; Project manager.
 (use-package projectile
   :defer 1
   :hook (prog-mode . projectile-mode)
   :config
   (setq projectile-completion-system 'helm)
+
+  ;; Integrate projectile with consult.
+  (use-package consult-projectile
+    :quelpa (consult-projectile :fetcher git :repo "gitlab.com/OlMon/consult-projectile.git")
+    :bind ("s-;" . consult-projectile)
+    )
   )
 
 ;; Jump to definitions using dumb-jump as a fallback.
 (use-package smart-jump
   :config
   (smart-jump-setup-default-registers)
-  (setq dumb-jump-selector 'helm)
   )
 
 ;;; Language packages
