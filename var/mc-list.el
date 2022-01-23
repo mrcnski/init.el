@@ -18,11 +18,13 @@
         org-ctrl-c-star
         org-delete-char
         org-self-insert-command
+        wdired--self-insert
         ))
 
 (setq mc/cmds-to-run-once
       '(
         dired-jump
+        end-of-buffer
         magit-stage
         magit-status
         mouse-set-region

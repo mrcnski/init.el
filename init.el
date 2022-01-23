@@ -66,6 +66,7 @@
 (require 'package)
 ;; Prefer the newest version of a package.
 (setq load-prefer-newer t)
+;; TODO: is this correct?
 ;; Only enable packages found in this file (not all installed packages).
 (setq package-enable-at-startup nil)
 ;; Add package sources.
@@ -82,6 +83,21 @@
 (require 'use-package)
 ;; Always install missing packages.
 (setq use-package-always-ensure t)
+
+;; Make sure quelpa is installed.
+(unless (package-installed-p 'quelpa)
+  (with-temp-buffer
+    (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
+    (eval-buffer)
+    (quelpa-self-upgrade)))
+;; Get quelpa-use-package.
+(quelpa
+ '(quelpa-use-package
+   :fetcher git
+   :url "https://github.com/quelpa/quelpa-use-package.git"))
+(require 'quelpa-use-package)
+
+;;; Utilities
 
 ;; Keep directories clean.
 ;; Should be one of the first things loaded.
@@ -110,136 +126,6 @@
 ;; Find bugs in Emacs configuration.
 (use-package bug-hunter
   :defer t)
-
-;;; Helm
-
-;; (use-package helm
-;;   :bind (
-;;          ("M-x" . helm-M-x)
-;;          ("C-x C-f" . helm-find-files)
-;;          ("C-h C-a" . helm-apropos)
-;;          ("M-i" . helm-semantic-or-imenu)
-
-;;          :map helm-map
-
-;;          ;; Rebind tab to run persistent action.
-;;          ("<tab>" . helm-execute-persistent-action)
-;;          ;; Alternate TAB key that works in terminal.
-;;          ("C-i" . helm-execute-persistent-action)
-;;          ("C-z" . helm-select-action) ;; List actions using C-z.
-;;          ("M-x" . helm-select-action)
-
-;;          :map minibuffer-local-isearch-map
-
-;;          ;; No reason, and annoying, to bring up `helm-minibuffer-history' here.
-;;          ("C-r" . isearch-reverse-exit-minibuffer)
-
-;;          :map minibuffer-local-map
-
-;;          ;; See above.
-;;          ("C-r" . isearch-reverse-exit-minibuffer)
-;;          )
-
-;;   :init
-
-;;   (require 'helm-config)
-
-;;   :config
-
-;;   (helm-mode t)
-
-;;   ;; Set better keys to select helm candidates.
-;;   (dotimes (i 10)
-;;     (let ((key (format "s-%d" i))
-;;           (fn (lambda () (interactive) (helm-execute-selection-action-at-nth i))))
-;;       (define-key helm-map (kbd key) fn)
-;;       ))
-
-;;   (defvar helm-buffers-fuzzy-matching)
-;;   (defvar helm-recentf-fuzzy-match)
-;;   (defvar helm-apropos-fuzzy-match)
-;;   (defvar helm-semantic-fuzzy-match)
-;;   (defvar helm-imenu-fuzzy-match)
-;;   (setq helm-buffers-fuzzy-matching t
-;;         helm-recentf-fuzzy-match t
-;;         helm-apropos-fuzzy-match t
-;;         helm-semantic-fuzzy-match t
-;;         helm-imenu-fuzzy-match t)
-
-;;   (defvar helm-ff-search-library-in-sexp)
-;;   (defvar helm-ff-file-name-history-use-recentf)
-;;   (setq
-;;    ;; Open helm buffer inside current window?
-;;    helm-split-window-inside-p t
-;;    ;; Move to end or beginning of source when reaching top/bottom of source.
-;;    helm-move-to-line-cycle-in-source t
-;;    ;; Search for library in `use-package' and `declare-function' sexp.
-;;    helm-ff-search-library-in-sexp t
-;;    ;; Scroll 8 lines other window using M-<next>/M-<prior>.
-;;    helm-scroll-amount 8
-;;    helm-ff-file-name-history-use-recentf t
-;;    helm-display-header-line nil
-;;    helm-follow-mode-persistent t
-;;    ;; How long to wait before executing helm-follow persistent action.
-;;    helm-follow-input-idle-delay highlight-delay
-;;    ;; Allow using the mouse to select candidates!
-;;    helm-allow-mouse t
-;;    )
-
-;;   (defvar helm-buffers-column-separator)
-;;   (setq helm-buffers-column-separator "  ")
-
-;;   (defvar helm-mini-default-sources)
-;;   (setq helm-mini-default-sources '(helm-source-buffers-list
-;;                                     helm-source-recentf
-;;                                     helm-source-files-in-current-dir
-;;                                     ))
-
-;;   ;;; helm packages.
-
-;;   ;; Better mode help.
-;;   (use-package helm-describe-modes
-;;     :bind ("C-h m" . helm-describe-modes))
-
-;;   ;; helm-swoop.
-;;   (use-package helm-swoop
-;;     ;; To prevent bug where `helm-swoop-from-isearch' doesn't work the first time.
-;;     :demand t
-;;     :bind (
-;;            ("C-;" . helm-swoop-without-pre-input)
-;;            ("C-:" . helm-multi-swoop-all)
-
-;;            :map helm-swoop-map
-
-;;            ;; Move up and down like isearch
-;;            ("C-r" . helm-previous-line)
-;;            ("C-s" . helm-next-line)
-
-;;            ;; From helm-swoop to helm-multi-swoop-all.
-;;            ("C-;" . helm-multi-swoop-all-from-helm-swoop)
-
-;;            :map helm-multi-swoop-map
-
-;;            ("C-r" . helm-previous-line)
-;;            ("C-s" . helm-next-line)
-
-;;            :map isearch-mode-map
-
-;;            ;; When doing isearch, hand the word over to helm-swoop.
-;;            ("C-;" . helm-swoop-from-isearch)
-;;            )
-;;     :config
-;;     (setq
-;;      ;; Show syntax highlighting in results.
-;;      helm-swoop-speed-or-color t
-;;      ;; Fix line number face issue.
-;;      helm-swoop-use-line-number-face t
-;;      ;; Split the window vertically.
-;;      helm-swoop-split-with-multiple-windows t
-;;      helm-swoop-split-direction 'split-window-vertically
-;;      )
-;;     )
-;;   )
 
 ;;; vertico + consult + orderless + marginalia
 
@@ -591,11 +477,10 @@
 ;; useful.
 (global-eldoc-mode -1)
 
-;; Highlight current line.
-(defvar global-hl-line-sticky-flag)
 ;; Keep line highlight across windows?
-(setq global-hl-line-sticky-flag t)
-(global-hl-line-mode t)
+(setq global-hl-line-sticky-flag nil)
+;; Highlight current line.
+(global-hl-line-mode)
 
 ;; Save minibuffer history across Emacs sessions.
 (savehist-mode t)
@@ -1814,6 +1699,8 @@ into one."
    ;; Show diffs in the commit flow?
    magit-commit-show-diff nil
    )
+  :config
+  (magit-auto-revert-mode t)
   )
 
 ;;; Project packages
