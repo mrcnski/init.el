@@ -6,7 +6,9 @@
         beginning-of-visual-line
         company-complete
         delete-horizontal-space
+        drag-stuff-up
         fix-word-capitalize
+        fix-word-downcase
         fix-word-upcase
         helm-M-x
         indent-for-tab-command
@@ -16,6 +18,7 @@
         org-ctrl-c-ctrl-c
         org-ctrl-c-minus
         org-ctrl-c-star
+        org-cycle
         org-delete-char
         org-self-insert-command
         wdired--self-insert

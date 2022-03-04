@@ -181,7 +181,7 @@
 
 ;; Consult
 (use-package consult
-  ;; Replace bindings. Lazily loaded due by `use-package'.
+  ;; Replace bindings. Lazily loaded by `use-package'.
   :bind (
          ("M-i" . consult-imenu)
          ("s-j" . consult-buffer) ;; orig. switch-to-buffer
@@ -1207,8 +1207,6 @@ into one."
                 ;; Allow M-s .
                 (define-key eshell-mode-map (kbd "M-s") nil)
 
-                ;; Use helm to list eshell history.
-                (define-key eshell-mode-map (kbd "M-i") 'helm-eshell-history)
                 (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
                 (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
                 ))
@@ -1541,7 +1539,6 @@ into one."
   (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified)
 
   (spaceline-spacemacs-theme)
-  (spaceline-helm-mode)
   )
 
 ;; Commands for converting between programmatic cases.
@@ -1827,12 +1824,40 @@ into one."
 (use-package flycheck-package
   :hook (flycheck-mode . flycheck-package-setup))
 
+;; LSP
+(use-package lsp-mode
+  :hook (
+         (gdscript-mode . lsp)
+         )
+  :commands lsp
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
+  ;; TODO: Disable the headerline? This doesn't seem to work.
+  (setq lsp-headerline-breadcrumb-enable nil)
+  :config
+  )
+
+;; https://github.com/godotengine/emacs-gdscript-mode#known-issues
+(defun lsp--gdscript-ignore-errors (original-function &rest args)
+  "Ignore the error message resulting from Godot not replying to the `JSONRPC' request."
+  (if (string-equal major-mode "gdscript-mode")
+      (let ((json-data (nth 0 args)))
+        (if (and (string= (gethash "jsonrpc" json-data "") "2.0")
+                 (not (gethash "id" json-data nil))
+                 (not (gethash "method" json-data nil)))
+            nil ; (message "Method not found")
+          (apply original-function args)))
+    (apply original-function args)))
+;; Runs the function `lsp--gdscript-ignore-errors` around `lsp--get-message-type` to suppress unknown notification errors.
+(advice-add #'lsp--get-message-type :around #'lsp--gdscript-ignore-errors)
+
 ;; Project manager.
 (use-package projectile
   :defer 1
   :hook (prog-mode . projectile-mode)
   :config
-  (setq projectile-completion-system 'helm)
+  (setq projectile-completion-system 'auto)
 
   ;; Integrate projectile with consult.
   (use-package consult-projectile
@@ -1847,7 +1872,7 @@ into one."
   (smart-jump-setup-default-registers)
   )
 
-;;; Language packages
+;;; Languages / Language packages
 
 ;; C#
 
@@ -1907,25 +1932,26 @@ into one."
 
 ;; Javascript
 
-(use-package js2-mode
-  :mode "\\.js\\'"
-  :bind (
-         :map js2-mode-map
-         ("M-," . smart-jump-back)
-         ("M-." . smart-jump-go)
-         )
-  :config
-  (setq js2-basic-offset 2)
-  (setq js2-strict-missing-semi-warning nil)
-  )
-
-;; REMOVED: Annoying that it only formats on save. Would like to format on C-c n.
-;; ;; Formats prettier-compatible source code on save. Automatically finds and uses
-;; ;; prettier config.
-;; (use-package prettier
+;; REMOVED: randomly broke.
+;; (use-package js2-mode
+;;   :mode "\\.js\\'"
+;;   :bind (
+;;          :map js2-mode-map
+;;          ("M-," . smart-jump-back)
+;;          ("M-." . smart-jump-go)
+;;          )
 ;;   :config
-;;   (global-prettier-mode)
+;;   (setq js2-basic-offset 2)
+;;   (setq js2-strict-missing-semi-warning nil)
 ;;   )
+
+;; ;; REMOVED: Annoying that it only formats on save. Would like to format on C-c n.
+;; ;; ;; Formats prettier-compatible source code on save. Automatically finds and uses
+;; ;; ;; prettier config.
+;; ;; (use-package prettier
+;; ;;   :config
+;; ;;   (global-prettier-mode)
+;; ;;   )
 
 ;; React
 (use-package rjsx-mode
@@ -2002,22 +2028,29 @@ into one."
 
 ;; Rust
 
-(use-package racer
-  :bind (
-         :map racer-mode-map
-         ("M-," . smart-jump-back)
-         ("M-." . smart-jump-go)
-         )
-  :hook (rust-mode . racer-mode)
-  :config
-  ;; Don't insert argument placeholders when completing a function.
-  (setq racer-complete-insert-argument-placeholders nil)
-  )
+;; (use-package racer
+;;   :bind (
+;;          :map racer-mode-map
+;;          ("M-," . smart-jump-back)
+;;          ("M-." . smart-jump-go)
+;;          )
+;;   :hook (rust-mode . racer-mode)
+;;   :config
+;;   ;; Don't insert argument placeholders when completing a function.
+;;   (setq racer-complete-insert-argument-placeholders nil)
+;;   )
 
-(use-package rust-mode
-  :bind (:map rust-mode-map ("C-c n" . rust-format-buffer))
+;; (use-package rust-mode
+;;   :bind (:map rust-mode-map ("C-c n" . rust-format-buffer))
+;;   :config
+;;   (setq rust-format-on-save nil)
+;;   )
+
+;; Enhanced Rust mode with automatic LSP support.
+(use-package rustic
+  :bind (:map rustic-mode-map ("C-c n" . rustic-format-buffer))
   :config
-  (setq rust-format-on-save nil)
+  (setq rustic-format-on-save nil)
   )
 
 ;; TOML
