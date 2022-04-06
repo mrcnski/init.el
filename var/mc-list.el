@@ -32,5 +32,6 @@
         magit-status
         mouse-set-region
         save-all
+        smart-jump-go
         split-window-below-focus
         ))

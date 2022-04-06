@@ -783,7 +783,6 @@ into one."
   (let ((col (current-column)))
     (join-line -1)
     (move-to-column col)))
-
 (global-set-key (kbd "C-j") 'join-next-line)
 
 (defun goto-line-below ()
@@ -832,7 +831,7 @@ into one."
 (global-set-key (kbd "C-S-o") 'open-line-above-indent)
 
 (defun kill-line-indent ()
-  "Kills the whole line without removing it, and keeps it indented."
+  "Kill the whole line without removing it, and keep it indented."
   (interactive)
   (beginning-of-line)
   (kill-line)
@@ -1258,8 +1257,11 @@ into one."
 
 (use-package web-mode
   :ensure nil
-  :mode (("\\.html?\\'" . web-mode)
-         ("\\.css?\\'" . web-mode))
+  :mode (
+         ("\\.js?\\'" . web-mode)
+         ("\\.html?\\'" . web-mode)
+         ("\\.css?\\'" . web-mode)
+         )
 
   :config
 
@@ -1315,6 +1317,9 @@ into one."
   (setq avy-background nil)
   )
 
+;; Keep track of workspace views. I use the command `bookmark-view-save' to save
+;; a view and restore the view with `consult-bookmark'.
+(use-package bookmark-view)
 
 ;; Move buffers around.
 (use-package buffer-move
@@ -1695,6 +1700,8 @@ into one."
    magit-bury-buffer-function 'quit-window
    ;; Show diffs in the commit flow?
    magit-commit-show-diff nil
+   ;; How many recent commits to show in certain log sections.
+   magit-log-section-commit-count 16
    )
   :config
   (magit-auto-revert-mode t)
@@ -1727,13 +1734,15 @@ into one."
          )
   :hook (prog-mode . company-mode)
   :init
-  ;; Completion delay (nil means no idle completion).
-  (setq company-idle-delay nil)
-  (setq company-minimum-prefix-length 1)
-  ;; Align tooltips to right border.
-  (setq company-tooltip-align-annotations t)
-  ;; Number the candidates? (Use C-M-1, C-M-2 etc to select completions.)
-  (setq company-show-numbers t)
+  (setq
+   ;; Completion delay (nil means no idle completion).
+   company-idle-delay nil
+   company-minimum-prefix-length 1
+   ;; Align tooltips to right border.
+   company-tooltip-align-annotations t
+   ;; Number the candidates? (Use C-M-1, C-M-2 etc to select completions.)
+   company-show-numbers t
+   )
 
   :config
   (defun company-isearch-backward ()
@@ -1964,7 +1973,8 @@ into one."
 (use-package tide
   :ensure t
   :after (typescript-mode company flycheck)
-  :hook ((typescript-mode . tide-setup)
+  :hook (
+         (typescript-mode . tide-setup)
          (typescript-mode . tide-hl-identifier-mode)
          ;; REMOVED: Messes up point position.
          ;; (before-save . tide-format-before-save)
@@ -2228,7 +2238,7 @@ into one."
        )
       (
        "w" "Work task." entry
-       (file+headline "work.org" "Misc")
+       (file+headline "work.org" "Current")
        "* TODO %?"
        :unnarrowed t
        :empty-lines-before 1
@@ -2270,6 +2280,40 @@ into one."
       (call-interactively 'org-cycle)
       )
     )
+
+  (defun org-fix-blank-lines (&optional prefix)
+    "Ensure that blank lines exist between headings and between headings and their contents.
+With prefix, operate on whole buffer. Ensures that blank lines
+exist after each headings's drawers."
+    (interactive "P")
+    (org-map-entries
+     (lambda ()
+       (org-with-wide-buffer
+        ;; `org-map-entries' narrows the buffer, which prevents us from seeing
+        ;; newlines before the current heading, so we do this part widened.
+        (while (not (looking-back "\n\n" nil))
+          ;; Insert blank lines before heading.
+          (insert "\n")))
+       (let ((end (org-entry-end-position)))
+         ;; Insert blank lines before entry content
+         (forward-line)
+         (while (and (org-at-planning-p)
+                     (< (point) (point-max)))
+           ;; Skip planning lines
+           (forward-line))
+         (while (re-search-forward org-drawer-regexp end t)
+           ;; Skip drawers. You might think that `org-at-drawer-p' would suffice, but
+           ;; for some reason it doesn't work correctly when operating on hidden text.
+           ;; This works, taken from `org-agenda-get-some-entry-text'.
+           (re-search-forward "^[ \t]*:END:.*\n?" end t)
+           (goto-char (match-end 0)))
+         (unless (or (= (point) (point-max))
+                     (org-at-heading-p)
+                     (looking-at-p "\n"))
+           (insert "\n"))))
+     t (if prefix
+           nil
+         'tree)))
 
   ;;; org packages
 
