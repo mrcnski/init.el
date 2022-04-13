@@ -22,6 +22,7 @@
         org-delete-char
         org-self-insert-command
         wdired--self-insert
+        yaml-electric-backspace
         ))
 
 (setq mc/cmds-to-run-once

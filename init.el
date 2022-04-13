@@ -1,6 +1,6 @@
 ;;; init.el --- Emacs configuration file. -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2017-2021 Marcin Swieczkowski
+;; Copyright (C) 2017-2022 Marcin Swieczkowski
 ;;
 ;;; Commentary:
 ;;
@@ -11,7 +11,7 @@
 ;; - Use M-x free-keys to find unused keybindings.
 ;; - Use M-x bug-hunter-init-file to locate errors.
 ;; - Use M-x esup to profile startup time,
-;;   M-x profiler-start and profiler-report to profile runtime.
+;; - Use M-x profiler-start and profiler-report to profile runtime.
 ;; - Use restart-emacs to restart after making changes.
 
 ;;; Code:
@@ -200,7 +200,9 @@
          ("M-s l" . consult-line)
          ;; Isearch integration
          ("M-s e" . consult-isearch-history)
+
          :map isearch-mode-map
+
          ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
          ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
          ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
@@ -1363,7 +1365,8 @@ into one."
   ;; To prevent mode-line display errors.
   :demand t
 
-  :bind (("s-," . eyebrowse-prev-window-config)
+  :bind (
+         ("s-," . eyebrowse-prev-window-config)
          ("s-." . eyebrowse-next-window-config)
          ("s-0" . eyebrowse-switch-to-window-config-0)
          ("s-1" . eyebrowse-switch-to-window-config-1)
