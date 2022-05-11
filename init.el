@@ -1205,11 +1205,12 @@ into one."
             #'(lambda ()
                 (define-key eshell-mode-map (kbd "M-m") 'eshell-bol)
                 (define-key eshell-mode-map (kbd "C-a") 'beginning-of-line)
-                ;; Allow M-s .
-                (define-key eshell-mode-map (kbd "M-s") nil)
-
                 (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
                 (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
+
+                ;; Allow M-s .
+                (define-key eshell-mode-map (kbd "M-s") nil)
+                (define-key eshell-hist-mode-map (kbd "M-s") nil)
                 ))
 
   (use-package em-hist
@@ -1604,13 +1605,20 @@ into one."
   (add-hook 'c-mode-common-hook 'c-whitespace-mode)
   (add-hook 'nim-mode-hook 'c-whitespace-mode)
 
+  (defun rust-whitespace-mode ()
+    "Set whitespace column at 100, fill column at 80 and turn on `whitespace-mode'."
+    (setq whitespace-line-column 100
+          fill-column 80)
+    (whitespace-mode)
+    )
+  (add-hook 'rust-mode-hook 'rust-whitespace-mode)
+
   (defun 100-whitespace-mode ()
     "Set whitespace column at 100 and turn on `whitespace-mode'."
     (setq whitespace-line-column 100
           fill-column 100)
     (whitespace-mode)
     )
-  (add-hook 'rust-mode-hook '100-whitespace-mode)
   (add-hook 'python-mode-hook '100-whitespace-mode)
   )
 
@@ -2075,7 +2083,10 @@ into one."
 ;; YAML
 
 (use-package yaml-mode
-  :mode "\\.yml\\'")
+  :mode "\\.yml\\'"
+  :config
+  (define-key yaml-mode-map (kbd "DEL") nil)
+  )
 
 ;;; Org Mode
 
@@ -2338,6 +2349,8 @@ exist after each headings's drawers."
 
            ("s-\"" . org-agenda-refile)
            ("M" . org-agenda-bulk-mark-all)
+           ("M-n" . org-agenda-next-date-line)
+           ("M-p" . org-agenda-previous-date-line)
            )
 
     :init

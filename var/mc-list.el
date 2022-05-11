@@ -5,6 +5,7 @@
       '(
         beginning-of-visual-line
         company-complete
+        cycle-spacing
         delete-horizontal-space
         drag-stuff-up
         fix-word-capitalize
