@@ -14,6 +14,7 @@
         helm-M-x
         indent-for-tab-command
         join-next-line
+        markdown-cycle
         markdown-outdent-or-delete
         org-beginning-of-line
         org-ctrl-c-ctrl-c
@@ -24,6 +25,7 @@
         org-self-insert-command
         wdired--self-insert
         yaml-electric-backspace
+        zap-up-to-char
         ))
 
 (setq mc/cmds-to-run-once

@@ -20,11 +20,11 @@
 ;; (setq debug-on-error t)
 
 ;; First things first, increase GC threshold to speed up startup.
-;; Reset the GC threshold after initialization, and GC whenever we tab out.
-(setq gc-cons-threshold (* 64 1000 1000))
+;; Lower the GC threshold after initialization, and GC whenever we tab out.
+(setq gc-cons-threshold (* 200 1000 1000))
 (add-hook 'after-init-hook
           #'(lambda ()
-              (setq gc-cons-threshold (* 32 1000 1000))))
+              (setq gc-cons-threshold (* 100 1000 1000))))
 (add-hook 'focus-out-hook 'garbage-collect)
 (run-with-idle-timer 5 t 'garbage-collect)
 
@@ -377,10 +377,16 @@
  delete-by-moving-to-trash t
  ;; Delay for displaying function/variable information.
  eldoc-idle-delay info-delay
+ ;; Delay for hiding tooltips in seconds.
+ tooltip-hide-delay (* 60 60)
+ ;; Delay for showing tooltips, in seconds.
+ tooltip-delay 0
  ;; Fix flickering in Emacs 26 on OSX.
  recenter-redisplay nil
  ;; Follow symlinks without asking?
  vc-follow-symlinks t
+ ;; Undo limit.
+ undo-limit (* 80 1000 1000)
 
  ;; Inhibit backups?
  backup-inhibited t
@@ -772,6 +778,7 @@ region."
 
 ;; Drag up/down single line or lines in region.
 (use-package drag-stuff
+  :defer t
   :bind (("C-S-n" . drag-stuff-down)
          ("C-S-p" . drag-stuff-up)))
 
@@ -1253,8 +1260,8 @@ into one."
   :ensure nil
   :config
   (setq show-paren-delay 0)
-  (setq show-paren-when-point-in-periphery t)
-  (setq show-paren-when-point-inside-paren t)
+  (setq show-paren-when-point-in-periphery nil)
+  (setq show-paren-when-point-inside-paren nil)
   (show-paren-mode t)
   )
 
@@ -1294,7 +1301,7 @@ into one."
 ;; Display number of matches when searching.
 (use-package anzu
   :config
-  (setq anzu-cons-mode-line-p nil)
+  (setq anzu-cons-mode-line-p t)
   (global-anzu-mode))
 
 ;; Avy mode (jump to a char/word using a decision tree).
@@ -1527,31 +1534,30 @@ into one."
   (save-place-mode t)
   )
 
-;; TODO: Included in Emacs 27, remove.
-(use-package so-long
-  :config (global-so-long-mode 1))
-
+;; REMOVED: Poor performance.
 ;; Actually a really nice mode-line package.
 ;; Requires little configuration.
-(use-package spaceline
-  :config
-  (require 'spaceline-config)
+;; (use-package spaceline
+;;   :config
+;;   (require 'spaceline-config)
 
-  ;; Don't display minor modes (too messy).
-  (spaceline-toggle-minor-modes-off)
-  ;; Don't display eyebrowse workspace numbers (displayed in title bar instead).
-  (spaceline-toggle-workspace-number-off)
-  ;; Don't display line ending type.
-  (spaceline-toggle-buffer-encoding-abbrev-off)
+;;   ;; Don't display minor modes (too messy).
+;;   (spaceline-toggle-minor-modes-off)
+;;   ;; Don't display eyebrowse workspace numbers (displayed in title bar instead).
+;;   (spaceline-toggle-workspace-number-off)
+;;   ;; Don't display line ending type.
+;;   (spaceline-toggle-buffer-encoding-abbrev-off)
 
-  ;; Change the modeline display when the buffer has been modified or is read-only.
-  (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified)
+;;   ;; Change the modeline display when the buffer has been modified or is read-only.
+;;   (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified)
 
-  (spaceline-spacemacs-theme)
-  )
+;;   (spaceline-spacemacs-theme)
+;;   )
 
 ;; Commands for converting between programmatic cases.
-(use-package string-inflection)
+(use-package string-inflection
+  :defer t
+  )
 
 ;; Open current directory in an external terminal emulator.
 (use-package terminal-here
@@ -1578,6 +1584,7 @@ into one."
 
 ;; Display available keys.
 (use-package which-key
+  :defer t
   :config
   (which-key-mode)
   (setq which-key-sort-order 'which-key-key-order-alpha)
@@ -1635,7 +1642,7 @@ into one."
   :init
   ;; Prevent winum from inserting its own number in the mode-line
   ;; (spaceline already does so).
-  (setq winum-auto-setup-mode-line nil)
+  ;; (setq winum-auto-setup-mode-line nil)
 
   ;; This has to be in :init for some reason.
   (setq winum-keymap
@@ -1888,6 +1895,7 @@ into one."
 
 ;; Jump to definitions using dumb-jump as a fallback.
 (use-package smart-jump
+  :defer t
   :config
   (smart-jump-setup-default-registers)
   )
@@ -1941,7 +1949,7 @@ into one."
 ;; Graphviz
 
 (use-package graphviz-dot-mode
-  :ensure t
+  :defer t
   :config
   (setq graphviz-dot-indent-width 4))
 
@@ -1975,6 +1983,7 @@ into one."
 
 ;; React
 (use-package rjsx-mode
+  :defer t
   :config
   (define-key rjsx-mode-map "<" nil)
   (define-key rjsx-mode-map (kbd "C-d") nil)
@@ -2007,7 +2016,7 @@ into one."
 ;; just
 
 (use-package just-mode
-  :ensure t
+  :defer t
   )
 
 ;; Lua
@@ -2035,8 +2044,8 @@ into one."
 ;; Nim
 
 (use-package nim-mode
-  :bind (:map nim-mode-map ("RET" . newline-and-indent))
   :defer t
+  :bind (:map nim-mode-map ("RET" . newline-and-indent))
   )
 
 ;; Python
@@ -2332,7 +2341,8 @@ exist after each headings's drawers."
   ;;; org packages
 
   ;; Markdown export.
-  (use-package ox-gfm)
+  (use-package ox-gfm
+    :defer t)
 
   ;; REMOVED Package cl is deprecated.
   ;; ;; Export org to Reveal.js.
@@ -2569,6 +2579,114 @@ exist after each headings's drawers."
   )
 
 ;;; Final
+
+;; Set mode-line format.
+;; This should run after (winum-mode).
+
+;; Count total lines in buffer.
+;; From https://stackoverflow.com/a/8191130.
+(defvar mode-line-buffer-line-count nil)
+(make-variable-buffer-local 'mode-line-buffer-line-count)
+
+(defun mode-line-count-lines ()
+  "Count the total number of lines in the current buffer."
+  (setq mode-line-buffer-line-count
+        (int-to-string (count-lines (point-min) (point-max)))))
+
+(add-hook 'find-file-hook 'mode-line-count-lines)
+(add-hook 'after-save-hook 'mode-line-count-lines)
+(add-hook 'after-revert-hook 'mode-line-count-lines)
+(add-hook 'dired-after-readin-hook 'mode-line-count-lines)
+(add-hook 'after-change-major-mode-hook 'mode-line-count-lines)
+
+;; Active window detection.
+;; From https://emacs.stackexchange.com/a/26345.
+(defvar mode-line-selected-window nil)
+
+(defun mode-line-record-selected-window ()
+  "Record the current window as selected."
+  (setq mode-line-selected-window (selected-window)))
+(add-hook 'post-command-hook 'mode-line-record-selected-window)
+
+;; REMOVED: What was this for?
+;; (defun mode-line-update-all ()
+;;   "Update all mode lines."
+;;   (force-mode-line-update t))
+;; (add-hook 'buffer-list-update-hook 'mode-line-update-all)
+
+;; For right-aligning.
+;; From https://stackoverflow.com/a/22971471.
+(defun mode-line-fill (reserve)
+  "Return empty space leaving RESERVE space on the right."
+  (unless reserve
+    (setq reserve 20))
+  (when (and window-system (eq 'right (get-scroll-bar-mode)))
+    (setq reserve (- reserve 3)))
+  (propertize
+   " "
+   'display `((space :align-to (- (+ right right-fringe right-margin) ,reserve)))
+   ))
+
+;; Set the mode-line.
+(setq-default
+ mode-line-format
+ '((:eval
+    (list
+     ;; Winum string.
+     " ["
+     '(:eval (winum-get-number-string))
+     "] "
+     ;; Modified indicator.
+     'mode-line-modified
+     " "
+     ;; Buffer name.
+     '(:eval (propertize "%b"
+                         'face '(:weight bold)
+                         'help-echo (buffer-file-name)))
+     " |"
+     ;; The current line/column.
+     '(:eval (when line-number-mode " %l:%C"))
+     " "
+     ;; The total number of lines. Only recount after certain events, like
+     ;; saving.
+     '(:eval (when (and line-number-mode
+                        mode-line-buffer-line-count
+                        buffer-file-name)
+               (let ((str "["))
+                 (when (buffer-modified-p)
+                   (setq str (concat str "*")))
+                 (setq str (concat str mode-line-buffer-line-count "]"))
+                 str)))
+     ;; The buffer/filesize.
+     '(:eval "[%I] ")
+     ;; Major mode.
+     '(:eval (when (not (string-equal major-mode 'org-agenda-mode))
+               (propertize "[%m] "
+                           ;; 'face '(:weight bold)
+                           'help-echo (format "%s" major-mode)
+                           )))
+     ;; Read-only.
+     '(:eval (when buffer-read-only
+               (propertize "RO "
+                           'face 'font-lock-preprocessor-face
+                           'help-echo "Buffer is read-only")))
+     ;; Number of characters in the region.
+     '(:eval
+       (when mark-active
+         (let ((region-count (abs (- (point) (mark)))))
+           (when (> region-count 0)
+             (concat "{" (number-to-string region-count) "}"))
+           )))
+
+     ;; '(:eval (let ((indicator (eyebrowse-mode-line-indicator)))
+     ;;           (concat
+     ;;            (mode-line-fill (+ 1 (length (substring-no-properties
+     ;;                                          indicator))))
+     ;;            indicator)))
+
+     ;; " "
+     ;; '(:eval (propertize (format-time-string "%H:%M")))
+     ))))
 
 ;; Start server.
 
