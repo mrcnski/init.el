@@ -2080,7 +2080,15 @@ into one."
 (use-package rustic
   :bind (:map rustic-mode-map ("C-c n" . rustic-format-buffer))
   :config
-  (setq rustic-format-on-save nil)
+  (setq
+   ;; eglot seems to be the best option right now.
+   rustic-lsp-client 'eglot
+   rustic-format-on-save nil
+   ;; Prevent automatic syntax checking, which was causing lags and stutters.
+   eglot-send-changes-idle-time (* 60 60)
+   )
+  ;; Disable the annoying doc popups in the minibuffer.
+  (add-hook 'eglot-managed-mode-hook (lambda () (eldoc-mode -1)))
   )
 
 ;; TOML
