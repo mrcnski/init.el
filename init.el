@@ -1824,6 +1824,37 @@ into one."
   :config
   (editorconfig-mode 1))
 
+(use-package eglot
+  :defer t
+  :config
+  (setq
+   eglot-ignored-server-capabilities '(
+                                       ; Formatting.
+                                       :documentFormattingProvider
+                                       ; Mouse clicks bringing up code actions.
+                                       :codeActionProvider
+                                       :hoverProvider
+                                       ; Code signature docs.
+                                       :signatureHelpProvider
+                                       )
+   ;; Prevent automatic syntax checking, which was causing lags and stutters.
+   eglot-send-changes-idle-time (* 60 60)
+   )
+  ;; Disable the annoying doc popups in the minibuffer.
+  ;; Show messages in the echo area for errors only.
+  ;; From https://github.com/joaotavora/eglot/discussions/898#discussioncomment-2609402
+  (add-hook 'eglot-managed-mode-hook
+          (lambda ()
+            ;; Show flymake diagnostics first.
+            (setq eldoc-documentation-functions
+                  (cons #'flymake-eldoc-function
+                        (remove #'flymake-eldoc-function eldoc-documentation-functions)))
+            ;; Show all eldoc feedback.
+            (setq eldoc-documentation-strategy #'eldoc-documentation-compose)
+            ;; (eldoc-mode -1)
+            ))
+  )
+
 ;; On-the-fly syntax checker.
 (use-package flycheck
   :hook ((prog-mode . flycheck-mode)
@@ -1859,10 +1890,12 @@ into one."
   :commands lsp
   :init
   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  (setq lsp-keymap-prefix "C-c l")
-  ;; TODO: Disable the headerline? This doesn't seem to work.
-  (setq lsp-headerline-breadcrumb-enable nil)
-  :config
+  (setq
+   lsp-keymap-prefix "C-c l"
+   ;; TODO: Disable the headerline? This doesn't seem to work.
+   lsp-headerline-breadcrumb-enable nil
+   read-process-output-max (* 1024 1024)
+   )
   )
 
 ;; https://github.com/godotengine/emacs-gdscript-mode#known-issues
@@ -2084,11 +2117,7 @@ into one."
    ;; eglot seems to be the best option right now.
    rustic-lsp-client 'eglot
    rustic-format-on-save nil
-   ;; Prevent automatic syntax checking, which was causing lags and stutters.
-   eglot-send-changes-idle-time (* 60 60)
    )
-  ;; Disable the annoying doc popups in the minibuffer.
-  (add-hook 'eglot-managed-mode-hook (lambda () (eldoc-mode -1)))
   )
 
 ;; TOML
@@ -2545,6 +2574,12 @@ exist after each headings's drawers."
               :category "move"
               :tag "move"
               :order 20
+              )
+
+       (:name "Travel"
+              :category "travel"
+              :tag "travel"
+              :order 30
               )
 
        ;; Here, the agenda will display items that didn't match any of these
