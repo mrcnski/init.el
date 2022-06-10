@@ -794,50 +794,23 @@ into one."
     (move-to-column col)))
 (global-set-key (kbd "C-j") 'join-next-line)
 
-(defun goto-line-below ()
+(defun goto-line-below (arg)
   "Open and goto a new line below while keeping proper indentation."
-  (interactive)
+  (interactive "p")
   (end-of-line)
-  (newline-and-indent)
-  ;; Indent the previous line, as it gets removed when we call
-  ;; `newline-and-indent' with the point after an indentation.
-  (save-excursion
-    (forward-line -1)
-    (beginning-of-line)
-    (indent-according-to-mode)
-    )
+  (open-line arg)
+  (forward-line 1)
+  (indent-according-to-mode)
   )
-(defun goto-line-above ()
+(defun goto-line-above (arg)
   "Open and goto a new line above while keeping proper indentation."
-  (interactive)
+  (interactive "p")
   (beginning-of-line)
-  (newline-and-indent)
-  (forward-line -1)
-  (indent-according-to-mode))
+  (open-line arg)
+  (indent-according-to-mode)
+  )
 (global-set-key (kbd "<C-return>") 'goto-line-below)
 (global-set-key (kbd "<S-return>") 'goto-line-above)
-
-(defun open-line-below-indent ()
-  "Like the regular `open-line', but indent the below line."
-  (interactive)
-  ;; Insert a random character and delete it later. This is because if we're at
-  ;; the end of an indent, the indent will get messed up, so we make sure there
-  ;; is at least one character after an indent.
-  (self-insert-command 1 65)
-  (save-excursion
-    (call-interactively #'goto-line-below)
-    )
-  (backward-delete-char-untabify 1)
-  )
-(defun open-line-above-indent ()
-  "Like the regular `open-line', but open and indent the above line."
-  (interactive)
-  (save-excursion
-    (call-interactively #'goto-line-above)
-    )
-  )
-(global-set-key (kbd "C-o") 'open-line-below-indent)
-(global-set-key (kbd "C-S-o") 'open-line-above-indent)
 
 (defun kill-line-indent ()
   "Kill the whole line without removing it, and keep it indented."
