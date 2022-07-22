@@ -1020,13 +1020,12 @@ into one."
   (use-package dired-x
     :ensure nil
     ;; Prevent certain files from showing up.
-    ;; Use C-x M-o to show omitted files.
+    ;; NOTE: Use C-x M-o to show omitted files.
     :hook (dired-mode . dired-omit-mode)
     :bind ("s-d" . dired-jump)
     :config
     (setq dired-omit-files
-          (concat dired-omit-files
-                  "\\|\\.bk$\\|^\\.DS_Store$"))
+          (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
     )
 
   ;; More dired colors.
@@ -1162,7 +1161,6 @@ into one."
 
 (use-package eshell
   :ensure nil
-  ;; :after projectile
   :bind (
          ("s-w" . projectile-run-eshell)
          ("s-e" . eshell-new)
@@ -1294,7 +1292,7 @@ into one."
   ;; Use more characters (and better ones) in the decision tree.
   ;; QWERTY keys.
   (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
-                      ?w ?e ?r ?u ?i ?o))
+                      ?w ?e ?r ?u    ?o))
 
   ;; Set the background to gray to highlight the decision tree?
   (setq avy-background nil)
@@ -1557,7 +1555,6 @@ into one."
 
 ;; Display available keys.
 (use-package which-key
-  :defer t
   :config
   (which-key-mode)
   (setq which-key-sort-order 'which-key-key-order-alpha)
@@ -1901,7 +1898,6 @@ into one."
 
 ;; Jump to definitions using dumb-jump as a fallback.
 (use-package smart-jump
-  :defer t
   :config
   (smart-jump-setup-default-registers)
   )
@@ -2187,9 +2183,9 @@ into one."
 
    org-ellipsis " …"
 
-   ;; Non-nil means unchecked boxes will block switching the parent to DONE.
+   ;; Non-nil means unchecked boxes will prevent switching the parent to DONE.
    org-enforce-todo-checkbox-dependencies nil
-   ;; All subtasks must be Done before marking a task as Done.
+   ;; All subtasks must be DONE before marking a task as DONE.
    org-enforce-todo-dependencies t
 
    ;; Try to keep cursor before ellipses.

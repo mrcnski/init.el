@@ -8,6 +8,7 @@
         cycle-spacing
         delete-horizontal-space
         drag-stuff-up
+        fill-paragraph
         fix-word-capitalize
         fix-word-downcase
         fix-word-upcase
@@ -22,6 +23,7 @@
         org-ctrl-c-star
         org-cycle
         org-delete-char
+        org-end-of-line
         org-self-insert-command
         wdired--self-insert
         yaml-electric-backspace
@@ -32,6 +34,7 @@
       '(
         dired-jump
         end-of-buffer
+        eshell-new
         magit-stage
         magit-status
         mouse-set-region
