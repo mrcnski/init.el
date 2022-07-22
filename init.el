@@ -30,10 +30,10 @@
 
 ;;; User-Defined Variables
 
-(defvar user-sync-directory "~/iCloud/")
+(defvar user-code-directory "~/Repos/")
 (defvar user-text-directory "~/Text/")
-(defvar user-scratchpad-path (concat user-sync-directory "scratchpad.txt"))
-(defvar user-org-directory (concat user-sync-directory "org/"))
+(defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
+(defvar user-org-directory (concat user-text-directory "org/"))
 
 (defvar user-ideas-org (concat user-org-directory "ideas.org"))
 (defvar user-notes-org (concat user-org-directory "notes.org"))
@@ -177,7 +177,7 @@
   (setq completion-styles '(orderless)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion))))
-  )
+ )
 
 ;; Consult
 (use-package consult
@@ -1298,10 +1298,6 @@ into one."
   (setq avy-background nil)
   )
 
-;; Keep track of workspace views. I use the command `bookmark-view-save' to save
-;; a view and restore the view with `consult-bookmark'.
-(use-package bookmark-view)
-
 ;; Move buffers around.
 (use-package buffer-move
   :bind (
@@ -1689,10 +1685,18 @@ into one."
    ;; Show diffs in the commit flow?
    magit-commit-show-diff nil
    ;; How many recent commits to show in certain log sections.
-   magit-log-section-commit-count 16
+   magit-log-section-commit-count 50
    )
   :config
   (magit-auto-revert-mode t)
+  )
+
+;; Quick and easy organization of repos.
+(use-package my-repo-pins
+  ;; :load-path "~/repos/github.com/NinjaTrappeur/my-repo-pins"
+  :bind (("s-h" . my-repo-pins))
+  :config
+  (setq my-repo-pins-code-root user-code-directory)
   )
 
 ;;; Project packages
