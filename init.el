@@ -19,15 +19,6 @@
 ;; Show more error info.
 ;; (setq debug-on-error t)
 
-;; First things first, increase GC threshold to speed up startup.
-;; Lower the GC threshold after initialization, and GC whenever we tab out.
-(setq gc-cons-threshold (* 200 1000 1000))
-(add-hook 'after-init-hook
-          #'(lambda ()
-              (setq gc-cons-threshold (* 100 1000 1000))))
-(add-hook 'focus-out-hook 'garbage-collect)
-(run-with-idle-timer 5 t 'garbage-collect)
-
 ;;; User-Defined Variables
 
 (defvar user-code-directory "~/Repos/")
@@ -84,18 +75,12 @@
 ;; Always install missing packages.
 (setq use-package-always-ensure t)
 
-;; Make sure quelpa is installed.
-(unless (package-installed-p 'quelpa)
-  (with-temp-buffer
-    (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
-    (eval-buffer)
-    (quelpa-self-upgrade)))
-;; Get quelpa-use-package.
-(quelpa
- '(quelpa-use-package
-   :fetcher git
-   :url "https://github.com/quelpa/quelpa-use-package.git"))
-(require 'quelpa-use-package)
+;; Enforce a sneaky Garbage Collection strategy to minimize GC interference with
+;; user activity.
+(use-package gcmh
+  :config
+  (gcmh-mode 1)
+  )
 
 ;;; Utilities
 
@@ -1895,7 +1880,6 @@ into one."
 
   ;; Integrate projectile with consult.
   (use-package consult-projectile
-    :quelpa (consult-projectile :fetcher git :repo "gitlab.com/OlMon/consult-projectile.git")
     :bind ("s-;" . consult-projectile)
     )
   )
