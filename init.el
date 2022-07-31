@@ -170,11 +170,10 @@
   :bind (
          ("M-i" . consult-imenu)
          ("s-j" . consult-buffer) ;; orig. switch-to-buffer
-         ("s-h" . consult-mark)
-         ("s-i" . consult-ripgrep)
+         ("s-m" . consult-mark)
+         ("s-i" . consult-ripgrep-save)
          ("s-l" . consult-goto-line) ;; orig. goto-line
          ("s-y" . consult-yank-pop) ;; orig. yank-pop
-         ("s-'" . consult-org-heading)
          ("<help> a" . consult-apropos) ;; orig. apropos-command
 
          ;; Consult bindings from readme
@@ -200,6 +199,13 @@
 
   ;; The :init configuration is always executed (Not lazy)
   :init
+
+  (defun consult-ripgrep-save ()
+    "Save before calling `consult-ripgrep'."
+    (interactive)
+    (save-all)
+    (consult-ripgrep)
+    )
 
   (setq consult-async-min-input 2)
 
@@ -1147,7 +1153,7 @@ into one."
 (use-package eshell
   :ensure nil
   :bind (
-         ("s-w" . projectile-run-eshell)
+         ("s-w" . project-eshell)
          ("s-e" . eshell-new)
          )
   ;; Save all buffers before running a command.
@@ -2119,6 +2125,8 @@ into one."
          ("M-n" . org-next-visible-heading)
          ("C-^" . org-up-element)
          ("C-j" . join-next-line)
+         ("C-c SPC" . org-table-blank-field)
+         ("C-c C-j" . consult-org-heading) ; orig. org-goto
 
          ("<mouse-3>" . mouse-org-cycle)
          )
