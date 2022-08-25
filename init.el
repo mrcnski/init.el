@@ -105,6 +105,7 @@
     ))
 
 ;; Enable restarting Emacs from within Emacs.
+;; NOTE: built in functionality as of Emacs 29.
 (use-package restart-emacs
   :defer t)
 
@@ -1182,6 +1183,19 @@ into one."
                 (define-key eshell-hist-mode-map (kbd "M-s") nil)
                 ))
 
+  ;; Fix eshell overwriting history.
+  ;; From https://emacs.stackexchange.com/a/18569/15023.
+  (setq eshell-save-history-on-exit nil)
+  (defun eshell-append-history ()
+    "Call `eshell-write-history' with the `append' parameter set to `t'."
+    (when eshell-history-ring
+      (let ((newest-cmd-ring (make-ring 1)))
+        (ring-insert newest-cmd-ring (car (ring-elements eshell-history-ring)))
+        (let ((eshell-history-ring newest-cmd-ring))
+          (eshell-write-history eshell-history-file-name t)))))
+  (add-hook 'eshell-pre-command-hook #'eshell-append-history)
+  (add-hook 'eshell-mode-hook #'(lambda () (setq eshell-exit-hook nil)))
+
   (use-package em-hist
     :ensure nil
     :config
@@ -1189,8 +1203,8 @@ into one."
      eshell-hist-ignoredups t
      ;; Set the history file.
      eshell-history-file-name "~/.bash_history"
-     ;; Use HISTSIZE as the history size.
-     eshell-history-size nil
+     ;; If nil, use HISTSIZE as the history size.
+     eshell-history-size 10000
      )
     )
 
@@ -1200,17 +1214,46 @@ into one."
     (interactive)
     (eshell t))
 
+  ;; Set up a custom prompt.
+
+  (defun with-face (str &rest face-plist)
+    (propertize str 'face face-plist))
+  (defun custom-eshell-prompt ()
+    (let* (
+           ;; Get the git branch.
+           (git-branch-unparsed
+            (shell-command-to-string "git rev-parse --abbrev-ref HEAD 2>/dev/null"))
+           (git-branch
+            (if (string= git-branch-unparsed "")
+                ""
+              ;; Remove the trailing newline.
+              (substring git-branch-unparsed 0 -1)))
+           )
+      (concat
+       ;; Timestamp.
+       (with-face
+        (format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time))
+        :inherit font-lock-builtin-face)
+       ;; Directory.
+       (with-face (concat (eshell/pwd) " ") :inherit font-lock-constant-face)
+       ;; Git branch.
+       (unless (string= git-branch "")
+         (with-face (concat "[" git-branch "]") :inherit font-lock-string-face))
+       "\n"
+       ;; Prompt.
+       ;; NOTE: Need to keep " $" for the next/previous prompt regexp to work.
+       (with-face " $" :inherit font-lock-preprocessor-face)
+       " "
+       )))
+  (setq eshell-prompt-function 'custom-eshell-prompt)
+  (setq eshell-highlight-prompt nil)
+
   ;; Load eshell packages.
 
   (use-package eshell-syntax-highlighting
     :config
     ;; Enable in all Eshell buffers.
     (eshell-syntax-highlighting-global-mode 1))
-
-  ;; Add up to eshell.
-  ;; Jump to a directory higher up in the directory hierarchy.
-  (use-package eshell-up
-    :config (setq eshell-up-print-parent-dir nil))
 
   ;; Add z to eshell.
   ;; Jumps to most recently visited directories.
