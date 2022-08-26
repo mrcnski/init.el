@@ -2178,6 +2178,7 @@ into one."
 
   :hook (
          (org-mode . org-mode-hook-fun)
+         (org-mode . company-mode)
          )
 
   :init
@@ -2214,6 +2215,10 @@ into one."
 
    ;; Initial visibility.
    org-startup-folded 'folded
+
+   ;; Inline images.
+   org-startup-with-inline-images t
+   org-image-actual-width '(0.5)
 
    ;; Hide leading stars
    org-hide-leading-stars t
@@ -2393,20 +2398,16 @@ exist after each headings's drawers."
   (use-package ox-gfm
     :defer t)
 
-  ;; REMOVED Package cl is deprecated.
-  ;; ;; Export org to Reveal.js.
-  ;; (use-package ox-reveal)
-
   (use-package org-agenda
     :ensure nil
     :hook (org-agenda-mode . visual-line-mode)
     :bind (
            ("C-c a" . org-agenda-personal)
-           ("C-c w" . org-agenda-work)
+           ;; ("C-c w" . org-agenda-work)
 
            :map org-agenda-mode-map
 
-           ("s-\"" . org-agenda-refile)
+           ("s" . org-agenda-schedule)
            ("M" . org-agenda-bulk-mark-all)
            ("M-n" . org-agenda-next-date-line)
            ("M-p" . org-agenda-previous-date-line)
@@ -2422,14 +2423,15 @@ exist after each headings's drawers."
                               ))
       (org-agenda-list)
       )
-    (defun org-agenda-work ()
-      (interactive)
-      ;; Set location of agenda files.
-      (setq org-agenda-files (list
-                              user-work-org
-                              ))
-      (org-todo-list)
-      )
+    ;; REMOVED: Don't use agenda for work anymore.
+    ;; (defun org-agenda-work ()
+    ;;   (interactive)
+    ;;   ;; Set location of agenda files.
+    ;;   (setq org-agenda-files (list
+    ;;                           user-work-org
+    ;;                           ))
+    ;;   (org-todo-list)
+    ;;   )
 
     :config
 
