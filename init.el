@@ -75,6 +75,8 @@
 ;; Always install missing packages.
 (setq use-package-always-ensure t)
 
+;;; Utilities
+
 ;; Enforce a sneaky Garbage Collection strategy to minimize GC interference with
 ;; user activity.
 (use-package gcmh
@@ -219,9 +221,6 @@
   ;; Optionally tweak the register preview window.
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
-
-  ;; Optionally replace `completing-read-multiple' with an enhanced version.
-  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
 
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
@@ -1311,7 +1310,8 @@ into one."
 
 ;; Avy mode (jump to a char/word using a decision tree).
 (use-package avy
-  :bind (("C-," . avy-goto-line-end)
+  :bind (
+         ("C-," . avy-goto-line-end)
          ("C-." . avy-goto-char)
          )
   :init
@@ -2012,13 +2012,18 @@ into one."
 ;;   (setq js2-strict-missing-semi-warning nil)
 ;;   )
 
-;; ;; REMOVED: Annoying that it only formats on save. Would like to format on C-c n.
-;; ;; ;; Formats prettier-compatible source code on save. Automatically finds and uses
-;; ;; ;; prettier config.
-;; ;; (use-package prettier
-;; ;;   :config
-;; ;;   (global-prettier-mode)
-;; ;;   )
+;; Formats prettier-compatible source code on save. Automatically finds and uses
+;; prettier config.
+(use-package prettier
+  :bind ("C-c n" . prettier-prettify)
+  :config
+  ;; Set this to nil if you don't want Prettier to prettify (format) the buffer
+  ;; when saving.
+  (setq prettier-prettify-on-save-flag nil)
+  ;; Turn on the minor mode in all major modes supported by your version of
+  ;; Prettier.
+  (global-prettier-mode)
+  )
 
 ;; React
 (use-package rjsx-mode
@@ -2121,7 +2126,7 @@ into one."
 
 ;; Enhanced Rust mode with automatic LSP support.
 (use-package rustic
-  :bind (:map rustic-mode-map ("C-c n" . rustic-format-buffer))
+  :bind (:map rustic-mode-map ("C-c n" . rustic-cargo-fmt))
   :config
   (setq
    ;; eglot seems to be the best option right now.
