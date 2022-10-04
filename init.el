@@ -2126,8 +2126,20 @@ into one."
 
 ;; Enhanced Rust mode with automatic LSP support.
 (use-package rustic
-  :bind (:map rustic-mode-map ("C-c n" . rustic-cargo-fmt))
+  :bind (:map rustic-mode-map ("C-c n" . format-rust))
+
+  :init
+
+  (defun format-rust ()
+    (interactive)
+    ;; Save all buffers since `rustic-cargo-fmt' formats all buffers belonging
+    ;; to the workspace.
+    (save-all)
+    (rustic-cargo-fmt)
+    )
+
   :config
+
   (setq
    ;; eglot seems to be the best option right now.
    rustic-lsp-client 'eglot
