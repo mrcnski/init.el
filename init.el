@@ -21,8 +21,10 @@
 
 ;;; User-Defined Variables
 
-(defvar user-code-directory "~/Repos/")
-(defvar user-text-directory "~/Text/")
+;; Hard-code home directory for when on different account.
+(defvar home-directory "/Users/marcin/")
+(defvar user-code-directory (concat home-directory "Repos/"))
+(defvar user-text-directory (concat home-directory "Text/"))
 (defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
 (defvar user-org-directory (concat user-text-directory "org/"))
 
