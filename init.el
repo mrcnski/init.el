@@ -1608,7 +1608,8 @@ into one."
   ;; Highlight the parts of lines that exceed certain column numbers, depending
   ;; on mode.
   (defun c-whitespace-mode ()
-    "Set whitespace column for c-like modes and turn on `whitespace-mode'."
+    "Set whitespace column and fill column for c-like modes and turn
+on `whitespace-mode'."
     (setq whitespace-line-column 80
           fill-column 80)
     (whitespace-mode)
@@ -1617,15 +1618,15 @@ into one."
   (add-hook 'nim-mode-hook 'c-whitespace-mode)
 
   (defun rust-whitespace-mode ()
-    "Set whitespace column at 100, fill column at 80 and turn on `whitespace-mode'."
-    (setq whitespace-line-column 100
+    "Set whitespace column and fill column for Rust and turn on `whitespace-mode'."
+    (setq whitespace-line-column 120
           fill-column 80)
     (whitespace-mode)
     )
   (add-hook 'rust-mode-hook 'rust-whitespace-mode)
 
   (defun 100-whitespace-mode ()
-    "Set whitespace column at 100 and turn on `whitespace-mode'."
+    "Set whitespace column and fill column at 100 and turn on `whitespace-mode'."
     (setq whitespace-line-column 100
           fill-column 100)
     (whitespace-mode)
@@ -2318,7 +2319,7 @@ into one."
   ;; org-capture settings
 
   ;; org-capture template.
-  (defvar org-capture-templates
+  (setq org-capture-templates
     '(
       (
        "o" "One-off task." entry
@@ -2336,7 +2337,7 @@ into one."
        )
       (
        "w" "Work task." entry
-       (file+headline "work.org" "Current")
+       (file+headline "work.org" "Todo")
        "* TODO %?"
        :unnarrowed t
        :empty-lines-before 1
@@ -2424,7 +2425,7 @@ exist after each headings's drawers."
     :hook (org-agenda-mode . visual-line-mode)
     :bind (
            ("C-c a" . org-agenda-personal)
-           ;; ("C-c w" . org-agenda-work)
+           ("C-c w" . org-agenda-work)
 
            :map org-agenda-mode-map
 
@@ -2444,15 +2445,14 @@ exist after each headings's drawers."
                               ))
       (org-agenda-list)
       )
-    ;; REMOVED: Don't use agenda for work anymore.
-    ;; (defun org-agenda-work ()
-    ;;   (interactive)
-    ;;   ;; Set location of agenda files.
-    ;;   (setq org-agenda-files (list
-    ;;                           user-work-org
-    ;;                           ))
-    ;;   (org-todo-list)
-    ;;   )
+    (defun org-agenda-work ()
+      (interactive)
+      ;; Set location of agenda files.
+      (setq org-agenda-files (list
+                              user-work-org
+                              ))
+      (org-todo-list)
+      )
 
     :config
 
