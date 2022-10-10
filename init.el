@@ -637,7 +637,9 @@
 ;; Code folding.
 (require 'hideshow)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
-(define-key hs-minor-mode-map (kbd "C-z") 'hs-toggle-hiding)
+(define-key hs-minor-mode-map (kbd "s-[") 'hs-hide-level)
+(define-key hs-minor-mode-map (kbd "s-]") 'hs-show-all)
+(define-key hs-minor-mode-map (kbd "s-\\") 'hs-toggle-hiding)
 
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
