@@ -2131,17 +2131,17 @@ on `whitespace-mode'."
 
 ;; Enhanced Rust mode with automatic LSP support.
 (use-package rustic
-  :bind (:map rustic-mode-map ("C-c n" . format-rust))
+  :bind (:map rustic-mode-map ("C-c n" . rustic-format-file))
 
-  :init
+  ;; :init
 
-  (defun format-rust ()
-    (interactive)
-    ;; Save all buffers since `rustic-cargo-fmt' formats all buffers belonging
-    ;; to the workspace.
-    (save-all)
-    (rustic-cargo-fmt)
-    )
+  ;; (defun format-rust ()
+  ;;   (interactive)
+  ;;   ;; Save all buffers since `rustic-cargo-fmt' formats all buffers belonging
+  ;;   ;; to the workspace.
+  ;;   (save-all)
+  ;;   (rustic-cargo-fmt)
+  ;;   )
 
   :config
 
@@ -2149,6 +2149,7 @@ on `whitespace-mode'."
    ;; eglot seems to be the best option right now.
    rustic-lsp-client 'eglot
    rustic-format-on-save nil
+   rustic-rustfmt-args "+nightly"
    )
   )
 
