@@ -327,7 +327,7 @@
  tab-width 4
  ;; HTML tab width / indent level.
  sgml-basic-offset 2
- js-indent-level 4
+ js-indent-level 2
  fill-column 80
  ;; Highlight end of buffer?
  indicate-empty-lines t
@@ -1286,9 +1286,9 @@ into one."
   (define-key web-mode-map (kbd "M-;") nil)
 
   (setq
-   web-mode-markup-indent-offset 4
+   web-mode-markup-indent-offset 2
    web-mode-css-indent-offset 4
-   web-mode-code-indent-offset 4
+   web-mode-code-indent-offset 2
 
    web-mode-enable-current-element-highlight t
    )
@@ -1620,7 +1620,7 @@ on `whitespace-mode'."
   (defun rust-whitespace-mode ()
     "Set whitespace column and fill column for Rust and turn on `whitespace-mode'."
     (setq whitespace-line-column 120
-          fill-column 80)
+          fill-column 100)
     (whitespace-mode)
     )
   (add-hook 'rust-mode-hook 'rust-whitespace-mode)
