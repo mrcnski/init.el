@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: #[no_mangle]
+# key: nom
+# --
+#[no_mangle]
+pub extern "C" fn $1($2) -> $3 {
+    $0
+}

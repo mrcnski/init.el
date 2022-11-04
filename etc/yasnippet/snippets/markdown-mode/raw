@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: raw
+# key: raw
+# --
+{% raw %}$1{% endraw %}

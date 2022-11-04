@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: ihigh
+# key: ihigh
+# --
+{% ihighlight $1 %}$2{% endihighlight %}
