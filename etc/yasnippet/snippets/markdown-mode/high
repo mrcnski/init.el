@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: high
-# key: high
-# --
-
-{% highlight $1 linedivs %}
-$2
-{% endhighlight %}

@@ -8,6 +8,3 @@
 
 !var/
 !var/mc-list.el
-!etc/
-!etc/**
-etc/.DS_Store

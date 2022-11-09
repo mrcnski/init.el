@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: image
-# key: image
-# --
-{% include image.html name="$1.png" alt="$2"
-   caption="$3"
-%}

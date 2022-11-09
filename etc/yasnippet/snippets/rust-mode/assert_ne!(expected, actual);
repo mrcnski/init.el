@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: assert_ne!(expected, actual);
-# key: assne
-# --
-assert_ne!(${1:expected}, ${2:actual});
