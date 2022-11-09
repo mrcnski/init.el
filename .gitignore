@@ -4,6 +4,7 @@
 # ... but not these files.
 !.gitignore
 !init.el
+!early-init.el
 !README.org
 
 !var/
