@@ -896,12 +896,6 @@ into one."
 ;; Stretch cursor to be as wide as the character at point.
 (setq x-stretch-cursor 1)
 
-;; Disable scroll bars and the tool bar.
-(when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
-(when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
-(when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
-(when (fboundp 'horizontal-scroll-bar-mode) (horizontal-scroll-bar-mode 0))
-
 ;; Allow resizing by pixels.
 (setq frame-resize-pixelwise t)
 
