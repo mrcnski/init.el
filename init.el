@@ -21,10 +21,9 @@
 
 ;;; User-Defined Variables
 
-;; Hard-code home directory for when on different account.
-(defvar home-directory "/Users/marcin/")
-(defvar user-code-directory (concat home-directory "Repos/"))
-(defvar user-text-directory (concat home-directory "Text/"))
+(defvar user-code-directory "~/Repos/")
+(defvar user-text-directory "~/Text/")
+
 (defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
 (defvar user-org-directory (concat user-text-directory "org/"))
 
@@ -379,7 +378,7 @@
  ;; Follow symlinks without asking?
  vc-follow-symlinks t
  ;; Undo limit.
- undo-limit (* 80 1000 1000)
+ undo-limit (* 10 1000 1000)
 
  ;; Inhibit backups?
  backup-inhibited t
