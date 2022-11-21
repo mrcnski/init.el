@@ -1618,6 +1618,7 @@ on `whitespace-mode'."
     (whitespace-mode)
     )
   (add-hook 'rust-mode-hook 'rust-whitespace-mode)
+  (add-hook 'rustic-mode-hook 'rust-whitespace-mode)
 
   (defun 100-whitespace-mode ()
     "Set whitespace column and fill column at 100 and turn on `whitespace-mode'."
@@ -2239,7 +2240,10 @@ on `whitespace-mode'."
 
    ;; Hide leading stars
    org-hide-leading-stars t
-   org-adapt-indentation t
+   ;; TODO: Just set this to true. It's too much bother dealing with
+   ;; indentation. Re-enable the minor mode that fakes indents with a display.
+   org-adapt-indentation nil
+   org-startup-indented nil
    org-odd-levels-only nil
 
    org-ellipsis " …"
