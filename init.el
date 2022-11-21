@@ -179,9 +179,10 @@
          ("s-l" . consult-goto-line) ;; orig. goto-line
          ("s-y" . consult-yank-pop) ;; orig. yank-pop
          ("<help> a" . consult-apropos) ;; orig. apropos-command
+         ("C-h m" . consult-minor-mode-menu)
 
          ;; Consult bindings from readme
-         ("C-c m" . consult-mode-command)
+         ;; ("C-c m" . consult-mode-command)
          ("C-c b" . consult-bookmark)
          ;; ("C-c k" . consult-kmacro)
          ;; M-s bindings (search-map)
