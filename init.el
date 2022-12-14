@@ -298,13 +298,6 @@
 ;; Replace yes/no prompts with y/n.
 (fset 'yes-or-no-p 'y-or-n-p)
 
-;; Track recently-opened files.
-(use-package recentf
-  :config
-  (setq recentf-max-saved-items 5000)
-  (recentf-mode t)
-  )
-
 ;; Enable commands that are disabled by default.
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
@@ -482,9 +475,6 @@
 (setq global-hl-line-sticky-flag nil)
 ;; Highlight current line.
 (global-hl-line-mode)
-
-;; Save minibuffer history across Emacs sessions.
-(savehist-mode t)
 
 ;; Turn on subword-mode everywhere.
 (global-subword-mode t)
@@ -981,6 +971,7 @@ into one."
 
 (use-package dired
   :ensure nil
+  :demand t
   :bind (
          :map dired-mode-map
          ("f" . find-file)
@@ -1008,6 +999,7 @@ into one."
   ;; Enables jumping to the current directory in dired (default: C-x C-j).
   (use-package dired-x
     :ensure nil
+    :demand t
     ;; Prevent certain files from showing up.
     ;; NOTE: Use C-x M-o to show omitted files.
     :hook (dired-mode . dired-omit-mode)
@@ -1077,6 +1069,21 @@ into one."
                 (unless (eq ibuffer-sorting-mode 'alphabetic)
                   (ibuffer-do-sort-by-alphabetic))))
     )
+  )
+
+;; Track recently-opened files.
+(use-package recentf
+  :ensure nil
+  :config
+  (setq recentf-max-saved-items 5000)
+  (recentf-mode t)
+  )
+
+;; Save minibuffer history across Emacs sessions.
+(use-package savehist
+  :ensure nil
+  :config
+  (savehist-mode t)
   )
 
 ;; Ediff settings
