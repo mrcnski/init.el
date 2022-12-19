@@ -638,9 +638,13 @@
 (define-key hs-minor-mode-map (kbd "s-]") 'hs-show-all)
 (define-key hs-minor-mode-map (kbd "s-\\") 'hs-toggle-hiding)
 
+;; Zapping.
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
 (global-set-key (kbd "M-z") 'zap-up-to-char)
+
+;; Easier repeat.
+(global-set-key (kbd "C-z") 'repeat)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
@@ -877,6 +881,16 @@ into one."
       (setq i (+ i 1))
       (insert (format "%4d %c\n" i i))))
   (goto-char (point-min)))
+
+;; Helps with "too many files" error.
+;; From https://www.blogbyben.com/2022/05/gotcha-emacs-on-mac-os-too-many-files.html.
+(defun file-notify-rm-all-watches ()
+  "Remove all existing file notification watches from Emacs."
+  (interactive)
+  (maphash
+   (lambda (key _value)
+     (file-notify-rm-watch key))
+   file-notify-descriptors))
 
 ;;; Visual settings
 
