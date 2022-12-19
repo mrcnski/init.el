@@ -90,6 +90,13 @@
 ;; Keep directories clean.
 ;; Should be one of the first things loaded.
 (use-package no-littering
+  :init
+  (setq
+   ;; Keep these in the user home directory to prevent constant sync conflicts.
+   no-littering-var-directory "~/.emacs-var"
+   no-littering-etc-directory "~/.emacs-etc"
+   )
+
   :config
   (require 'recentf)
 
@@ -1961,7 +1968,8 @@ on `whitespace-mode'."
 ;; Emmet
 
 (use-package emmet-mode
-  :hook ((sgml-mode . emmet-mode)
+  :hook (
+         (sgml-mode . emmet-mode)
          (css-mode . emmet-mode)
          (web-mode . emmet-mode)
          )
