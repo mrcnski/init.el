@@ -1753,6 +1753,7 @@ on `whitespace-mode'."
 (use-package company
   :bind (
          ("M-/" . company-complete)
+         ("C-M-/" . company-dabbrev-code)
 
          :map company-active-map
 
@@ -1781,7 +1782,14 @@ on `whitespace-mode'."
    ;; Align tooltips to right border.
    company-tooltip-align-annotations t
    ;; Number the candidates? (Use C-M-1, C-M-2 etc to select completions.)
-   company-show-numbers t
+   company-show-quick-access t
+
+   ;; Fix casing...
+   company-dabbrev-downcase nil
+   company-dabbrev-code-ignore-case t
+
+   ;; Allow typing normally.
+   company-require-match nil
    )
 
   :config
@@ -1802,9 +1810,6 @@ on `whitespace-mode'."
   (dotimes (i 10)
     (define-key company-active-map (kbd (format "M-%d" i)) nil)
     (define-key company-active-map (read-kbd-macro (format "s-%d" i)) 'company-complete-number))
-
-  ;; Allow typing normally.
-  (setq company-require-match nil)
 
   ;; Add commands that should abort completion.
   (add-to-list 'company-continue-commands 'rust-format-buffer t)
@@ -1936,7 +1941,7 @@ on `whitespace-mode'."
 
 ;; Project manager.
 (use-package projectile
-  :defer 1
+  :defer t
   :hook (prog-mode . projectile-mode)
   :config
   (setq projectile-completion-system 'auto)
