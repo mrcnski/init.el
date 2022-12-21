@@ -1269,16 +1269,16 @@ into one."
        ;; Timestamp.
        (with-face
         (format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time))
-        :inherit font-lock-builtin-face)
+        :foreground "#68a5e9")
        ;; Directory.
-       (with-face (concat (eshell/pwd) " ") :inherit font-lock-constant-face)
+       (with-face (concat "[" (eshell/pwd) "] ") :inherit font-lock-constant-face)
        ;; Git branch.
        (unless (string= git-branch "")
-         (with-face (concat "[" git-branch "]") :inherit font-lock-string-face))
+         (with-face git-branch :inherit font-lock-preprocessor-face))
        "\n"
        ;; Prompt.
        ;; NOTE: Need to keep " $" for the next/previous prompt regexp to work.
-       (with-face " $" :inherit font-lock-preprocessor-face)
+       (with-face " $" :foreground "#fffe0a")
        " "
        )))
   (setq eshell-prompt-function 'custom-eshell-prompt)
