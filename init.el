@@ -313,9 +313,6 @@
 
 ;;; Quality of life changes
 
-;; Replace yes/no prompts with y/n.
-(fset 'yes-or-no-p 'y-or-n-p)
-
 ;; Enable commands that are disabled by default.
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
@@ -391,6 +388,8 @@
  vc-follow-symlinks t
  ;; Undo limit.
  undo-limit (* 10 1000 1000)
+;; Replace yes/no prompts with y/n.
+ use-short-answers t
 
  ;; Inhibit backups?
  backup-inhibited t
@@ -581,7 +580,7 @@
   "Save the buffer and then revert it."
   (interactive)
   (save-buffer)
-  (revert-buffer))
+  (revert-buffer-quick))
 (global-set-key (kbd "s-r") 'save-revert-buffer)
 
 (defun save-all ()
