@@ -92,7 +92,11 @@
   (gcmh-mode 1)
   )
 
-;;; Utilities
+(use-package benchmark-init
+  :ensure t
+  :config
+  ;; To disable collection of benchmark data after init is done.
+  (add-hook 'after-init-hook 'benchmark-init/deactivate))
 
 ;; Keep directories clean.
 ;; Should be one of the first things loaded.
@@ -1302,27 +1306,6 @@ into one."
   (show-paren-mode t)
   )
 
-(use-package web-mode
-  :ensure nil
-  :mode (
-         ("\\.js?\\'" . web-mode)
-         ("\\.html?\\'" . web-mode)
-         ("\\.css?\\'" . web-mode)
-         )
-
-  :config
-
-  (define-key web-mode-map (kbd "M-;") nil)
-
-  (setq
-   web-mode-markup-indent-offset 2
-   web-mode-css-indent-offset 4
-   web-mode-code-indent-offset 2
-
-   web-mode-enable-current-element-highlight t
-   )
-  )
-
 ;;; Load packages
 
 ;; Stop execution here for terminal.
@@ -1502,6 +1485,13 @@ into one."
 (use-package free-keys
   :defer t)
 
+(use-package goggles
+  :hook ((prog-mode text-mode) . goggles-mode)
+  :config
+   ;; Set to nil to disable pulsing.
+  (setq-default goggles-pulse nil)
+  )
+
 ;; Highlight indentation.
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
@@ -1611,10 +1601,6 @@ into one."
         uniquify-strip-common-suffix nil
         )
   )
-
-;; Highlight some recent changes such as undos.
-(use-package volatile-highlights
-  :config (volatile-highlights-mode))
 
 ;; Display available keys.
 (use-package which-key
@@ -1979,6 +1965,19 @@ on `whitespace-mode'."
   (smart-jump-setup-default-registers)
   )
 
+;; Better syntax highlighting.
+(use-package tree-sitter
+  :demand t
+
+  :config
+  (use-package tree-sitter-langs
+    :demand t
+    )
+
+  ;; (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+  )
+
 ;;; Languages / Language packages
 
 ;; C#
@@ -2193,6 +2192,26 @@ on `whitespace-mode'."
 
 (use-package toml-mode
   :mode "\\.toml\\'"
+  )
+
+(use-package web-mode
+  :mode (
+         ("\\.js?\\'" . web-mode)
+         ("\\.html?\\'" . web-mode)
+         ("\\.css?\\'" . web-mode)
+         )
+
+  :config
+
+  (define-key web-mode-map (kbd "M-;") nil)
+
+  (setq
+   web-mode-markup-indent-offset 2
+   web-mode-css-indent-offset 4
+   web-mode-code-indent-offset 2
+
+   web-mode-enable-current-element-highlight t
+   )
   )
 
 ;; YAML
