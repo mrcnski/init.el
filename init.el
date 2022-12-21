@@ -63,18 +63,25 @@
 (setq package-enable-at-startup nil)
 ;; Add package sources.
 (unless (assoc-default "melpa" package-archives)
-  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t))
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
 
 ;; Run auto-load functions specified by package authors.
 (package-initialize)
 
 ;; Require use-package.
-(when (not (package-installed-p 'use-package))
+(when (not (file-directory-p (concat user-emacs-directory "elpa")))
   (package-refresh-contents)
-  (package-install 'use-package))
+  (package-install 'use-package)
+  )
 (require 'use-package)
 ;; Always install missing packages.
 (setq use-package-always-ensure t)
+;; (setq package-check-signature nil)
+;; ;; Install elpa .gnupg folder.
+;; (use-package gnu-elpa-keyring-update
+;;   :config
+;;   (gnu-elpa-keyring-update)
+;;   )
 
 ;;; Utilities
 
