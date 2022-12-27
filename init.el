@@ -936,7 +936,7 @@ into one."
 
 ;; Nimbus is my personal theme, available on Melpa.
 (use-package nimbus-theme
-  :load-path "~/repos/github.com/m-cat/nimbus-theme"
+  :load-path "~/repos/github.com/mrcnski/nimbus-theme"
   :config
   (nimbus-theme)
   )
