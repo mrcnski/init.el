@@ -181,9 +181,11 @@
   ;; Configure a custom style dispatcher (see the Consult wiki)
   ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
   ;;       orderless-component-separator #'orderless-escapable-split-on-space)
-  (setq completion-styles '(orderless)
-        completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion))))
+  (setq
+   completion-styles '(orderless partial-completion)
+   completion-category-defaults nil
+   completion-category-overrides '((file (styles partial-completion)))
+   )
  )
 
 ;; Consult
@@ -642,11 +644,16 @@
 (global-set-key (kbd "M-SPC") 'cycle-spacing)
 
 ;; Code folding.
-(require 'hideshow)
-(add-hook 'prog-mode-hook 'hs-minor-mode)
-(define-key hs-minor-mode-map (kbd "s-[") 'hs-hide-level)
-(define-key hs-minor-mode-map (kbd "s-]") 'hs-show-all)
-(define-key hs-minor-mode-map (kbd "s-\\") 'hs-toggle-hiding)
+(use-package hideshow
+  :ensure nil
+  :hook (prog-mode . hs-minor-mode)
+  :bind (
+         :map hs-minor-mode-map
+         ("s-[" . hs-hide-level)
+         ("s-]" . hs-show-all)
+         ("s-\\" . hs-toggle-hiding)
+        )
+  )
 
 ;; Zapping.
 (autoload 'zap-up-to-char "misc"
@@ -1305,6 +1312,15 @@ into one."
   (show-paren-mode t)
   )
 
+;; Undo/redo window configurations.
+(use-package winner
+  :ensure nil
+  :bind (
+         ("C-c C-," . winner-undo)
+         ("C-c C-." . winner-redo)
+         )
+  :config (winner-mode t))
+
 ;;; Load packages
 
 ;; Stop execution here for terminal.
@@ -1648,14 +1664,6 @@ on `whitespace-mode'."
     )
   (add-hook 'python-mode-hook '100-whitespace-mode)
   )
-
-;; Undo/redo window configurations.
-(use-package winner
-  :bind (
-         ("C-c C-," . winner-undo)
-         ("C-c C-." . winner-redo)
-         )
-  :config (winner-mode t))
 
 ;; Switch windows more easily.
 (use-package winum
@@ -2847,8 +2855,6 @@ exist after each headings's drawers."
 
   (eyebrowse-rename-window-config 1 "org")
   )
-
-(emacs-welcome)
 
 (message "init.el finished loading successfully!")
 
