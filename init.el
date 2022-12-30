@@ -1302,6 +1302,14 @@ into one."
   (use-package eshell-z)
   )
 
+;; Better terminal emulation.
+(use-package eat
+  :config
+  (add-hook 'eshell-load-hook #'eat-eshell-mode)
+  (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
+  (add-hook 'eat-eshell-exec-hook #'eat-eshell-emacs-mode)
+  )
+
 ;; Show matching parentheses.
 (use-package paren
   :ensure nil
@@ -1721,11 +1729,11 @@ on `whitespace-mode'."
 (use-package git-link
   :defer t)
 
+;; .gitignore etc.
+(use-package git-modes)
+
 ;; Browse historic versions of a file.
 (use-package git-timemachine
-  :defer t)
-
-(use-package gitignore-mode
   :defer t)
 
 ;; Git client in Emacs.
