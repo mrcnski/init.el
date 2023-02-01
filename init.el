@@ -1329,6 +1329,10 @@ into one."
          )
   :config (winner-mode t))
 
+(use-package which-func
+  :ensure nil
+  )
+
 ;;; Load packages
 
 ;; Stop execution here for terminal.
@@ -2845,8 +2849,15 @@ exist after each headings's drawers."
        (when mark-active
          (let ((region-count (abs (- (point) (mark)))))
            (when (> region-count 0)
-             (concat "{" (number-to-string region-count) "}"))
+             (concat "{" (number-to-string region-count) "} "))
            )))
+
+     '(:eval
+       (when (derived-mode-p 'prog-mode 'text-mode 'conf-mode)
+         (let ((f (which-function)))
+           (when f
+             (concat "[" f "] ")
+             ))))
 
      ;; '(:eval (let ((indicator (eyebrowse-mode-line-indicator)))
      ;;           (concat
