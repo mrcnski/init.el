@@ -1542,6 +1542,24 @@ into one."
   (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
   )
 
+;; Highlight symbol under point.
+(use-package idle-highlight-mode
+  :hook ((prog-mode text-mode eshell-mode) . idle-highlight-mode)
+  :config
+
+  (setq idle-highlight-idle-time highlight-delay)
+
+  (add-hook
+   'after-change-major-mode-hook
+   (lambda ()
+     (when (derived-mode-p 'org-mode)
+       (setq-local idle-highlight-exceptions '("-" "*" "**" "***" "****" "*****")))
+     ;; (when (derived-mode-p 'c-mode)
+     ;;   (setq-local idle-highlight-exceptions '("unsigned" "signed" "long" "int" "shot" "char")))
+     ;; (when (derived-mode-p 'python-mode)
+     ;;   (setq-local idle-highlight-exceptions '("list" "tuple" "int" "float" "str" "bool")))
+     ))
+)
 ;; A package for choosing a color by updating text sample.
 ;; See https://www.emacswiki.org/emacs/MakeColor.
 (use-package make-color
