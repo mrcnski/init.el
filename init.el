@@ -1258,9 +1258,9 @@ into one."
 
   ;; Set up a custom prompt.
 
-  (defun with-face (str &rest face-plist)
-    (propertize str 'face face-plist))
+  ;; Bits taken from https://emacs.stackexchange.com/a/33408/15023.
   (defun custom-eshell-prompt ()
+    "My custom eshell prompt."
     (let* (
            ;; Get the git branch.
            (git-branch-unparsed
@@ -1271,22 +1271,35 @@ into one."
               ;; Remove the trailing newline.
               (substring git-branch-unparsed 0 -1)))
            )
-      (concat
-       ;; Timestamp.
-       (with-face
-        (format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time))
-        :foreground "#68a5e9")
-       ;; Directory.
-       (with-face (concat "[" (eshell/pwd) "] ") :inherit font-lock-constant-face)
-       ;; Git branch.
-       (unless (string= git-branch "")
-         (with-face git-branch :inherit font-lock-preprocessor-face))
-       "\n"
-       ;; Prompt.
-       ;; NOTE: Need to keep " $" for the next/previous prompt regexp to work.
-       (with-face " $" :foreground "#fffe0a")
-       " "
-       )))
+      (mapconcat
+       (lambda (list)
+         ;; Make all prompt components read-only, so that the prompt cannot be
+         ;; deleted as regular text. Allow text inserted before the prompt to
+         ;; inherit this property, as per eshell defaults.
+         (propertize (car list)
+                     'read-only      t
+                     'font-lock-face (cdr list)
+                     'front-sticky   '(font-lock-face read-only)
+                     'rear-nonsticky '(font-lock-face read-only)))
+
+       `(
+         ;; Timestamp.
+         (,(format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time)) :foreground "#68a5e9")
+         ;; Directory.
+         ;;
+         ;; Try to abbreviate-file-name of current directory as per `eshell'
+         ;; defaults, e.g. display `~' instead of `/path/to/user/home'.
+         (,(concat "[" (abbreviate-file-name (eshell/pwd)) "] ") :inherit font-lock-constant-face)
+         ;; Git branch.
+         (,(if (string= git-branch "") "" git-branch) :inherit font-lock-preprocessor-face)
+         ("\n")
+         ;; Prompt.
+         ;;
+         ;; NOTE: Choose between prompts # and $ depending on user privileges,
+         ;; as per Bourne and eshell defaults.
+         (,(if (zerop (user-uid)) " # " " $ ") :foreground "#fffe0a"))
+       ""))
+    )
   (setq eshell-prompt-function 'custom-eshell-prompt)
   (setq eshell-highlight-prompt nil)
 
