@@ -110,7 +110,6 @@
 
   :config
   (require 'recentf)
-
   (defvar recentf-exclude)
   (add-to-list 'recentf-exclude no-littering-var-directory)
   (add-to-list 'recentf-exclude no-littering-etc-directory)
@@ -122,6 +121,7 @@
 (when (memq window-system '(mac ns x))
   (use-package exec-path-from-shell
     :config
+    (setq shell-file-name "/bin/bash")
     (exec-path-from-shell-initialize)
     ))
 
@@ -322,6 +322,7 @@
 (put 'scroll-right 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)
 
 ;; Enable show-trailing-whitespace.
 (defun enable-trailing-whitespace ()
@@ -512,7 +513,6 @@
 (setq epa-pinentry-mode 'loopback)
 
 ;; Kill GPG buffers when idle.
-
 (defun kill-gpg-buffers ()
   "Kill GPG buffers."
   (interactive)
@@ -871,10 +871,6 @@ into one."
 (global-set-key (kbd "C-S-v") 'scroll-other-window-up-fraction)
 (global-set-key (kbd "M-V") 'scroll-other-window-down-fraction)
 
-;; Globally bind these keys so they work in every mode.
-(bind-keys*
- )
-
 ;; Align region by string.
 ;; TODO: Enable history in read-string to allow for default values
 ;;       (i.e. last input).
@@ -924,6 +920,9 @@ into one."
 ;; Stretch cursor to be as wide as the character at point.
 (setq x-stretch-cursor 1)
 
+;; Disable menu bar.
+(menu-bar-mode -1)
+
 ;; Allow resizing by pixels.
 (setq frame-resize-pixelwise t)
 
@@ -962,12 +961,12 @@ into one."
     (set-face-attribute
      'default nil :font "Iosevka:weight=Regular" :height 120)
     ;; 'default nil :font "Iosevka:weight=Light" :height 120)
-    (setq-default line-spacing 1)
+    (setq-default line-spacing 0)
     )
    ((font-exists-p "Hack")
     (set-face-attribute
      'default nil :font "Hack:weight=Regular" :height 120)
-    (setq-default line-spacing 1)
+    (setq-default line-spacing 0)
     )
    )
   )
@@ -982,6 +981,7 @@ into one."
    isearch-allow-scroll t
    ;; Highlight more matches after a delay.
    isearch-lazy-highlight t
+   isearch-lazy-count t
    lazy-highlight-initial-delay info-delay
    )
 
@@ -1548,7 +1548,7 @@ into one."
 
 ;; Highlight symbol under point.
 (use-package idle-highlight-mode
-  :hook ((prog-mode text-mode eshell-mode) . idle-highlight-mode)
+  :hook ((prog-mode conf-mode text-mode eshell-mode) . idle-highlight-mode)
   :config
 
   (setq idle-highlight-idle-time highlight-delay)
