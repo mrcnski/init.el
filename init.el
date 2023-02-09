@@ -1646,9 +1646,10 @@ into one."
   :bind ("C-c t" . terminal-here-launch)
   )
 
-;; A more lightweight alternative to undo-tree.
-(use-package undo-propose
-  :bind ("C-_" . undo-propose))
+;; REMOVED: Never used. Keep it and see how vundo is?
+;; ;; A more lightweight alternative to undo-tree.
+;; (use-package undo-propose
+;;   :bind ("C-_" . undo-propose))
 
 ;; Use a sensible mechanism for making buffer names unique.
 (use-package uniquify
@@ -1967,34 +1968,21 @@ on `whitespace-mode'."
   :hook (flycheck-mode . flycheck-package-setup))
 
 ;; LSP
-(use-package lsp-mode
-  :hook (
-         (gdscript-mode . lsp)
-         )
-  :commands lsp
-  :init
-  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  (setq
-   lsp-keymap-prefix "C-c l"
-   ;; TODO: Disable the headerline? This doesn't seem to work.
-   lsp-headerline-breadcrumb-enable nil
-   read-process-output-max (* 1024 1024)
-   )
-  )
-
-;; https://github.com/godotengine/emacs-gdscript-mode#known-issues
-(defun lsp--gdscript-ignore-errors (original-function &rest args)
-  "Ignore the error message resulting from Godot not replying to the `JSONRPC' request."
-  (if (string-equal major-mode "gdscript-mode")
-      (let ((json-data (nth 0 args)))
-        (if (and (string= (gethash "jsonrpc" json-data "") "2.0")
-                 (not (gethash "id" json-data nil))
-                 (not (gethash "method" json-data nil)))
-            nil ; (message "Method not found")
-          (apply original-function args)))
-    (apply original-function args)))
-;; Runs the function `lsp--gdscript-ignore-errors` around `lsp--get-message-type` to suppress unknown notification errors.
-(advice-add #'lsp--get-message-type :around #'lsp--gdscript-ignore-errors)
+;; REMOVED: Not very good.
+;; (use-package lsp-mode
+;;   :hook (
+;;          (gdscript-mode . lsp)
+;;          )
+;;   :commands lsp
+;;   :init
+;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+;;   (setq
+;;    lsp-keymap-prefix "C-c l"
+;;    ;; TODO: Disable the headerline? This doesn't seem to work.
+;;    lsp-headerline-breadcrumb-enable nil
+;;    read-process-output-max (* 1024 1024)
+;;    )
+;;   )
 
 ;; Project manager.
 (use-package projectile
@@ -2089,7 +2077,7 @@ on `whitespace-mode'."
 
 ;; Javascript
 
-;; REMOVED: randomly broke.
+;; REMOVED: randomly broke, e.g. code wasn't getting higlighted.
 ;; (use-package js2-mode
 ;;   :mode "\\.js\\'"
 ;;   :bind (
@@ -2102,18 +2090,20 @@ on `whitespace-mode'."
 ;;   (setq js2-strict-missing-semi-warning nil)
 ;;   )
 
-;; Formats prettier-compatible source code on save. Automatically finds and uses
-;; prettier config.
-(use-package prettier
-  :bind ("C-c n" . prettier-prettify)
-  :config
-  ;; Set this to nil if you don't want Prettier to prettify (format) the buffer
-  ;; when saving.
-  (setq prettier-prettify-on-save-flag nil)
-  ;; Turn on the minor mode in all major modes supported by your version of
-  ;; Prettier.
-  (global-prettier-mode)
-  )
+;; REMOVED: Complained it couldn't find prettier. Also was trying to run on
+;; Emacs Lisp etc.
+;; ;; Formats prettier-compatible source code on save. Automatically finds and uses
+;; ;; prettier config.
+;; (use-package prettier
+;;   :bind ("C-c n" . prettier-prettify)
+;;   :config
+;;   ;; Set this to nil if you don't want Prettier to prettify (format) the buffer
+;;   ;; when saving.
+;;   (setq prettier-prettify-on-save-flag nil)
+;;   ;; Turn on the minor mode in all major modes supported by your version of
+;;   ;; Prettier.
+;;   (global-prettier-mode)
+;;   )
 
 ;; React
 (use-package rjsx-mode
@@ -2123,20 +2113,28 @@ on `whitespace-mode'."
   (define-key rjsx-mode-map (kbd "C-d") nil)
   (define-key rjsx-mode-map ">" nil))
 
+;; REMOVED: Performance issues I think? Try again?
 ;; Typescript
-(use-package tide
-  :ensure t
-  :after (typescript-mode company flycheck)
-  :hook (
-         (typescript-mode . tide-setup)
-         (typescript-mode . tide-hl-identifier-mode)
-         ;; REMOVED: Messes up point position.
-         ;; (before-save . tide-format-before-save)
-         )
-  :config
-  (setq
-   typescript-indent-level 2
-   )
+;; (use-package tide
+;;   :ensure t
+;;   :after (typescript-mode company flycheck)
+;;   :hook (
+;;          (typescript-mode . tide-setup)
+;;          (typescript-mode . tide-hl-identifier-mode)
+;;          ;; REMOVED: Messes up point position.
+;;          ;; (before-save . tide-format-before-save)
+;;          )
+;;   :config
+;;   (setq
+;;    typescript-indent-level 2
+;;    )
+;;   )
+(use-package typescript-mode
+  :mode "\\.tsx?$"
+  :hook
+  (typescript-mode . eglot-ensure)
+  :custom
+  (typescript-indent-level 2)
   )
 
 ;; JSON
