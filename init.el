@@ -265,7 +265,7 @@
    :preview-key '(:debounce 0.2 any)
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   :preview-key (kbd "M-.")
+   :preview-key "M-."
    )
 
   ;; Optionally configure the narrowing key.
