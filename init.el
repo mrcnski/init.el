@@ -1557,6 +1557,8 @@ into one."
   (global-hl-todo-mode)
 
   (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces '("GIGO" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces '("WARNING" . "#cc9393"))
   )
 
 ;; Highlight symbol under point.
@@ -2377,7 +2379,7 @@ on `whitespace-mode'."
 
    ;; Custom to-do states.
    org-todo-keywords
-   '((sequence "TODO(t)" "CURRENT(c)" "WAITING(w)" "|" "DONE(d)")
+   '((sequence "TODO(t)" "CURRENT(c)" "WAITING(w)" "BLOCKED(b)" "|" "DONE(d)")
      (sequence "|" "CANCELED(x)"))
 
    ;; tag settings
