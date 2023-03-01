@@ -599,18 +599,6 @@
 ;; Shouldn't run too quickly as it is a bit distracting.
 (run-with-idle-timer 60 t 'save-all)
 
-;; REMOVED: Already have line numbers enabled.
-;; (defun goto-line-show ()
-;;   "Show line numbers temporarily, while prompting for the line number input."
-;;   (interactive)
-;;   (let ((line-numbers display-line-numbers))
-;;     (unwind-protect
-;;         (progn
-;;           (setq-local display-line-numbers t)
-;;           (call-interactively #'goto-line)
-;;           (end-of-line))
-;;       (setq-local display-line-numbers line-numbers))))
-
 ;; Commands to split window and move focus to other window.
 (defun split-window-below-focus ()
   "Split window horizontally and move focus to other window."
@@ -1283,6 +1271,8 @@ into one."
                      'rear-nonsticky '(font-lock-face read-only)))
 
        `(
+         ;; Newline to distinguish end of output.
+         ("\n")
          ;; Timestamp.
          (,(format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time)) :foreground "#68a5e9")
          ;; Directory.
@@ -1573,12 +1563,15 @@ into one."
    (lambda ()
      (when (derived-mode-p 'org-mode)
        (setq-local idle-highlight-exceptions '("-" "*" "**" "***" "****" "*****")))
+     (when (derived-mode-p 'markdown-mode)
+       (setq-local idle-highlight-exceptions '("-")))
      ;; (when (derived-mode-p 'c-mode)
      ;;   (setq-local idle-highlight-exceptions '("unsigned" "signed" "long" "int" "shot" "char")))
      ;; (when (derived-mode-p 'python-mode)
      ;;   (setq-local idle-highlight-exceptions '("list" "tuple" "int" "float" "str" "bool")))
      ))
 )
+
 ;; A package for choosing a color by updating text sample.
 ;; See https://www.emacswiki.org/emacs/MakeColor.
 (use-package make-color
@@ -2010,12 +2003,13 @@ on `whitespace-mode'."
   :demand t
 
   :config
+
   (use-package tree-sitter-langs
     :demand t
     )
 
-  ;; (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+  (global-tree-sitter-mode)
   )
 
 ;;; Languages / Language packages
@@ -2348,7 +2342,7 @@ on `whitespace-mode'."
    org-startup-with-inline-images t
    org-image-actual-width '(0.5)
 
-   ;; Hide leading stars
+   ;; Hide leading stars?
    org-hide-leading-stars t
    ;; TODO: Just set this to true. It's too much bother dealing with
    ;; indentation. Re-enable the minor mode that fakes indents with a display.
@@ -2526,8 +2520,7 @@ exist after each headings's drawers."
   ;;; org packages
 
   ;; Markdown export.
-  (use-package ox-gfm
-    :defer t)
+  (require 'ox-md)
 
   (use-package org-agenda
     :ensure nil
@@ -2757,6 +2750,11 @@ exist after each headings's drawers."
               :category "reminder"
               :tag "reminder"
               :order 250
+              )
+       (:name "Evening"
+              :category "evening"
+              :tag "evening"
+              :order 260
               )
        (:name "Low priority"
               :priority "C"
