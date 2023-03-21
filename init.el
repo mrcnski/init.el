@@ -186,7 +186,7 @@
    completion-category-defaults nil
    completion-category-overrides '((file (styles partial-completion)))
    )
- )
+  )
 
 ;; Consult
 (use-package consult
@@ -391,7 +391,7 @@
  vc-follow-symlinks t
  ;; Undo limit.
  undo-limit (* 10 1000 1000)
-;; Replace yes/no prompts with y/n.
+ ;; Replace yes/no prompts with y/n.
  use-short-answers t
 
  ;; Inhibit backups?
@@ -640,7 +640,7 @@
          ("s-[" . hs-hide-level)
          ("s-]" . hs-show-all)
          ("s-\\" . hs-toggle-hiding)
-        )
+         )
   )
 
 ;; Zapping.
@@ -1518,7 +1518,7 @@ into one."
 (use-package goggles
   :hook ((prog-mode text-mode) . goggles-mode)
   :config
-   ;; Set to nil to disable pulsing.
+  ;; Set to nil to disable pulsing.
   (setq-default goggles-pulse nil)
   )
 
@@ -1570,7 +1570,7 @@ into one."
      ;; (when (derived-mode-p 'python-mode)
      ;;   (setq-local idle-highlight-exceptions '("list" "tuple" "int" "float" "str" "bool")))
      ))
-)
+  )
 
 ;; A package for choosing a color by updating text sample.
 ;; See https://www.emacswiki.org/emacs/MakeColor.
@@ -1909,12 +1909,12 @@ on `whitespace-mode'."
   :config
   (setq
    eglot-ignored-server-capabilities '(
-                                       ; Formatting.
+                                        ; Formatting.
                                        :documentFormattingProvider
-                                       ; Mouse clicks bringing up code actions.
+                                        ; Mouse clicks bringing up code actions.
                                        :codeActionProvider
                                        :hoverProvider
-                                       ; Code signature docs.
+                                        ; Code signature docs.
                                        :signatureHelpProvider
                                        )
    ;; Prevent automatic syntax checking, which was causing lags and stutters.
@@ -1924,15 +1924,15 @@ on `whitespace-mode'."
   ;; Show messages in the echo area for errors only.
   ;; From https://github.com/joaotavora/eglot/discussions/898#discussioncomment-2609402
   (add-hook 'eglot-managed-mode-hook
-          (lambda ()
-            ;; Show flymake diagnostics first.
-            (setq eldoc-documentation-functions
-                  (cons #'flymake-eldoc-function
-                        (remove #'flymake-eldoc-function eldoc-documentation-functions)))
-            ;; Show all eldoc feedback.
-            (setq eldoc-documentation-strategy #'eldoc-documentation-compose)
-            ;; (eldoc-mode -1)
-            ))
+            (lambda ()
+              ;; Show flymake diagnostics first.
+              (setq eldoc-documentation-functions
+                    (cons #'flymake-eldoc-function
+                          (remove #'flymake-eldoc-function eldoc-documentation-functions)))
+              ;; Show all eldoc feedback.
+              (setq eldoc-documentation-strategy #'eldoc-documentation-compose)
+              ;; (eldoc-mode -1)
+              ))
   )
 
 ;; On-the-fly syntax checker.
@@ -2423,30 +2423,30 @@ on `whitespace-mode'."
 
   ;; org-capture template.
   (setq org-capture-templates
-    '(
-      (
-       "o" "One-off task." entry
-       (file+headline "todo.org" "General")
-       "* %?\nSCHEDULED: %t"
-       :unnarrowed t
-       :empty-lines-before 1
-       )
-      (
-       "r" "Recurring task." entry
-       (file+olp "todo.org" "Recurring" "General")
-       "* |%^{Recurrence}| %?\nSCHEDULED: %t"
-       :unnarrowed t
-       :empty-lines-before 1
-       )
-      (
-       "w" "Work task." entry
-       (file+headline "work.org" "Todo")
-       "* TODO %?"
-       :unnarrowed t
-       :empty-lines-before 1
-       :prepend 1
-       )
-      ))
+        '(
+          (
+           "o" "One-off task." entry
+           (file+headline "todo.org" "General")
+           "* %?\nSCHEDULED: %t"
+           :unnarrowed t
+           :empty-lines-before 1
+           )
+          (
+           "r" "Recurring task." entry
+           (file+olp "todo.org" "Recurring" "General")
+           "* |%^{Recurrence}| %?\nSCHEDULED: %t"
+           :unnarrowed t
+           :empty-lines-before 1
+           )
+          (
+           "w" "Work task." entry
+           (file+headline "work.org" "Todo")
+           "* TODO %?"
+           :unnarrowed t
+           :empty-lines-before 1
+           :prepend 1
+           )
+          ))
 
   ;; Shortcuts/Keybindings
 
