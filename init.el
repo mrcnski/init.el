@@ -199,7 +199,7 @@
          ("s-l" . consult-goto-line) ;; orig. goto-line
          ("s-y" . consult-yank-pop) ;; orig. yank-pop
          ("<help> a" . consult-apropos) ;; orig. apropos-command
-         ("C-h m" . consult-minor-mode-menu)
+         ("<help> m" . consult-minor-mode-menu)
 
          ;; Consult bindings from readme
          ;; ("C-c m" . consult-mode-command)
@@ -899,7 +899,7 @@ into one."
 (set-frame-parameter (selected-frame) 'alpha '(100))
 ;; (set-frame-parameter (selected-frame) 'alpha '(98))
 
-;; Turn on blinking/flashing cursor.
+;; Turn on blinking/flashing cursor?
 (blink-cursor-mode t)
 ;; Blink forever!
 (setq blink-cursor-blinks 0)
@@ -1198,6 +1198,8 @@ into one."
    eshell-scroll-to-bottom-on-output nil
    ;; Always insert at the bottom.
    eshell-scroll-to-bottom-on-input t
+   ;; Remove unnecessary extra newline.
+   eshell-banner-message "Welcome to the Emacs shell!\n"
    )
 
   ;; Set keys up in this hook. This doesn't work in :bind.
@@ -1271,8 +1273,8 @@ into one."
                      'rear-nonsticky '(font-lock-face read-only)))
 
        `(
-         ;; Newline to distinguish end of output.
-         ("\n")
+         ;; Line to distinguish end of previous output.
+         ("===\n" :foreground "#608079")
          ;; Timestamp.
          (,(format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time)) :foreground "#68a5e9")
          ;; Directory.
@@ -1556,7 +1558,10 @@ into one."
   :hook ((prog-mode conf-mode text-mode eshell-mode) . idle-highlight-mode)
   :config
 
-  (setq idle-highlight-idle-time highlight-delay)
+  (setq
+   idle-highlight-exclude-point t
+   idle-highlight-idle-time highlight-delay
+   )
 
   (add-hook
    'after-change-major-mode-hook
@@ -2182,6 +2187,16 @@ on `whitespace-mode'."
 
 ;; Python
 
+(use-package python-mode
+  :ensure nil
+  :bind (
+         :map python-mode-map
+         ("C-<" . python-indent-shift-left)
+         ("C->" . python-indent-shift-right)
+         )
+  )
+
+;; TODO: Move this into use-package.
 (add-hook 'python-mode-hook
           (lambda ()
             (setq flycheck-python-pylint-executable "/usr/local/bin/pylint")
