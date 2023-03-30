@@ -491,6 +491,9 @@
 ;; useful.
 (global-eldoc-mode -1)
 
+;; Highlights links and make them clickable.
+(global-goto-address-mode t)
+
 ;; Keep line highlight across windows?
 (setq global-hl-line-sticky-flag nil)
 ;; Highlight current line.
