@@ -121,6 +121,7 @@
 (when (memq window-system '(mac ns x))
   (use-package exec-path-from-shell
     :config
+    ;; Set the shell (default is /bin/zsh on MacOS).
     (setq shell-file-name "/bin/bash")
     (exec-path-from-shell-initialize)
     ))
@@ -1203,6 +1204,9 @@ into one."
    eshell-scroll-to-bottom-on-input t
    ;; Remove unnecessary extra newline.
    eshell-banner-message "Welcome to the Emacs shell!\n"
+   ;; File locations.
+   eshell-rc-script (concat user-emacs-directory ".eshell-rc")
+   eshell-login-script (concat user-emacs-directory ".eshell-login")
    )
 
   ;; Set keys up in this hook. This doesn't work in :bind.
@@ -1284,9 +1288,9 @@ into one."
          ;;
          ;; Try to abbreviate-file-name of current directory as per `eshell'
          ;; defaults, e.g. display `~' instead of `/path/to/user/home'.
-         (,(concat "[" (abbreviate-file-name (eshell/pwd)) "] ") :inherit font-lock-constant-face)
+         (,(concat "[" (abbreviate-file-name (eshell/pwd)) "]") :inherit font-lock-constant-face)
          ;; Git branch.
-         (,(if (string= git-branch "") "" git-branch) :inherit font-lock-preprocessor-face)
+         (,(if (string= git-branch "") "" (concat " " git-branch)) :inherit font-lock-preprocessor-face)
          ("\n")
          ;; Prompt.
          ;;
@@ -1296,6 +1300,7 @@ into one."
        ""))
     )
   (setq eshell-prompt-function 'custom-eshell-prompt)
+  ;; Should the prompt be highlighted?
   (setq eshell-highlight-prompt nil)
 
   ;; Load eshell packages.
@@ -1315,6 +1320,7 @@ into one."
   :config
   (add-hook 'eshell-load-hook #'eat-eshell-mode)
   (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
+  ;; Allow all Emacs keybindings.
   (add-hook 'eat-eshell-exec-hook #'eat-eshell-emacs-mode)
   )
 

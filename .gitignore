@@ -6,6 +6,8 @@
 !init.el
 !early-init.el
 !README.org
+!.eshell-rc
+!.eshell-login
 
 !var/
 !var/mc-list.el
