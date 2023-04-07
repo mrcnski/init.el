@@ -568,6 +568,8 @@
 
 ;; Disable annoying popup on OSX.
 (global-set-key (kbd "s-t") 'make-frame)
+;; I don't want to accidentally press this.
+(global-set-key (kbd "s-q") nil)
 
 (defun other-window-reverse ()
   "Go to other window in reverse."
@@ -659,6 +661,7 @@
 
 ;; Zoom in/out.
 (global-set-key (kbd "M-+") 'text-scale-increase)
+(global-set-key (kbd "M-=") 'text-scale-increase)
 (global-set-key (kbd "M--") 'text-scale-decrease)
 
 (defun indent-buffer ()
@@ -863,15 +866,6 @@ into one."
 (global-set-key (kbd "C-S-v") 'scroll-other-window-up-fraction)
 (global-set-key (kbd "M-V") 'scroll-other-window-down-fraction)
 
-;; Align region by string.
-;; TODO: Enable history in read-string to allow for default values
-;;       (i.e. last input).
-(defun align-to-string (beg end)
-  "Align region from BEG to END along input string."
-  (interactive "r")
-  (let ((char (read-string "string: ")))
-    (align-regexp beg end (concat "\\(\\s-*\\)" char))))
-(global-set-key (kbd "M-=") 'align-to-string)
 
 ;; Show ASCII table.
 ;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html.
@@ -1303,7 +1297,7 @@ into one."
   ;; Should the prompt be highlighted?
   (setq eshell-highlight-prompt nil)
 
-  ;; Load eshell packages.
+  ;; Load external eshell packages.
 
   (use-package eshell-syntax-highlighting
     :config
@@ -1555,6 +1549,8 @@ into one."
 ;; NOTE: Face values defined in `hl-todo-keyword-faces'.
 (use-package hl-todo
   :config
+  (add-to-list 'hl-todo-include-modes 'conf-mode)
+
   (global-hl-todo-mode)
 
   (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
@@ -1802,6 +1798,7 @@ on `whitespace-mode'."
    ;; How many recent commits to show in certain log sections.
    magit-log-section-commit-count 50
    )
+
   :config
   (magit-auto-revert-mode t)
   )
@@ -2360,7 +2357,7 @@ on `whitespace-mode'."
    org-directory user-org-directory
 
    ;; Initial visibility.
-   org-startup-folded 'folded
+   org-startup-folded t
 
    ;; Inline images.
    org-startup-with-inline-images t
