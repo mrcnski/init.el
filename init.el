@@ -34,6 +34,11 @@
 (defvar user-todo-org (concat user-org-directory "todo.org"))
 (defvar user-work-org (concat user-org-directory "work.org"))
 
+(defvar user-emacs-config-directory "~/.local/emacs/")
+(defvar user-emacs-var-directory (concat user-emacs-config-directory "var/"))
+(defvar user-emacs-etc-directory (concat user-emacs-config-directory "etc/"))
+(defvar user-emacs-elpa-directory (concat user-emacs-config-directory "elpa/"))
+
 (defvar highlight-delay .03)
 (defvar info-delay .25)
 
@@ -56,11 +61,14 @@
 ;;; Package settings
 
 (require 'package)
-;; Prefer the newest version of a package.
-(setq load-prefer-newer t)
-;; TODO: is this correct?
-;; Only enable packages found in this file (not all installed packages).
-(setq package-enable-at-startup nil)
+(setq
+ ;; Set the elpa directory.
+ package-user-dir user-emacs-elpa-directory
+ ;; Prefer the newest version of a package.
+ load-prefer-newer t
+ ;; TODO: is this correct?
+ ;; Only enable packages found in this file (not all installed packages).
+ package-enable-at-startup nil)
 ;; Add package sources.
 (unless (assoc-default "melpa" package-archives)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
@@ -69,7 +77,7 @@
 (package-initialize)
 
 ;; Require use-package.
-(when (not (file-directory-p (concat user-emacs-directory "elpa")))
+(when (not (file-directory-p user-emacs-elpa-directory))
   (package-refresh-contents)
   (package-install 'use-package)
   )
@@ -104,8 +112,8 @@
   :init
   (setq
    ;; Keep these in the user home directory to prevent constant sync conflicts.
-   no-littering-var-directory "~/.emacs-var"
-   no-littering-etc-directory "~/.emacs-etc"
+   no-littering-var-directory user-emacs-var-directory
+   no-littering-etc-directory user-emacs-etc-directory
    )
 
   :config

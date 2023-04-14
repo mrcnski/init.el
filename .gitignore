@@ -2,12 +2,9 @@
 *
 
 # ... but not these files.
-!.gitignore
-!init.el
-!early-init.el
-!README.org
 !.eshell-rc
 !.eshell-login
-
-!var/
-!var/mc-list.el
+!.gitignore
+!README.org
+!early-init.el
+!init.el
