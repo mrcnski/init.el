@@ -2402,7 +2402,7 @@ on `whitespace-mode'."
 
    ;; Custom to-do states.
    org-todo-keywords
-   '((sequence "TODO(t)" "CURRENT(c)" "WAITING(w)" "BLOCKED(b)" "|" "DONE(d)")
+   '((sequence "TODO(t)" "NOW(n)" "WAITING(w)" "BLOCKED(b)" "|" "DONE(d)")
      (sequence "|" "CANCELED(x)"))
 
    ;; tag settings
@@ -2434,6 +2434,9 @@ on `whitespace-mode'."
    org-outline-path-complete-in-steps nil
    org-refile-targets
    '(
+     ;; The current buffer.
+     (nil . (:maxlevel . 99))
+     ;; My custom files.
      (user-todo-org . (:maxlevel . 99))
      (user-notes-org . (:maxlevel . 99))
      (user-work-org . (:maxlevel . 99))
