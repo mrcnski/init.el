@@ -68,7 +68,8 @@
  load-prefer-newer t
  ;; TODO: is this correct?
  ;; Only enable packages found in this file (not all installed packages).
- package-enable-at-startup nil)
+ package-enable-at-startup nil
+ )
 ;; Add package sources.
 (unless (assoc-default "melpa" package-archives)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
@@ -151,18 +152,30 @@
   (vertico-mode)
 
   ;; Scroll margin.
-  (setq vertico-scroll-margin 2)
+  (setq
+   vertico-scroll-margin 2
 
-  ;; Show more candidates
-  ;; (setq vertico-count 20)
+   ;; Show more candidates
+   ;; vertico-count 20
 
-  ;; Grow and shrink the Vertico minibuffer
-  ;; (setq vertico-resize t)
+   ;; Grow and shrink the Vertico minibuffer
+   ;; vertico-resize t
 
-  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  (setq vertico-cycle nil)
+   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+   vertico-cycle nil
+   )
+
+  ;; Use `consult-completion-in-region' if Vertico is enabled.
+  ;; Otherwise use the default `completion--in-region' function.
+  (setq completion-in-region-function
+        (lambda (&rest args)
+          (apply (if vertico-mode
+                     #'consult-completion-in-region
+                   #'completion--in-region)
+                 args)))
 
   :config
+
   ;; Enable mouse support for vertico.
   (use-package vertico-mouse
     :ensure nil
@@ -170,6 +183,7 @@
     (vertico-mouse-mode)
     )
 
+  ;; Quickly select a line.
   (use-package vertico-quick
     :ensure nil
     :bind (
