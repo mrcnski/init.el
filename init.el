@@ -4,7 +4,7 @@
 ;;
 ;;; Commentary:
 ;;
-;; Requires Emacs 26 or higher.
+;; Requires Emacs 28 or higher.
 ;;
 ;; Making changes / testing:
 ;;
@@ -687,6 +687,13 @@ another window."
   (other-window 1)
   )
 (global-set-key (kbd "C-c h") 'region-history-other)
+
+(defun project-notes ()
+  "Open a notes.org file in the root of the project."
+  (interactive)
+  (find-file (concat (vc-root-dir) "notes.org"))
+  )
+(global-set-key (kbd "s-o") 'project-notes)
 
 (defun delete-current-buffer-file ()
   "Remove file connected to current buffer and kill buffer."
