@@ -972,6 +972,11 @@ into one."
 
   ;; Set font.
   (cond
+   ((font-exists-p "Iosevka Comfy Fixed")
+    (set-face-attribute
+     'default nil :font "Iosevka Comfy Fixed:weight=Regular" :height 120)
+    (setq-default line-spacing 0)
+    )
    ((font-exists-p "Iosevka")
     (set-face-attribute
      'default nil :font "Iosevka:weight=Regular" :height 120)
