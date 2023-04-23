@@ -935,9 +935,6 @@ into one."
 ;; Stretch cursor to be as wide as the character at point.
 (setq x-stretch-cursor 1)
 
-;; Disable menu bar.
-(menu-bar-mode -1)
-
 ;; Allow resizing by pixels.
 (setq frame-resize-pixelwise t)
 
@@ -948,8 +945,7 @@ into one."
 (defvar x-gtk-use-system-tooltips)
 (setq x-gtk-use-system-tooltips nil)
 
-;; Load Themes
-;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
+;; Load Theme
 
 (defadvice load-theme (before clear-previous-themes activate)
   "Clear existing theme settings instead of layering them."
@@ -962,6 +958,8 @@ into one."
   (nimbus-theme)
   )
 
+;; Set font.
+
 ;; Set font only if we're not in the terminal.
 (when (display-graphic-p)
   ;; Function for checking font existence.
@@ -970,7 +968,6 @@ into one."
     (if (null (x-list-fonts font)) nil t))
   (declare-function font-exists-p "init.el")
 
-  ;; Set font.
   (cond
    ((font-exists-p "Iosevka Comfy Fixed")
     (set-face-attribute
@@ -1039,6 +1036,9 @@ into one."
   :hook (dired-mode . dired-hide-details-mode)
 
   :config
+
+  ;; Settings
+
   (setq-default
    ;; Always do recursive copies.
    dired-recursive-copies 'always
@@ -1159,7 +1159,7 @@ into one."
   :hook (erc-mode . erc-settings)
   :config
 
-  ;; Set up modules.
+  ;; Set up packages.
 
   (use-package erc-join
     :ensure nil
@@ -1333,6 +1333,15 @@ into one."
 
   ;; Load external eshell packages.
 
+  ;; Better terminal emulation.
+  (use-package eat
+    :config
+    (add-hook 'eshell-load-hook #'eat-eshell-mode)
+    (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
+    ;; Allow all Emacs keybindings.
+    (add-hook 'eat-eshell-exec-hook #'eat-eshell-emacs-mode)
+    )
+
   (use-package eshell-syntax-highlighting
     :config
     ;; Enable in all Eshell buffers.
@@ -1341,15 +1350,6 @@ into one."
   ;; Add z to eshell.
   ;; Jumps to most recently visited directories.
   (use-package eshell-z)
-  )
-
-;; Better terminal emulation.
-(use-package eat
-  :config
-  (add-hook 'eshell-load-hook #'eat-eshell-mode)
-  (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
-  ;; Allow all Emacs keybindings.
-  (add-hook 'eat-eshell-exec-hook #'eat-eshell-emacs-mode)
   )
 
 ;; Show matching parentheses.
@@ -1925,7 +1925,9 @@ on `whitespace-mode'."
          (text-mode . enable-diff-hl)
          (conf-mode . enable-diff-hl)
          )
+
   :init
+
   (defun enable-diff-hl ()
     ;; Make the fringe wide enough to display correctly.
     (setq-local left-fringe-width 16)
