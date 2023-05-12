@@ -1053,6 +1053,8 @@ into one."
    dired-no-confirm t
    )
 
+  ;; Set up packages.
+
   ;; Expanded dired.
   ;; Enables jumping to the current directory in dired (default: C-x C-j).
   (use-package dired-x
@@ -1333,15 +1335,6 @@ into one."
 
   ;; Load external eshell packages.
 
-  ;; Better terminal emulation.
-  (use-package eat
-    :config
-    (add-hook 'eshell-load-hook #'eat-eshell-mode)
-    (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
-    ;; Allow all Emacs keybindings.
-    (add-hook 'eat-eshell-exec-hook #'eat-eshell-emacs-mode)
-    )
-
   (use-package eshell-syntax-highlighting
     :config
     ;; Enable in all Eshell buffers.
@@ -1433,6 +1426,16 @@ into one."
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover
   :defer 2)
+
+;; Better terminal emulation.
+;; NOTE: Don't put this in eshell config or it doesn't work.
+(use-package eat
+  :config
+  (add-hook 'eshell-load-hook #'eat-eshell-mode)
+  (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
+  ;; Allow all Emacs keybindings.
+  (add-hook 'eat-eshell-exec-hook #'eat-eshell-emacs-mode)
+  )
 
 ;; Show example usage when examining elisp functions.
 (use-package elisp-demos
@@ -1794,9 +1797,12 @@ on `whitespace-mode'."
 
 ;; Automatically clean up extraneous whitespace.
 (use-package ws-butler
-  :hook ((prog-mode . ws-butler-mode)
+  :hook (
+         (prog-mode . ws-butler-mode)
          (text-mode . ws-butler-mode)
-         ))
+         (conf-mode . ws-butler-mode)
+         )
+  )
 
 ;;; Git packages
 
@@ -1921,7 +1927,8 @@ on `whitespace-mode'."
          ("M-[" . diff-hl-previous-hunk)
          ("M-]" . diff-hl-next-hunk)
          )
-  :hook ((prog-mode . enable-diff-hl)
+  :hook (
+         (prog-mode . enable-diff-hl)
          (text-mode . enable-diff-hl)
          (conf-mode . enable-diff-hl)
          )
