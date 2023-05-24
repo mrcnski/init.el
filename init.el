@@ -1345,6 +1345,16 @@ into one."
   (use-package eshell-z)
   )
 
+(use-package outline
+  :ensure nil
+  :demand t
+  :bind (
+         :map outline-mode-map
+         ("M-n" . outline-next-heading)
+         ("M-p" . outline-previous-heading)
+         )
+  )
+
 ;; Show matching parentheses.
 (use-package paren
   :ensure nil
@@ -1610,6 +1620,8 @@ into one."
    (lambda ()
      (when (derived-mode-p 'org-mode)
        (setq-local idle-highlight-exceptions '("-" "*" "**" "***" "****" "*****")))
+     (when (derived-mode-p 'outline-mode)
+       (setq-local idle-highlight-exceptions '("*" "**" "***" "****" "*****")))
      (when (derived-mode-p 'markdown-mode)
        (setq-local idle-highlight-exceptions '("-")))
      ;; (when (derived-mode-p 'c-mode)
