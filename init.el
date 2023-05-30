@@ -514,7 +514,7 @@
 ;; useful.
 (global-eldoc-mode -1)
 
-;; Highlights links and make them clickable.
+;; Highlights URL links and make them clickable.
 (global-goto-address-mode t)
 
 ;; Keep line highlight across windows?
@@ -996,6 +996,7 @@ into one."
   (setq
    ;; Can scroll using C-v and M-v.
    isearch-allow-scroll t
+
    ;; Highlight more matches after a delay.
    isearch-lazy-highlight t
    isearch-lazy-count t
@@ -1603,6 +1604,7 @@ into one."
   (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
   (add-to-list 'hl-todo-keyword-faces '("GIGO" . "#cc9393"))
   (add-to-list 'hl-todo-keyword-faces '("WARNING" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces '("SAFETY" . "#cc9393"))
   )
 
 ;; Highlight symbol under point.
