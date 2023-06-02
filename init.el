@@ -743,6 +743,8 @@ another window."
 
 (global-set-key (kbd "C-c r") 'rename-current-buffer-file)
 
+;; Line operations.
+
 ;; Select from point onwards instead of the entire line.
 ;; + Behaves like C-k.
 ;; + Can choose whether to keep indentation (run either C-a or M-m beforehand).
@@ -849,15 +851,47 @@ into one."
 (global-set-key (kbd "<C-return>") 'goto-line-below)
 (global-set-key (kbd "<S-return>") 'goto-line-above)
 
-(defun kill-line-indent ()
-  "Kill the whole line without removing it, and keep it indented."
+;; Indentation functions.
+
+(defvar indent-amount 4)
+;; Set per-mode overrides.
+(add-hook 'text-mode-hook #'(lambda () (setq-local indent-amount 2)))
+(add-hook 'yaml-mode-hook #'(lambda () (setq-local indent-amount 2)))
+
+(defun indent-left ()
+  "Indent left by the amount used in the mode, or the default amount."
   (interactive)
-  (beginning-of-line)
-  (kill-line)
-  (indent-according-to-mode)
+  (cond ((region-active-p)
+         (indent-region-relative (region-beginning) (region-end) (- indent-amount)))
+        (t
+         (indent-region-relative (point) (point) (- indent-amount))
+         ))
   )
-;; REMOVED: Interferes with normal key for inserting new list items.
-;; (global-set-key (kbd "<M-return>") 'kill-line-indent)
+(defun indent-right ()
+  "Indent right by the amount used in the mode, or the default amount."
+  (interactive)
+  (cond ((region-active-p)
+         (indent-region-relative (region-beginning) (region-end) indent-amount))
+        (t
+         (indent-region-relative (point) (point) indent-amount)
+         ))
+  )
+
+(defun indent-region-relative (beg end amount)
+  "Indent from BEG to END by the specified AMOUNT."
+  (save-excursion
+    (goto-char beg)
+    (setq beg (line-beginning-position))
+    (goto-char end)
+    (setq end (line-end-position))
+    (indent-rigidly beg end amount)
+    )
+  )
+
+(global-set-key (kbd "C-<") 'indent-left)
+(global-set-key (kbd "C->") 'indent-right)
+
+;; Better scrolling functions.
 
 (defun window-fraction-height (fraction)
   "Get specified FRACTION of the height of the current window."
@@ -868,17 +902,14 @@ into one."
   "Scrolls up by a fraction of the current window height."
   (interactive)
   (scroll-up (window-fraction-height scroll-fraction)))
-
 (defun scroll-down-fraction ()
   "Scrolls down by a fraction of the current window height."
   (interactive)
   (scroll-down (window-fraction-height scroll-fraction)))
-
 (defun scroll-other-window-up-fraction ()
   "Scrolls other window up by a fraction of the current window height."
   (interactive)
   (scroll-other-window (window-fraction-height scroll-fraction)))
-
 (defun scroll-other-window-down-fraction ()
   "Scrolls other window down by a fraction of the current window height."
   (interactive)
@@ -895,6 +926,7 @@ into one."
 (global-set-key (kbd "C-S-v") 'scroll-other-window-up-fraction)
 (global-set-key (kbd "M-V") 'scroll-other-window-down-fraction)
 
+;; Other
 
 ;; Show ASCII table.
 ;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html.
