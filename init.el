@@ -1493,6 +1493,28 @@ into one."
 (use-package expand-region
   :bind ("C-=" . er/expand-region)
   :config
+
+  (defun mark-inside-backticks ()
+    "Mark up to enclosing backticks, not including the backticks."
+    (interactive)
+    (search-forward "`")
+    (backward-char)
+    (set-mark (point))
+    (search-backward "`")
+    (forward-char)
+    )
+  (defun mark-outside-backticks ()
+    "Mark the enclosing backticks, including the backticks."
+    (interactive)
+    (search-forward "`")
+    (set-mark (point))
+    (search-backward "`" nil nil 2)
+    )
+
+  (setq er/try-expand-list
+        (append er/try-expand-list
+                '(mark-inside-backticks mark-outside-backticks)))
+
   ;; Fix region not highlighting.
   (setq
    shift-select-mode nil
@@ -1894,7 +1916,10 @@ on `whitespace-mode'."
   ;; :load-path "~/repos/github.com/NinjaTrappeur/my-repo-pins"
   :bind (("s-h" . my-repo-pins))
   :config
-  (setq my-repo-pins-code-root user-code-directory)
+  (setq
+   my-repo-pins-code-root user-code-directory
+   my-repo-pins-max-depth 2
+   )
   )
 
 ;;; Project packages
