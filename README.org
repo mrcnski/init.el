@@ -1,4 +1,7 @@
 * init.el
+
+[[https://forthebadge.com][https://forthebadge.com/images/badges/gluten-free.svg]]
+
 ** About
 Hey there! You're looking at my Emacs configuration, a labor of love and daring.
 It's pretty much all here, right in the =init.el= file. It's my personal

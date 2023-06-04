@@ -29,7 +29,6 @@
 
 (defvar user-ideas-org (concat user-org-directory "ideas.org"))
 (defvar user-notes-org (concat user-org-directory "notes.org"))
-(defvar user-physical-org (concat user-org-directory "physical.org"))
 (defvar user-projects-org (concat user-org-directory "notes.org"))
 (defvar user-todo-org (concat user-org-directory "todo.org"))
 (defvar user-work-org (concat user-org-directory "work.org"))
