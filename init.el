@@ -10,7 +10,6 @@
 ;;
 ;; - Use M-x free-keys to find unused keybindings.
 ;; - Use M-x bug-hunter-init-file to locate errors.
-;; - Use M-x esup to profile startup time,
 ;; - Use M-x profiler-start and profiler-report to profile runtime.
 ;; - Use restart-emacs to restart after making changes.
 
@@ -46,7 +45,6 @@
   "Open the init file."
   (interactive)
   (find-file user-init-file))
-
 (global-set-key (kbd "C-c i") 'open-init-file)
 
 ;; Open scratchpad.txt.
@@ -54,7 +52,6 @@
   "Open scratchpad file."
   (interactive)
   (find-file user-scratchpad-path))
-
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
 
 ;;; Package settings
@@ -220,7 +217,7 @@
          ("s-i" . consult-ripgrep-save)
          ("s-l" . consult-goto-line) ;; orig. goto-line
          ("s-y" . consult-yank-pop) ;; orig. yank-pop
-         ("<help> a" . consult-apropos) ;; orig. apropos-command
+         ;; ("<help> a" . consult-apropos) ;; REMOVED: use C-h o instead.
          ("<help> m" . consult-minor-mode-menu)
 
          ;; Consult bindings from readme
@@ -982,6 +979,18 @@ into one."
   "Clear existing theme settings instead of layering them."
   (mapc #'disable-theme custom-enabled-themes))
 
+;; A good light theme for when I'm outside.
+(use-package leuven-theme
+  :config
+  ;; Disable scaling.
+  (setq
+   leuven-scale-outline-headlines nil
+   leuven-scale-org-agenda-structure nil
+   leuven-scale-org-document-title nil
+   leuven-scale-volatile-highlight nil
+   )
+  )
+
 ;; Nimbus is my personal theme, available on Melpa.
 (use-package nimbus-theme
   :load-path "~/repos/github.com/mrcnski/nimbus-theme"
@@ -1621,6 +1630,7 @@ into one."
 (use-package free-keys
   :defer t)
 
+;; Alternative to volatile-highlights.
 (use-package goggles
   :hook ((prog-mode text-mode) . goggles-mode)
   :config
@@ -1845,22 +1855,6 @@ on `whitespace-mode'."
   (setq winum-scope 'frame-local)
   (winum-mode)
   )
-
-;; REMOVED: not maintained.
-;; ;; Wrap regions with pairs.
-;; (use-package wrap-region
-;;   :config
-;;   (wrap-region-add-wrappers
-;;    '(
-;;      ("`" "`")
-;;      ("*" "*")
-;;      ))
-
-;;   ;; Keep the region active after adding a pair.
-;;   (setq wrap-region-keep-mark t)
-
-;;   (wrap-region-global-mode t)
-;;   )
 
 ;; Automatically clean up extraneous whitespace.
 (use-package ws-butler
@@ -2478,11 +2472,11 @@ on `whitespace-mode'."
 
    ;; Hide leading stars?
    org-hide-leading-stars t
-   ;; TODO: Just set this to true. It's too much bother dealing with
-   ;; indentation. Re-enable the minor mode that fakes indents with a display.
    org-adapt-indentation nil
    org-startup-indented nil
    org-odd-levels-only nil
+   ;; Use different styling for nested bullets.
+   org-list-demote-modify-bullet '(("+" . "-") ("-" . "+") ("*" . "+"))
 
    org-ellipsis " …"
 
