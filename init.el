@@ -1,10 +1,14 @@
 ;;; init.el --- Emacs configuration file. -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2017-2022 Marcin Swieczkowski
+;; Copyright (C) 2017-2023 Marcin Swieczkowski
 ;;
 ;;; Commentary:
 ;;
 ;; Requires Emacs 28 or higher.
+;;
+;; Currently building Emacs with:
+;; $ brew tap d12frosted/emacs-plus
+;; $ brew install emacs-plus --with-poll --with-native-comp
 ;;
 ;; Making changes / testing:
 ;;
@@ -12,11 +16,19 @@
 ;; - Use M-x bug-hunter-init-file to locate errors.
 ;; - Use M-x profiler-start and profiler-report to profile runtime.
 ;; - Use restart-emacs to restart after making changes.
+;;
+;; TODO:
+;;
+;; - [x] Fix awful performance in Emacs 29.1 [done by switching to emacs-plus]
+;; - [ ] With Emacs 29+:
+;;   - [x] set native-comp load-path (in early-init.el)
+;;   - [ ] switch to built-in tree-sitter (once it's easier to setup...)
+;;   - [ ] use new indent package (once stipples are available)
 
 ;;; Code:
 
 ;; Show more error info.
-;; (setq debug-on-error t)
+(setq debug-on-error t)
 
 ;;; User-Defined Variables
 
@@ -1415,9 +1427,10 @@ into one."
          )
   :config (winner-mode t))
 
-(use-package which-func
-  :ensure nil
-  )
+;; REMOVED: Performance hit and I wasn't using it much.
+;; (use-package which-func
+;;   :ensure nil
+;;   )
 
 ;;; Load packages
 
@@ -1639,6 +1652,7 @@ into one."
   )
 
 ;; Highlight indentation.
+;; TODO: Use https://github.com/jdtsmith/indent-bars#installconfig
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
@@ -1904,7 +1918,7 @@ on `whitespace-mode'."
   (magit-auto-revert-mode t)
   )
 
-;; Quick and easy organization of repos.
+;; Quick and easy organization of repos and jumping to them.
 (use-package my-repo-pins
   ;; :load-path "~/repos/github.com/NinjaTrappeur/my-repo-pins"
   :bind (("s-h" . my-repo-pins))
@@ -2008,6 +2022,9 @@ on `whitespace-mode'."
 
   ;; Show diffs in margin when running in terminal.
   (unless (window-system) (diff-hl-margin-mode))
+
+  ;; Show diffs while buffer is being edited.
+  (diff-hl-flydiff-mode)
 
   ;; Refresh diffs after a Magit commit.
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
@@ -2994,18 +3011,13 @@ exist after each headings's drawers."
              (concat "{" (number-to-string region-count) "} "))
            )))
 
-     '(:eval
-       (when (derived-mode-p 'prog-mode 'text-mode 'conf-mode)
-         (let ((f (which-function)))
-           (when f
-             (concat "[" f "] ")
-             ))))
-
-     ;; '(:eval (let ((indicator (eyebrowse-mode-line-indicator)))
-     ;;           (concat
-     ;;            (mode-line-fill (+ 1 (length (substring-no-properties
-     ;;                                          indicator))))
-     ;;            indicator)))
+     ;; REMOVED: Performance hit and I wasn't using it much.
+     ;; '(:eval
+     ;;   (when (derived-mode-p 'prog-mode 'text-mode 'conf-mode)
+     ;;     (let ((f (which-function)))
+     ;;       (when f
+     ;;         (concat "[" f "] ")
+     ;;         ))))
 
      ;; " "
      ;; '(:eval (propertize (format-time-string "%H:%M")))

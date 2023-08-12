@@ -7,8 +7,6 @@
 
 ;;; Code:
 
-;; TODO: Test that setting custom native-comp load-path works (Emacs 29+).
-
 ;; Native-Comp
 (setq native-comp-speed 2
       comp-speed 2)
