@@ -119,6 +119,7 @@
 ;; Should be one of the first things loaded.
 (use-package no-littering
   :init
+
   (setq
    ;; Keep these in the user home directory to prevent constant sync conflicts.
    no-littering-var-directory user-emacs-var-directory
@@ -126,10 +127,13 @@
    )
 
   :config
+
+  ;; Exclude from recentf.
   (require 'recentf)
   (defvar recentf-exclude)
   (add-to-list 'recentf-exclude no-littering-var-directory)
   (add-to-list 'recentf-exclude no-littering-etc-directory)
+
   (setq auto-save-file-name-transforms
         `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
   )
@@ -1749,26 +1753,6 @@ into one."
   (save-place-mode t)
   )
 
-;; REMOVED: Poor performance.
-;; Actually a really nice mode-line package.
-;; Requires little configuration.
-;; (use-package spaceline
-;;   :config
-;;   (require 'spaceline-config)
-
-;;   ;; Don't display minor modes (too messy).
-;;   (spaceline-toggle-minor-modes-off)
-;;   ;; Don't display eyebrowse workspace numbers (displayed in title bar instead).
-;;   (spaceline-toggle-workspace-number-off)
-;;   ;; Don't display line ending type.
-;;   (spaceline-toggle-buffer-encoding-abbrev-off)
-
-;;   ;; Change the modeline display when the buffer has been modified or is read-only.
-;;   (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified)
-
-;;   (spaceline-spacemacs-theme)
-;;   )
-
 ;; Commands for converting between programmatic cases.
 (use-package string-inflection
   :defer t
@@ -1778,11 +1762,6 @@ into one."
 (use-package terminal-here
   :bind ("C-c t" . terminal-here-launch)
   )
-
-;; REMOVED: Never used. Keep it and see how vundo is?
-;; ;; A more lightweight alternative to undo-tree.
-;; (use-package undo-propose
-;;   :bind ("C-_" . undo-propose))
 
 ;; Use a sensible mechanism for making buffer names unique.
 (use-package uniquify
@@ -2096,23 +2075,6 @@ on `whitespace-mode'."
 ;; Elisp package lints.
 (use-package flycheck-package
   :hook (flycheck-mode . flycheck-package-setup))
-
-;; LSP
-;; REMOVED: Not very good.
-;; (use-package lsp-mode
-;;   :hook (
-;;          (gdscript-mode . lsp)
-;;          )
-;;   :commands lsp
-;;   :init
-;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-;;   (setq
-;;    lsp-keymap-prefix "C-c l"
-;;    ;; TODO: Disable the headerline? This doesn't seem to work.
-;;    lsp-headerline-breadcrumb-enable nil
-;;    read-process-output-max (* 1024 1024)
-;;    )
-;;   )
 
 ;; Project manager.
 (use-package projectile
@@ -2599,13 +2561,6 @@ on `whitespace-mode'."
   ;; Shortcuts/Keybindings
 
   ;; REMOVED: Not using it for now.
-  ;; (defun org-refile-goto ()
-  ;;   "Use org-refile to conveniently choose and go to a heading."
-  ;;   (interactive)
-  ;;   (let ((current-prefix-arg '(4))) (call-interactively 'org-refile))
-  ;;   )
-
-  ;; REMOVED: Not using it for now.
   ;; ;; org-capture with template as default behavior.
   ;; (defun org-task-capture ()
   ;;   "Capture a task with my todo template."
@@ -2615,13 +2570,6 @@ on `whitespace-mode'."
   ;;   "Capture a note with my note template."
   ;;   (interactive)
   ;;   (org-capture nil "n"))
-
-  ;; REMOVED: Not using it for now.
-  ;; (defun org-meta-return-end ()
-  ;;   "Go to end of visual line before calling org-meta-return."
-  ;;   (interactive)
-  ;;   (end-of-visual-line)
-  ;;   (org-meta-return))
 
   (defun mouse-org-cycle (@click)
     (interactive "e")
