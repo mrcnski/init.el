@@ -1,6 +1,8 @@
 * init.el
 
-[[https://forthebadge.com][https://forthebadge.com/images/badges/gluten-free.svg]]
+[[./images/gluten-free.svg]]
+[[./images/uses-git.svg]]
+[[./images/it-works-why.svg]]
 
 ** About
 
