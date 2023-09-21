@@ -88,6 +88,7 @@
 ;; Require use-package.
 (when (not (file-directory-p user-emacs-elpa-directory))
   (package-refresh-contents)
+  ; TODO: Built-in in 29.1.
   (package-install 'use-package)
   )
 (require 'use-package)
@@ -412,8 +413,6 @@
  help-window-select t
  ;; Always confirm before closing Emacs?
  confirm-kill-emacs nil
- ;; Send deleted files to trash.
- delete-by-moving-to-trash t
  ;; Delay for displaying function/variable information.
  eldoc-idle-delay info-delay
  ;; Delay for hiding tooltips in seconds.
@@ -439,6 +438,8 @@
  auto-save-default nil
  ;; Create interlock files?
  create-lockfiles nil
+ ;; Send deleted files to trash.
+ delete-by-moving-to-trash t
 
  ;; Where should we open new buffers by default?
  display-buffer-base-action '(display-buffer-below-selected)
@@ -2036,21 +2037,25 @@ on `whitespace-mode'."
   :config
   (editorconfig-mode 1))
 
+; TODO: Built-in in 29.1
 (use-package eglot
   :defer t
   :config
   (setq
    eglot-ignored-server-capabilities '(
-                                        ; Formatting.
-                                       :documentFormattingProvider
                                         ; Mouse clicks bringing up code actions.
                                        :codeActionProvider
+                                        ; Automatic formatting.
+                                       :documentFormattingProvider
+                                       ; Docs on hover.
                                        :hoverProvider
                                         ; Code signature docs.
                                        :signatureHelpProvider
                                        )
    ;; Prevent automatic syntax checking, which was causing lags and stutters.
    eglot-send-changes-idle-time (* 60 60)
+   ;; Disable annoying rust-analyzer progress reports in echo area.
+   eglot-report-progress nil
    )
   ;; Disable the annoying doc popups in the minibuffer.
   ;; Show messages in the echo area for errors only.
@@ -2064,6 +2069,9 @@ on `whitespace-mode'."
               ;; Show all eldoc feedback.
               (setq eldoc-documentation-strategy #'eldoc-documentation-compose)
               ;; (eldoc-mode -1)
+
+              ;; Disable inlay hints by default.
+              (eglot-inlay-hints-mode -1)
               ))
   )
 
