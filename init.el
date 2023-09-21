@@ -940,6 +940,15 @@ into one."
 
 ;; Other
 
+;; Align region by string.
+;; TODO: Enable history in read-string to allow for default values
+;;       (i.e. last input).
+(defun align-to-string (beg end)
+  "Align region from BEG to END along input string."
+  (interactive "r")
+  (let ((char (read-string "string: ")))
+    (align-regexp beg end (concat "\\(\\s-*\\)" char))))
+
 ;; Show ASCII table.
 ;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html.
 (defun ascii-table ()
@@ -1027,7 +1036,7 @@ into one."
   (cond
    ((font-exists-p "Iosevka Comfy Fixed")
     (set-face-attribute
-     'default nil :font "Iosevka Comfy Fixed:weight=Regular" :height 120)
+     'default nil :font "Iosevka Comfy Fixed:weight=Regular" :height 110)
     (setq-default line-spacing 0)
     )
    ((font-exists-p "Iosevka")
@@ -1362,28 +1371,37 @@ into one."
          ;; inherit this property, as per eshell defaults.
          (propertize (car list)
                      'read-only      t
-                     'font-lock-face (cdr list)
+                     'face           (cdr list)
                      'front-sticky   '(font-lock-face read-only)
                      'rear-nonsticky '(font-lock-face read-only)))
 
        `(
          ;; Line to distinguish end of previous output.
-         ("===\n" :foreground "#608079")
+         ("==="
+          'link-visited)
+         ("\n")
          ;; Timestamp.
-         (,(format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time)) :foreground "#68a5e9")
+         (,(format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time))
+          'font-lock-keyword-face)
          ;; Directory.
          ;;
          ;; Try to abbreviate-file-name of current directory as per `eshell'
          ;; defaults, e.g. display `~' instead of `/path/to/user/home'.
-         (,(concat "[" (abbreviate-file-name (eshell/pwd)) "]") :inherit font-lock-constant-face)
+         (,(concat "[" (abbreviate-file-name (eshell/pwd)) "]")
+          'font-lock-constant-face)
          ;; Git branch.
-         (,(if (string= git-branch "") "" (concat " " git-branch)) :inherit font-lock-preprocessor-face)
+         (,(if (string= git-branch "") "" (concat " " git-branch))
+          'font-lock-preprocessor-face)
          ("\n")
-         ;; Prompt.
-         ;;
+         ;; The last exit code.
+         (,(if-let ((status eshell-last-command-status))
+              (if (= status 0) "" (format "[%s]" status)))
+          'error)
          ;; NOTE: Choose between prompts # and $ depending on user privileges,
          ;; as per Bourne and eshell defaults.
-         (,(if (zerop (user-uid)) " # " " $ ") :foreground "#fffe0a"))
+         (,(if (zerop (user-uid)) " # " " $ ")
+          'minibuffer-prompt)
+         )
        ""))
     )
   (setq eshell-prompt-function 'custom-eshell-prompt)
