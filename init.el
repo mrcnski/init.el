@@ -1354,7 +1354,6 @@ whitespace following it). If no regexps match, just skips over
 (use-package eshell
   :ensure nil
   :bind (
-         ("s-w" . project-eshell)
          ("s-e" . eshell-new)
          )
   ;; Save all buffers before running a command.
@@ -2175,6 +2174,7 @@ on `whitespace-mode'."
 (use-package projectile
   :defer t
   :hook (prog-mode . projectile-mode)
+  :bind ("s-w" . projectile-run-eshell)
   :config
   (setq projectile-completion-system 'auto)
 
