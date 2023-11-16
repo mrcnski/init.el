@@ -939,6 +939,75 @@ into one."
 (global-set-key (kbd "C-S-v") 'scroll-other-window-up-fraction)
 (global-set-key (kbd "M-V") 'scroll-other-window-down-fraction)
 
+;; Better beginning-of-line function.
+;; From https://www.reddit.com/r/emacs/comments/15xeb1s/electric_mm/.
+
+(let ((c-like '("//+!?" "/?\\*+"))
+      (lisp '(";+"))
+      (org-header-regexp (rx bol (+ "*") (+ space)
+                             ;; I know this is a filthy way of doing the keywords but I just can't
+                             ;; be bothered to do it properly.
+                             (? (or "TODO"
+                                    "NOW"
+                                    "DONE"
+                                    "DEAD")
+                                (+ space))
+                             (* (seq (or (seq "["
+                                              (or (seq (* digit) "/" (* digit))
+                                                  (seq (* digit) "%")
+                                                  (seq "#" (or (any "A-Z") (+ digit))))
+                                              "]"))
+                                     (* space)))))
+      (org-list-item-regexp (rx (or "-" "+"
+                                    (seq (+ digit) (or "." ")"))
+                                    (seq (any "a-z" "A-Z") (or "." ")")))
+                                (+ space)
+                                (? (seq "[" (or " " "-" "X") "]" (* space)))
+                                (* (seq "["
+                                        (or (seq (* digit) "/" (* digit))
+                                            (seq (* digit) "%"))
+                                        "]")
+                                   (* space)))))
+  (setq skip-prefixes-alist
+        `(
+          (text-mode . (,org-list-item-regexp))
+          (org-mode . (,org-header-regexp ,org-list-item-regexp "#" "|"))
+          (lisp-mode . ,lisp)
+          (emacs-lisp-mode . ,lisp)
+          (c-mode . ,c-like)
+          (c++-mode . ,c-like)
+          (eshell-mode . ("$+"))
+          (rust-mode . ,(cons "//!" c-like))
+          (zig-mode . ,c-like)
+          (csharp-mode . ,c-like)
+          (sh-mode . ("#+"))
+          (python-mode . ("#+"))
+          (red-mode . ("comment"))
+          (markdown-mode . ("^#+" "^-"))
+          )))
+
+(defun skip-prefixes ()
+  "Calls `back-to-indentation', then skips the first matching
+regexp associated with the first mode equal to or derived from
+the current major mode in `skip-prefixes-alist' (plus any
+whitespace following it). If no regexps match, just skips over
+`comment-start-skip'."
+  (interactive)
+  (beginning-of-visual-line)
+  (back-to-indentation)
+  (let ((eol (save-excursion (move-end-of-line 1) (point))))
+    (unless (catch 'loop
+              (dolist (prefix (cdr (assoc major-mode skip-prefixes-alist #'provided-mode-derived-p)))
+                (when (looking-at-p prefix)
+                  (search-forward-regexp prefix eol)
+                  (search-forward-regexp "[[:space:]]*" eol)
+                  (throw 'loop t))))
+      ;; Fall back to just skipping the comment delimiter for the mode.
+      (when (and comment-start-skip (looking-at-p comment-start-skip))
+        (search-forward-regexp comment-start-skip eol)))))
+
+(global-set-key (kbd "M-M") 'skip-prefixes)
+
 ;; Other
 
 ;; Align region by string.
