@@ -1824,6 +1824,9 @@ whitespace following it). If no regexps match, just skips over
   (setq mc/always-run-for-all t)
   )
 
+;; Deal more comfortably with long text.
+(use-package olivetti)
+
 ;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode
   :defer t
