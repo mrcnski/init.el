@@ -36,6 +36,7 @@
 (defvar user-text-directory "~/Text/")
 
 (defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
+(defvar user-data-path (concat user-text-directory "data.txt"))
 (defvar user-org-directory (concat user-text-directory "org/"))
 
 (defvar user-ideas-org (concat user-org-directory "ideas.org"))
@@ -65,6 +66,13 @@
   (interactive)
   (find-file user-scratchpad-path))
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
+
+;; Open data.txt.
+(defun open-data-file ()
+  "Open data file."
+  (interactive)
+  (find-file user-data-path))
+(global-set-key (kbd "C-c d") 'open-data-file)
 
 ;;; Package settings
 
@@ -2181,6 +2189,7 @@ on `whitespace-mode'."
   ;; Set shorter delay for displaying errors at point.
   (setq flycheck-display-errors-delay (* 1 info-delay))
   (setq sentence-end-double-space nil) ;; Stupid check.
+  (setq flycheck-checker-error-threshold 600)
 
   ;; Disable checkers.
   (setq-default flycheck-disabled-checkers '(proselint rust rust-cargo rust-clippy))
@@ -2823,7 +2832,7 @@ exist after each headings's drawers."
     :bind (
            :map org-recur-mode-map
 
-           ("C-c d" . org-recur-finish)
+           ;; ("C-c d" . org-recur-finish)
            ("C-c 0" . org-recur-schedule-today)
            ("C-c 1" . org-recur-schedule-1)
            ("C-c 2" . org-recur-schedule-2)
@@ -2835,7 +2844,7 @@ exist after each headings's drawers."
            ("0" . org-recur-schedule-today)
            ("1" . org-recur-schedule-1)
            ("2" . org-recur-schedule-2)
-           ("C-c d" . org-recur-finish)
+           ;; ("C-c d" . org-recur-finish)
            ("C-c 0" . org-recur-schedule-today)
            ("C-c 1" . org-recur-schedule-1)
            ("C-c 2" . org-recur-schedule-2)
