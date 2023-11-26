@@ -231,7 +231,8 @@
          ("M-i" . consult-imenu)
          ("s-j" . consult-buffer) ;; orig. switch-to-buffer
          ("s-m" . consult-mark)
-         ("s-i" . consult-ripgrep-save)
+         ("s-i" . consult-ripgrep-inexact-save)
+         ("s-u" . consult-ripgrep-exact-save)
          ("s-l" . consult-goto-line) ;; orig. goto-line
          ("s-y" . consult-yank-pop) ;; orig. yank-pop
          ;; ("<help> a" . consult-apropos) ;; REMOVED: use C-h o instead.
@@ -261,10 +262,29 @@
   ;; The :init configuration is always executed (Not lazy)
   :init
 
-  (defun consult-ripgrep-save ()
+  (defun consult-ripgrep-exact-save ()
     "Save before calling `consult-ripgrep'."
     (interactive)
     (save-all)
+    (setq
+     consult-ripgrep-args
+     "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
+         --case-sensitive --no-heading --with-filename --line-number \
+         --word-regexp --hidden"
+     )
+    (consult-ripgrep)
+    )
+
+  (defun consult-ripgrep-inexact-save ()
+    "Save before calling `consult-ripgrep'."
+    (interactive)
+    (save-all)
+    (setq
+     consult-ripgrep-args
+     "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
+         --ignore-case --no-heading --with-filename --line-number \
+         --hidden"
+     )
     (consult-ripgrep)
     )
 
@@ -1464,7 +1484,7 @@ whitespace following it). If no regexps match, just skips over
          ("\n")
          ;; The last exit code.
          (,(if-let ((status eshell-last-command-status))
-              (if (= status 0) "" (format "[%s]" status)))
+               (if (= status 0) "" (format "[%s]" status)))
           'error)
          ;; NOTE: Choose between prompts # and $ depending on user privileges,
          ;; as per Bourne and eshell defaults.
@@ -2118,7 +2138,7 @@ on `whitespace-mode'."
                                        :codeActionProvider
                                         ; Automatic formatting.
                                        :documentFormattingProvider
-                                       ; Docs on hover.
+                                        ; Docs on hover.
                                        :hoverProvider
                                         ; Code signature docs.
                                        :signatureHelpProvider
