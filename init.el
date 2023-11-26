@@ -27,8 +27,8 @@
 
 ;;; Code:
 
-;; Show more error info.
-(setq debug-on-error t)
+;; Show more error info?
+(setq debug-on-error nil)
 
 ;;; User-Defined Variables
 
@@ -1390,7 +1390,7 @@ whitespace following it). If no regexps match, just skips over
   :config
 
   (setq
-   ;; Stop output from always going to the bottom.
+   ;; Stop cursor from always going to the bottom after command finishes.
    eshell-scroll-show-maximum-output nil
    eshell-scroll-to-bottom-on-output nil
    ;; Always insert at the bottom.
@@ -1735,6 +1735,7 @@ whitespace following it). If no regexps match, just skips over
   (advice-add 'eyebrowse-rename-window-config :after #'eyebrowse-workspaces-update-two-args)
   (advice-add 'other-frame :after #'eyebrowse-workspaces-update-one-arg)
   (advice-add 'make-frame :after #'eyebrowse-workspaces-update)
+  (advice-add 'delete-frame :after #'eyebrowse-workspaces-update)
 
   ;; Append to title list.
   (add-to-list 'frame-title-format
@@ -1822,10 +1823,6 @@ whitespace following it). If no regexps match, just skips over
        (setq-local idle-highlight-exceptions '("*" "**" "***" "****" "*****")))
      (when (derived-mode-p 'markdown-mode)
        (setq-local idle-highlight-exceptions '("-")))
-     ;; (when (derived-mode-p 'c-mode)
-     ;;   (setq-local idle-highlight-exceptions '("unsigned" "signed" "long" "int" "shot" "char")))
-     ;; (when (derived-mode-p 'python-mode)
-     ;;   (setq-local idle-highlight-exceptions '("list" "tuple" "int" "float" "str" "bool")))
      ))
   )
 
@@ -2424,47 +2421,37 @@ on `whitespace-mode'."
 
 ;; Rust
 
-;; (use-package racer
-;;   :bind (
-;;          :map racer-mode-map
-;;          ("M-," . smart-jump-back)
-;;          ("M-." . smart-jump-go)
-;;          )
-;;   :hook (rust-mode . racer-mode)
-;;   :config
-;;   ;; Don't insert argument placeholders when completing a function.
-;;   (setq racer-complete-insert-argument-placeholders nil)
-;;   )
-
-;; (use-package rust-mode
-;;   :bind (:map rust-mode-map ("C-c n" . rust-format-buffer))
-;;   :config
-;;   (setq rust-format-on-save nil)
-;;   )
-
-;; Enhanced Rust mode with automatic LSP support.
-(use-package rustic
-  :bind (:map rustic-mode-map ("C-c n" . rustic-format-file))
-
-  ;; :init
-
-  ;; (defun format-rust ()
-  ;;   (interactive)
-  ;;   ;; Save all buffers since `rustic-cargo-fmt' formats all buffers belonging
-  ;;   ;; to the workspace.
-  ;;   (save-all)
-  ;;   (rustic-cargo-fmt)
-  ;;   )
-
+(use-package rust-mode
+  :bind (:map rust-mode-map ("C-c n" . rust-format-buffer))
   :config
-
-  (setq
-   ;; eglot seems to be the best option right now.
-   rustic-lsp-client 'eglot
-   rustic-format-on-save nil
-   rustic-rustfmt-args "+nightly"
-   )
+  (setq rust-format-on-save nil)
   )
+
+;; REMOVED: rust-analyzer takes too many resources and has too many annoying
+;;          features.
+;; ;; Enhanced Rust mode with automatic LSP support.
+;; (use-package rustic
+;;   :bind (:map rustic-mode-map ("C-c n" . rustic-format-file))
+
+;;   ;; :init
+
+;;   ;; (defun format-rust ()
+;;   ;;   (interactive)
+;;   ;;   ;; Save all buffers since `rustic-cargo-fmt' formats all buffers belonging
+;;   ;;   ;; to the workspace.
+;;   ;;   (save-all)
+;;   ;;   (rustic-cargo-fmt)
+;;   ;;   )
+
+;;   :config
+
+;;   (setq
+;;    ;; eglot seems to be the best option right now.
+;;    rustic-lsp-client 'eglot
+;;    rustic-format-on-save nil
+;;    rustic-rustfmt-args "+nightly"
+;;    )
+;;   )
 
 ;; TOML
 
@@ -3114,8 +3101,6 @@ exist after each headings's drawers."
   (find-file user-notes-org)
   (split-window-right-focus)
   (find-file user-todo-org)
-  (split-window-right-focus)
-  (org-agenda-personal)
 
   ;; Name eyebrowse slots.
 
