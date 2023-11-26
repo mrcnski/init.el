@@ -1484,7 +1484,7 @@ whitespace following it). If no regexps match, just skips over
          ;;
          ;; Try to abbreviate-file-name of current directory as per `eshell'
          ;; defaults, e.g. display `~' instead of `/path/to/user/home'.
-         (,(concat "[" (abbreviate-file-name (eshell/pwd)) "]")
+         (,(format "[%s]" (abbreviate-file-name (eshell/pwd)))
           'font-lock-constant-face)
          ;; Git branch.
          (,(if (string= git-branch "") "" (concat " " git-branch))
@@ -3053,14 +3053,13 @@ exist after each headings's drawers."
      " "
      ;; The total number of lines. Only recount after certain events, like
      ;; saving.
-     '(:eval (when (and line-number-mode
-                        mode-line-buffer-line-count
-                        buffer-file-name)
-               (let ((str "["))
-                 (when (buffer-modified-p)
-                   (setq str (concat str "*")))
-                 (setq str (concat str mode-line-buffer-line-count "]"))
-                 str)))
+     '(:eval
+       (when (and line-number-mode
+                  mode-line-buffer-line-count
+                  buffer-file-name)
+         (let ((modified (if (buffer-modified-p) "*" "")))
+           (format "[%s%s]" mode-line-buffer-line-count modified)
+           )))
      ;; The buffer/filesize.
      '(:eval "[%I] ")
      ;; Major mode.
@@ -3079,7 +3078,17 @@ exist after each headings's drawers."
        (when mark-active
          (let ((region-count (abs (- (point) (mark)))))
            (when (> region-count 0)
-             (concat "{" (number-to-string region-count) "} "))
+             (format "{%s} " (number-to-string region-count)))
+           )))
+     ;; Latest eshell command status.
+     '(:eval
+       (when (string-equal major-mode 'eshell-mode)
+         (let ((status
+                (if eshell-current-command
+                    "..."
+                  eshell-last-command-status
+                  )))
+           (format "[status: %s] " status)
            )))
 
      ;; REMOVED: Performance hit and I wasn't using it much.
