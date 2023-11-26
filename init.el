@@ -2219,6 +2219,15 @@ on `whitespace-mode'."
   (smart-jump-setup-default-registers)
   )
 
+(use-package dumb-jump
+  :config
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+  (setq
+   dumb-jump-force-searcher 'rg
+   dumb-jump-rg-search-args "--pcre2"
+   )
+  )
+
 ;; Better syntax highlighting.
 (use-package tree-sitter
   :demand t
