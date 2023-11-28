@@ -172,9 +172,9 @@
   :init
   (vertico-mode)
 
-  ;; Scroll margin.
   (setq
-   vertico-scroll-margin 2
+   ;; Scroll margin.
+   vertico-scroll-margin 3
 
    ;; Show more candidates
    ;; vertico-count 20
@@ -210,6 +210,16 @@
     :bind (
            :map vertico-map
            ("C-," . vertico-quick-exit)
+           )
+    )
+
+  ;; Repeat previous vertico inputs even if they were aborted.
+  (use-package vertico-repeat
+    :ensure nil
+    :bind (
+           :map vertico-map
+           ("M-P" . vertico-repeat-previous)
+           ("M-N" . vertico-repeat-next)
            )
     )
   )
@@ -250,16 +260,21 @@
          ;; ("C-c m" . consult-mode-command)
          ("C-c b" . consult-bookmark)
          ;; ("C-c k" . consult-kmacro)
+         ([remap Info-search] . consult-info)
          ;; M-s bindings (search-map)
          ("M-s l" . consult-line)
+
          ;; Isearch integration
          ("M-s e" . consult-isearch-history)
-
          :map isearch-mode-map
-
          ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
          ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
          ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history)                 ;; orig. previous-matching-history-element
          )
 
   ;; Enable automatic preview at point in the *Completions* buffer. This is
@@ -270,9 +285,9 @@
   ;; The :init configuration is always executed (Not lazy)
   :init
 
-  (defun consult-ripgrep-exact-save ()
-    "Save before calling `consult-ripgrep'."
-    (interactive)
+  (defun consult-ripgrep-exact-save (&optional arg)
+    "Save before calling `consult-ripgrep', matching exactly."
+    (interactive "P")
     (save-all)
     (setq
      consult-ripgrep-args
@@ -280,12 +295,15 @@
          --case-sensitive --no-heading --with-filename --line-number \
          --word-regexp --hidden"
      )
-    (consult-ripgrep)
+    (cond ((and arg
+                (= 4 (prefix-numeric-value arg)))
+           (consult-ripgrep default-directory))
+          (t (consult-ripgrep)))
     )
 
-  (defun consult-ripgrep-inexact-save ()
-    "Save before calling `consult-ripgrep'."
-    (interactive)
+  (defun consult-ripgrep-inexact-save (&optional arg)
+    "Save before calling `consult-ripgrep', matching inexactly."
+    (interactive "P")
     (save-all)
     (setq
      consult-ripgrep-args
@@ -293,7 +311,10 @@
          --ignore-case --no-heading --with-filename --line-number \
          --hidden"
      )
-    (consult-ripgrep)
+    (cond ((and arg
+                (= 4 (prefix-numeric-value arg)))
+           (consult-ripgrep default-directory))
+          (t (consult-ripgrep)))
     )
 
   (setq consult-async-min-input 2)
@@ -324,13 +345,17 @@
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
   (consult-customize
+   consult-bookmark
    consult-theme
+   consult-recent-file
    consult-ripgrep
-   :preview-key '(:debounce 0.2 any)
-   consult-bookmark consult-recent-file consult-xref
+   consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   :preview-key "M-."
+   :preview-key '(:debounce 0.2 any)
+   ;; :preview-key "M-."
    )
+  ;; Run some more hooks when previewing files.
+  (add-to-list 'consult-preview-allowed-hooks 'global-hl-todo-mode-check-buffers)
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
