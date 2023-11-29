@@ -221,6 +221,8 @@
            ("M-P" . vertico-repeat-previous)
            ("M-N" . vertico-repeat-next)
            )
+    :init
+    (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
     )
   )
 
@@ -396,6 +398,54 @@
   ;; Must be in the :init section of use-package such that the mode gets
   ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
+
+(use-package embark
+  :ensure t
+
+  :bind
+  (
+   ("C-z" . embark-act)         ;; pick some comfortable binding
+   ;; ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings) ;; alternative for `describe-bindings'
+
+    :map embark-general-map
+    ("K" . my/embark-search)
+   )
+
+  :init
+
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+
+  :config
+
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none))))
+
+  (setq embark-quit-after-action t)
+  (add-to-list 'embark-indicators 'embark-minimal-indicator)
+  (delete 'embark-mixed-indicator embark-indicators)
+
+  (defun my/embark-search (term)
+    (interactive "sSearch Term: ")
+    (browse-url
+     (format "https://kagi.com/search?q=%s" term)))
+  )
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :ensure t ; only need to install it, embark loads it after consult if found
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode)
+  )
 
 ;;; Load customizations
 
@@ -1333,6 +1383,7 @@ whitespace following it). If no regexps match, just skips over
   :ensure nil
   :config
   (savehist-mode t)
+  (add-to-list 'savehist-additional-variables 'vertico-repeat-history)
   )
 
 ;; Ediff settings
