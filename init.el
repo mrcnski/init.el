@@ -295,7 +295,7 @@
      consult-ripgrep-args
      "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
          --case-sensitive --no-heading --with-filename --line-number \
-         --word-regexp --hidden"
+         --word-regexp --hidden --glob !{.git,target,node_modules}"
      )
     (cond ((and arg
                 (= 4 (prefix-numeric-value arg)))
@@ -311,7 +311,7 @@
      consult-ripgrep-args
      "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
          --ignore-case --no-heading --with-filename --line-number \
-         --hidden"
+         --hidden --glob !{.git,target,node_modules}"
      )
     (cond ((and arg
                 (= 4 (prefix-numeric-value arg)))
@@ -2300,7 +2300,10 @@ on `whitespace-mode'."
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
   (setq
    dumb-jump-force-searcher 'rg
-   dumb-jump-rg-search-args "--pcre2"
+   ;; Ignore `target`, `node_modules` directories.
+   ;;
+   ;; I think dumb-jump's regexes require pcre2.
+   dumb-jump-rg-search-args "--pcre2 --glob '!{target,node_modules}'"
    )
   )
 
