@@ -563,6 +563,7 @@
  resize-mini-windows t
  ;; Enable recursive editing of minibuffer?
  enable-recursive-minibuffers t
+ minibuffer-depth-indicate-mode t
  ;; Move point to beginning or end of buffer when scrolling.
  scroll-error-top-bottom t
  mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control)))
@@ -603,8 +604,8 @@
 ;; Use compressed files like normal files.
 (auto-compression-mode t)
 
-;; Display the column number.
-(column-number-mode t)
+;; Display the column number? (Supposed to make editing slower.)
+(column-number-mode nil)
 
 ;; Replace selected text when typing or pasting.
 (delete-selection-mode t)
@@ -3128,7 +3129,8 @@ exist after each headings's drawers."
                          'help-echo (buffer-file-name)))
      " |"
      ;; The current line/column.
-     '(:eval (when line-number-mode " %l:%C"))
+     '(:eval (when line-number-mode " %l"))
+     '(:eval (when column-number-mode ":%C"))
      " "
      ;; The total number of lines. Only recount after certain events, like
      ;; saving.
@@ -3169,6 +3171,8 @@ exist after each headings's drawers."
                   )))
            (format "[status: %s] " status)
            )))
+     ;; Recursive editing level.
+     "%[%] "
 
      ;; REMOVED: Performance hit and I wasn't using it much.
      ;; '(:eval
