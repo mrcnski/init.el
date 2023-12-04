@@ -687,6 +687,9 @@
 
 ;;; My Functions and Shortcuts/Keybindings
 
+;; For consistency with every other application.
+(define-key key-translation-map (kbd "ESC") (kbd "C-g"))
+
 ;; Set s-s to save all buffers (default is only current buffer).
 (global-set-key (kbd "s-s") 'save-all)
 
@@ -698,7 +701,7 @@
 (global-set-key (kbd "s-k") 'kill-this-buffer)
 
 ;; Enable OSX full screen shortcut.
-(global-set-key (kbd "C-s-f") 'toggle-frame-fullscreen)
+(global-set-key (kbd "C-s-f") 'toggle-frame-maximized)
 
 ;; Enable OSX CMD+backspace.
 (defun kill-line-backwards ()
@@ -796,7 +799,7 @@
 (global-set-key (kbd "M-z") 'zap-up-to-char)
 
 ;; Easier repeat.
-(global-set-key (kbd "C-z") 'repeat)
+;; (global-set-key (kbd "C-z") 'repeat)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
@@ -1489,6 +1492,10 @@ whitespace following it). If no regexps match, just skips over
                 (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
                 (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
 
+                ;; Better history command!
+                (define-key eshell-mode-map (kbd "M-r") 'consult-history)
+                (define-key eshell-hist-mode-map (kbd "M-r") nil)
+
                 ;; Allow M-s .
                 (define-key eshell-mode-map (kbd "M-s") nil)
                 (define-key eshell-hist-mode-map (kbd "M-s") nil)
@@ -1710,7 +1717,7 @@ whitespace following it). If no regexps match, just skips over
 
 ;; Expand-region.
 (use-package expand-region
-  :bind ("C-=" . er/expand-region)
+  :bind ("C-;" . er/expand-region)
   :config
 
   (defun mark-inside-backticks ()
@@ -1903,6 +1910,11 @@ whitespace following it). If no regexps match, just skips over
      (when (derived-mode-p 'markdown-mode)
        (setq-local idle-highlight-exceptions '("-")))
      ))
+  )
+
+;; Modify multiple occurrences simultaneously.
+(use-package iedit
+  :bind ("C-=" . iedit-mode)
   )
 
 ;; A package for choosing a color by updating text sample.
@@ -3146,11 +3158,14 @@ exist after each headings's drawers."
      ;; The buffer/filesize.
      '(:eval "[%I] ")
      ;; Major mode.
-     '(:eval (when (not (string-equal major-mode 'org-agenda-mode))
-               (propertize "[%m] "
-                           ;; 'face '(:weight bold)
-                           'help-echo (format "%s" major-mode)
-                           )))
+     '(:eval (propertize (format-mode-line mode-name)
+                         'face '(:weight bold)
+                         'help-echo (format "%s" major-mode)
+                         ))
+     " "
+     ;; Limited set of useful minor modes.
+     `(:eval (when iedit-mode "[=iedit=] "))
+
      ;; Read-only.
      '(:eval (when buffer-read-only
                (propertize "RO "
