@@ -291,32 +291,32 @@
     "Save before calling `consult-ripgrep', matching exactly."
     (interactive "P")
     (save-all)
-    (setq
-     consult-ripgrep-args
-     "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
-         --case-sensitive --no-heading --with-filename --line-number \
-         --word-regexp --hidden --glob !{.git,target,node_modules}"
-     )
-    (cond ((and arg
-                (= 4 (prefix-numeric-value arg)))
-           (consult-ripgrep default-directory))
-          (t (consult-ripgrep)))
+    (defvar consult-ripgrep-args)
+    (let ((consult-ripgrep-args
+           "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
+               --case-sensitive --no-heading --with-filename --line-number \
+               --word-regexp --hidden --glob !{.git,target,node_modules}"
+           ))
+      (cond ((and arg
+                  (= 4 (prefix-numeric-value arg)))
+             (consult-ripgrep default-directory))
+            (t (consult-ripgrep))))
     )
 
   (defun consult-ripgrep-inexact-save (&optional arg)
     "Save before calling `consult-ripgrep', matching inexactly."
     (interactive "P")
     (save-all)
-    (setq
-     consult-ripgrep-args
-     "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
-         --ignore-case --no-heading --with-filename --line-number \
-         --hidden --glob !{.git,target,node_modules}"
-     )
-    (cond ((and arg
-                (= 4 (prefix-numeric-value arg)))
-           (consult-ripgrep default-directory))
-          (t (consult-ripgrep)))
+    (defvar consult-ripgrep-args)
+    (let ((consult-ripgrep-args
+           "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
+               --ignore-case --no-heading --with-filename --line-number \
+               --hidden --glob !{.git,target,node_modules}"
+           ))
+      (cond ((and arg
+                  (= 4 (prefix-numeric-value arg)))
+             (consult-ripgrep default-directory))
+            (t (consult-ripgrep))))
     )
 
   (setq consult-async-min-input 2)
@@ -430,7 +430,9 @@
                  nil
                  (window-parameters (mode-line-format . none))))
 
-  (setq embark-quit-after-action t)
+  (setq embark-quit-after-action nil)
+
+  ;; Show embark help popup?
   (add-to-list 'embark-indicators 'embark-minimal-indicator)
   (delete 'embark-mixed-indicator embark-indicators)
 
@@ -2729,7 +2731,7 @@ on `whitespace-mode'."
    org-goto-max-level 99
    ;; Always show full context, no matter how we get to a certain heading (e.g.
    ;; `isearch', `org-goto', whatever).
-   org-show-context-detail '((default . tree))
+   org-fold-show-context-detail '((default . tree))
    )
 
   ;; org-capture settings
