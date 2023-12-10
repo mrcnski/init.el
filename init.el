@@ -599,7 +599,7 @@
 (prefer-coding-system 'utf-8)
 
 ;; Setup selected file endings to open in certain modes.
-(add-to-list 'auto-mode-alist '("\\.over\\'" . json-mode))
+(add-to-list 'auto-mode-alist '("\\.prdoc\\'" . yaml-mode))
 
 ;; Set some built-in modes.
 
@@ -1561,7 +1561,7 @@ whitespace following it). If no regexps match, just skips over
        `(
          ;; Line to distinguish end of previous output.
          ("==="
-          'link-visited)
+          'font-lock-comment-face)
          ("\n")
          ;; Timestamp.
          (,(format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time))
@@ -1573,13 +1573,13 @@ whitespace following it). If no regexps match, just skips over
          (,(format "[%s]" (abbreviate-file-name (eshell/pwd)))
           'font-lock-constant-face)
          ;; Git branch.
-         (,(if (string= git-branch "") "" (concat " " git-branch))
+         (,(if (string= git-branch "") "" (format " %s" git-branch))
           'font-lock-preprocessor-face)
-         ("\n")
          ;; The last exit code.
          (,(if-let ((status eshell-last-command-status))
-               (if (= status 0) "" (format "[%s]" status)))
+               (if (= status 0) "" (format " [%s]" status)))
           'error)
+         ("\n")
          ;; NOTE: Choose between prompts # and $ depending on user privileges,
          ;; as per Bourne and eshell defaults.
          (,(if (zerop (user-uid)) " # " " $ ")
@@ -1888,6 +1888,7 @@ whitespace following it). If no regexps match, just skips over
   (add-to-list 'hl-todo-keyword-faces '("GIGO" . "#cc9393"))
   (add-to-list 'hl-todo-keyword-faces '("WARNING" . "#cc9393"))
   (add-to-list 'hl-todo-keyword-faces '("SAFETY" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces '("RACE" . "#cc9393"))
   )
 
 ;; Highlight symbol under point.
@@ -2527,7 +2528,10 @@ on `whitespace-mode'."
 (use-package rust-mode
   :bind (:map rust-mode-map ("C-c n" . rust-format-buffer))
   :config
-  (setq rust-format-on-save nil)
+  (setq
+   rust-format-on-save nil
+   rust-rustfmt-switches '("+nightly")
+   )
   )
 
 ;; REMOVED: rust-analyzer takes too many resources and has too many annoying
