@@ -600,6 +600,7 @@
 
 ;; Setup selected file endings to open in certain modes.
 (add-to-list 'auto-mode-alist '("\\.prdoc\\'" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.zndsl\\'" . yaml-mode))
 
 ;; Set some built-in modes.
 
@@ -807,6 +808,19 @@
 (global-set-key (kbd "M-+") 'text-scale-increase)
 (global-set-key (kbd "M-=") 'text-scale-increase)
 (global-set-key (kbd "M--") 'text-scale-decrease)
+
+(defun highlight-line ()
+  "Toggle highlighting the current line."
+  (interactive)
+  (let* ((beg (line-beginning-position))
+         (end (min (point-max) (+ 1 (line-end-position))))
+         (overlays (overlays-in beg end)))
+    (if (-any? #'(lambda (ov) (equal (overlay-get ov 'face) 'bookmark-face))
+               overlays)
+        (remove-overlays beg end 'face 'bookmark-face)
+      (let ((ov (make-overlay beg end)))
+        (overlay-put ov 'face 'bookmark-face)))))
+(global-set-key (kbd "C-c l") 'highlight-line)
 
 (defun indent-buffer ()
   "Indent the whole buffer."
@@ -2601,7 +2615,7 @@ on `whitespace-mode'."
 
   :bind (
          ;; Insert link with C-c C-l.
-         ("C-c l" . org-store-link)
+         ;; ("C-c C-l" . org-store-link)
          ("C-c c" . org-capture)
 
          ;; Jump to last refile or capture.
