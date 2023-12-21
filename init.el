@@ -704,6 +704,27 @@
 ;; Enable OSX full screen shortcut.
 (global-set-key (kbd "C-s-f") 'toggle-frame-maximized)
 
+(defun isearch-backward-symbol-at-point (&optional arg)
+  "The backwards version of `isearch-forward-symbol-at-point'. ARG!"
+  (interactive "P")
+  (isearch-mode nil nil nil nil 'isearch-symbol-regexp)
+  (let ((bounds (find-tag-default-bounds))
+       (count (and arg (prefix-numeric-value arg))))
+   (cond
+    (bounds
+     (when (< (car bounds) (point))
+	    (goto-char (car bounds)))
+     (isearch-yank-string
+      (buffer-substring-no-properties (car bounds) (cdr bounds)))
+      (isearch-repeat-backward)
+     (when count
+       (isearch-repeat-backward count)))
+    (t
+     (setq isearch-error "No symbol at point")
+     (isearch-push-state)
+     (isearch-update)))))
+(global-set-key (kbd "M-s ,") 'isearch-backward-symbol-at-point)
+
 ;; Enable OSX CMD+backspace.
 (defun kill-line-backwards ()
   "Kill the line backwards."
@@ -1903,6 +1924,7 @@ whitespace following it). If no regexps match, just skips over
   (add-to-list 'hl-todo-keyword-faces '("WARNING" . "#cc9393"))
   (add-to-list 'hl-todo-keyword-faces '("SAFETY" . "#cc9393"))
   (add-to-list 'hl-todo-keyword-faces '("RACE" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces '("DEPRECATED" . "#cc9393"))
   )
 
 ;; Highlight symbol under point.
