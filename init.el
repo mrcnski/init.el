@@ -1970,8 +1970,9 @@ whitespace following it). If no regexps match, just skips over
 
          :map mc/keymap
 
-         ;; Reclaim RET.
+         ;; Reclaim some keys...
          ("<return>" . nil)
+         ("C-'" . nil)
          )
   :config
   (setq mc/always-run-for-all t)
@@ -1999,6 +2000,13 @@ whitespace following it). If no regexps match, just skips over
 ;; Commands for converting between programmatic cases.
 (use-package string-inflection
   :defer t
+  )
+
+;; For inserting, changing, and, deleting surrounding pairs of quotes, braces,
+;; etc.
+(use-package surround
+  :ensure t
+  :bind-keymap ("C-'" . surround-keymap)
   )
 
 ;; Open current directory in an external terminal emulator.
@@ -2142,12 +2150,12 @@ on `whitespace-mode'."
 
 ;; Quick and easy organization of repos and jumping to them.
 (use-package my-repo-pins
-  ;; :load-path "~/repos/github.com/NinjaTrappeur/my-repo-pins"
   :bind (("s-h" . my-repo-pins))
   :config
   (setq
    my-repo-pins-code-root user-code-directory
    my-repo-pins-max-depth 2
+   my-repo-pins-open-function #'magit-status
    )
   )
 
@@ -2683,6 +2691,7 @@ on `whitespace-mode'."
 
     ;; Unbind key stolen by org-mode ('org-cycle-agenda-files').
     (local-unset-key (kbd "C-,"))
+    (local-unset-key (kbd "C-'"))
 
     ;; Align all tags.
     (add-hook 'before-save-hook 'org-align-tags-all nil 'make-it-local)
