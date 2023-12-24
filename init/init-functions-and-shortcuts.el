@@ -53,14 +53,6 @@
 ;; I don't want to accidentally press this.
 (global-set-key (kbd "s-q") nil)
 
-(defun other-window-reverse ()
-  "Go to other window in reverse."
-  (interactive)
-  (other-window -1)
-  )
-(global-set-key (kbd "M-o") 'other-window)
-(global-set-key (kbd "M-O") 'other-window-reverse)
-
 ;; Actions to perform when saving.
 ;; (add-hook 'before-save-hook 'whitespace-cleanup)
 ;; (add-hook 'before-save-hook 'ispell-comments-and-strings)
@@ -82,40 +74,10 @@
 (global-set-key (kbd "C-x s") 'save-all)
 
 ;; Automatically save all file-visiting buffers when Emacs loses focus.
-(add-hook 'focus-out-hook 'save-all)
+(add-hook 'after-focus-change-hook 'save-all)
 ;; Run `save-all' when idle for a while.
 ;; Shouldn't run too quickly as it is a bit distracting.
 (run-with-idle-timer 60 t 'save-all)
-
-;; Commands to split window and move focus to other window.
-(defun split-window-below-focus ()
-  "Split window horizontally and move focus to other window."
-  (interactive)
-  (split-window-below)
-  (balance-windows)
-  ;; Update any visible org-agenda buffers.
-  (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
-  (other-window 1))
-(defun split-window-right-focus ()
-  "Split window vertically and move focus to other window."
-  (interactive)
-  (split-window-right)
-  (balance-windows)
-  ;; Update any visible org-agenda buffers.
-  (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
-  (other-window 1))
-(defun delete-window-balance ()
-  "Delete window and rebalance the remaining ones."
-  (interactive)
-  (delete-window)
-  (balance-windows)
-  ;; Update any visible org-agenda buffers.
-  (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
-  )
-(global-set-key (kbd "C-0") 'delete-window-balance)
-(global-set-key (kbd "C-1") 'delete-other-windows)
-(global-set-key (kbd "C-2") 'split-window-below-focus)
-(global-set-key (kbd "C-3") 'split-window-right-focus)
 
 (global-set-key (kbd "M-SPC") 'cycle-spacing)
 
@@ -138,6 +100,9 @@
 
 ;; Easier repeat.
 ;; (global-set-key (kbd "C-z") 'repeat)
+
+(global-set-key (kbd "C-M-,") 'xref-go-back)
+(global-set-key (kbd "C-M-.") 'xref-go-forward)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
@@ -215,6 +180,46 @@ another window."
                    name (file-name-nondirectory new-name)))))))
 
 (global-set-key (kbd "C-c r") 'rename-current-buffer-file)
+
+;; Window operations.
+
+(defun other-window-reverse ()
+  "Go to other window in reverse."
+  (interactive)
+  (other-window -1)
+  )
+(global-set-key (kbd "M-o") 'other-window)
+(global-set-key (kbd "M-O") 'other-window-reverse)
+
+;; Commands to split window and move focus to other window.
+(defun split-window-below-focus ()
+  "Split window horizontally and move focus to other window."
+  (interactive)
+  (split-window-below)
+  (balance-windows)
+  ;; Update any visible org-agenda buffers.
+  (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
+  (other-window 1))
+(defun split-window-right-focus ()
+  "Split window vertically and move focus to other window."
+  (interactive)
+  (split-window-right)
+  (balance-windows)
+  ;; Update any visible org-agenda buffers.
+  (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
+  (other-window 1))
+(defun delete-window-balance ()
+  "Delete window and rebalance the remaining ones."
+  (interactive)
+  (delete-window)
+  (balance-windows)
+  ;; Update any visible org-agenda buffers.
+  (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
+  )
+(global-set-key (kbd "C-0") 'delete-window-balance)
+(global-set-key (kbd "C-1") 'delete-other-windows)
+(global-set-key (kbd "C-2") 'split-window-below-focus)
+(global-set-key (kbd "C-3") 'split-window-right-focus)
 
 ;; Line operations.
 
@@ -432,8 +437,10 @@ into one."
 
 (global-set-key (kbd "C-v") 'scroll-up-fraction)
 (global-set-key (kbd "M-v") 'scroll-down-fraction)
-(global-set-key (kbd "C-S-v") 'scroll-other-window-up-fraction)
-(global-set-key (kbd "M-V") 'scroll-other-window-down-fraction)
+(global-set-key (kbd "C-V") 'scroll-up)
+(global-set-key (kbd "M-V") 'scroll-down)
+(global-set-key (kbd "C-M-v") 'scroll-other-window-up-fraction)
+(global-set-key (kbd "C-M-V") 'scroll-other-window-down-fraction)
 
 ;; Better beginning-of-line function.
 ;; From https://www.reddit.com/r/emacs/comments/15xeb1s/electric_mm/.

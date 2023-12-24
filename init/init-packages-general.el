@@ -4,6 +4,9 @@
 ;;
 ;;; Code:
 
+(require 'init-basics)
+(require 'init-functions-and-shortcuts)
+
 ;; Display number of matches when searching.
 (use-package anzu
   :config
@@ -27,8 +30,10 @@
   :config
   ;; Use more characters (and better ones) in the decision tree.
   ;; QWERTY keys.
-  (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l
-                      ?w ?e ?r ?u    ?o))
+  (setq avy-keys '(
+                   ?a ?s ?d ?f ?j ?k ?l ?\;
+                      ?w    ?r ?u    ?o
+                   ))
 
   ;; Set the background to gray to highlight the decision tree?
   (setq avy-background nil)
