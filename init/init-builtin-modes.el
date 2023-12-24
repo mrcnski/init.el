@@ -1,4 +1,4 @@
-;;; init-builtin --- Built-in mode settings
+;;; init-builtin-modes --- Built-in mode settings
 ;;
 ;;; Commentary:
 ;;
@@ -416,5 +416,5 @@
 ;;   :ensure nil
 ;;   )
 
-(provide 'init-builtin)
-;;; init-builtin.el ends here
+(provide 'init-builtin-modes)
+;;; init-builtin-modes.el ends here
