@@ -1,17 +1,6 @@
-# Ignore everything...
+.DS_Store
 
-*
-
-# ... but not these files.
-
-!early-init.el
-!init.el
-!init
-!init/*
-
-!.eshell-rc
-!.eshell-login
-!.gitignore
-!README.org
-!images
-!images/*
+customize.el
+eln-cache
+elpa
+var

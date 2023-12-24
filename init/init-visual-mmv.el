@@ -1,4 +1,4 @@
-;;; mmv --- Make Mark Visible
+;;; init-visual-mmv --- Make Mark Visible
 ;;
 ;;; Commentary:
 ;;
@@ -57,5 +57,5 @@ invisible."
 
 (global-set-key (kbd "C-c v") 'mmv-toggle-mark-visibility)
 
-(provide 'mmv)
-;;; mmv.el ends here
+(provide 'init-visual-mmv)
+;;; init-visual-mmv.el ends here
