@@ -4,6 +4,8 @@
 ;;
 ;;; Code:
 
+(require 'init-packages-project)
+
 ;; C#
 
 (use-package csharp-mode
@@ -199,31 +201,34 @@
    )
   )
 
-;; REMOVED: rust-analyzer takes too many resources and has too many annoying
-;;          features.
-;; ;; Enhanced Rust mode with automatic LSP support.
-;; (use-package rustic
-;;   :bind (:map rustic-mode-map ("C-c n" . rustic-format-file))
+;; Enhanced Rust mode with automatic LSP support.
+(use-package rustic
+  :bind (:map rustic-mode-map ("C-c n" . rustic-format-file))
 
-;;   ;; :init
+  ;; :init
 
-;;   ;; (defun format-rust ()
-;;   ;;   (interactive)
-;;   ;;   ;; Save all buffers since `rustic-cargo-fmt' formats all buffers belonging
-;;   ;;   ;; to the workspace.
-;;   ;;   (save-all)
-;;   ;;   (rustic-cargo-fmt)
-;;   ;;   )
+  ;; (defun format-rust ()
+  ;;   (interactive)
+  ;;   ;; Save all buffers since `rustic-cargo-fmt' formats all buffers belonging
+  ;;   ;; to the workspace.
+  ;;   (save-all)
+  ;;   (rustic-cargo-fmt)
+  ;;   )
 
-;;   :config
+  :config
 
-;;   (setq
-;;    ;; eglot seems to be the best option right now.
-;;    rustic-lsp-client 'eglot
-;;    rustic-format-on-save nil
-;;    rustic-rustfmt-args "+nightly"
-;;    )
-;;   )
+  (setq
+   ;; eglot seems to be the best option right now.
+   rustic-lsp-client 'eglot
+   rustic-format-on-save nil
+   rustic-rustfmt-args "+nightly"
+   )
+  )
+
+;; Manually set which rust mode I want to use.
+(setq auto-mode-alist
+      (cl-remove "\\.rs\\'" auto-mode-alist :test 'equal :key 'car))
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
 
 ;; TOML
 

@@ -73,7 +73,7 @@
     )
    ((font-exists-p "Iosevka")
     (set-face-attribute
-     'default nil :font "Iosevka:weight=Regular" :height 120)
+     'default nil :font "Iosevka:weight=Regular" :height 110)
     ;; 'default nil :font "Iosevka:weight=Light" :height 120)
     (setq-default line-spacing 0)
     )
