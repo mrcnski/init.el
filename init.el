@@ -1778,7 +1778,14 @@ whitespace following it). If no regexps match, just skips over
 
 ;; Copy selected region to be pasted into Slack/Github/etc.
 (use-package copy-as-format
-  :defer t)
+  :config
+  (global-set-key (kbd "s-w")
+                  (lambda () (interactive)
+                    (select-lines)
+                    (copy-as-format-github)
+                    (kill-append "\n" t)
+                    ))
+  )
 
 ;; Display available keybindings in Dired mode (? creates popup).
 (use-package discover
@@ -2393,10 +2400,16 @@ on `whitespace-mode'."
   :hook (flycheck-mode . flycheck-package-setup))
 
 ;; Project manager.
+;; TODO: remove?
 (use-package projectile
   :defer t
   :hook (prog-mode . projectile-mode)
-  :bind ("s-w" . projectile-run-eshell)
+  ;; NOTE: project-eshell breaks when there are multiple similarly-named
+  ;; projects open...
+  :bind (
+         ("s-E" . projectile-run-eshell)
+         ("s-D" . projectile-dired)
+         )
   :config
   (setq projectile-completion-system 'auto)
 
