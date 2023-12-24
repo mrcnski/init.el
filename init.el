@@ -1195,6 +1195,17 @@ whitespace following it). If no regexps match, just skips over
 
 (global-set-key (kbd "M-M") 'skip-prefixes)
 
+;; Print debugging utility.
+;;
+;; TODO: separate package?
+(defvar iter-print-increment 0)
+(defun iter-print ()
+  "Insert incrementing print statements."
+  (interactive)
+  (insert (format "\nprintln!(\"%d\");" iter-print-increment))
+  (setq iter-print-increment (1+ iter-print-increment))
+  )
+
 ;; Other
 
 ;; Align region by string.
@@ -2012,6 +2023,21 @@ whitespace following it). If no regexps match, just skips over
 ;; Modify multiple occurrences simultaneously.
 (use-package iedit
   :bind ("C-=" . iedit-mode)
+  )
+
+;; Frequency statistics of keys.
+(use-package keyfreq
+  :config
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1)
+  (setq keyfreq-excluded-commands
+        '(
+          self-insert-command
+          forward-char
+          backward-char
+          previous-line
+          next-line
+          ))
   )
 
 ;; A package for choosing a color by updating text sample.
