@@ -977,6 +977,15 @@ region."
     ))
 (global-set-key (kbd "C-S-k") 'annihilate-lines)
 
+(defun kill-ring-save-lines ()
+  "Save the current line, or all lines included in the region."
+  (interactive)
+  (select-lines)
+  (call-interactively 'kill-ring-save)
+  (kill-append "\n" t)
+  )
+(global-set-key (kbd "M-W") 'kill-ring-save-lines)
+
 ;; Drag up/down single line or lines in region.
 (use-package drag-stuff
   :defer t
@@ -996,22 +1005,51 @@ into one."
 (global-set-key (kbd "C-j") 'join-next-line)
 
 (defun goto-line-below (arg)
-  "Open and goto a new line below while keeping proper indentation."
+  "Open and goto a new line below while keeping proper indentation. ARG!"
   (interactive "p")
   (end-of-line)
   (open-line arg)
-  (forward-line 1)
+  (forward-line arg)
   (indent-according-to-mode)
   )
 (defun goto-line-above (arg)
-  "Open and goto a new line above while keeping proper indentation."
+  "Open and goto a new line above while keeping proper indentation. ARG!"
   (interactive "p")
   (beginning-of-line)
   (open-line arg)
   (indent-according-to-mode)
   )
-(global-set-key (kbd "<C-return>") 'goto-line-below)
-(global-set-key (kbd "<S-return>") 'goto-line-above)
+(global-set-key (kbd "s-C-n") 'goto-line-below)
+(global-set-key (kbd "s-C-p") 'goto-line-above)
+
+(defun duplicate-line-below ()
+  "Duplicate the current line below while keeping point location."
+  (interactive)
+  (let ((point-at-beginning (eq (point) (line-beginning-position))))
+    (save-mark-and-excursion
+      (beginning-of-line)
+      (select-line)
+      (call-interactively 'kill-ring-save)
+      (open-line 1)
+      (yank)
+      )
+      (when point-at-beginning
+        (forward-line))
+  ))
+(defun duplicate-line-above ()
+  "Duplicate the current line above while keeping point location."
+  (interactive)
+  (save-mark-and-excursion
+    (beginning-of-line)
+    (select-line)
+    (call-interactively 'kill-ring-save)
+    (forward-line 1)
+    (open-line 1)
+    (yank)
+    )
+  )
+(global-set-key (kbd "s-M-n") 'duplicate-line-below)
+(global-set-key (kbd "s-M-p") 'duplicate-line-above)
 
 ;; Indentation functions.
 
@@ -1041,7 +1079,7 @@ into one."
 
 (defun indent-region-relative (beg end amount)
   "Indent from BEG to END by the specified AMOUNT."
-  (save-excursion
+  (save-mark-and-excursion
     (goto-char beg)
     (setq beg (line-beginning-position))
     (goto-char end)
@@ -1144,7 +1182,7 @@ whitespace following it). If no regexps match, just skips over
   (interactive)
   (beginning-of-visual-line)
   (back-to-indentation)
-  (let ((eol (save-excursion (move-end-of-line 1) (point))))
+  (let ((eol (save-mark-and-excursion (move-end-of-line 1) (point))))
     (unless (catch 'loop
               (dolist (prefix (cdr (assoc major-mode skip-prefixes-alist #'provided-mode-derived-p)))
                 (when (looking-at-p prefix)
