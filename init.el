@@ -4,9 +4,12 @@
 ;;
 ;;; Commentary:
 ;;
-;; Requires Emacs 28 or higher.
+;; Requires:
+;;
+;; - Emacs 28 or higher.
 ;;
 ;; Currently building Emacs with:
+;;
 ;; $ brew tap d12frosted/emacs-plus
 ;; $ brew install emacs-plus --with-poll --with-native-comp
 ;;
@@ -941,7 +944,6 @@ the region."
   (goto-char beg)
   (beginning-of-line)
   )
-
 (global-set-key (kbd "C-S-l") 'select-lines)
 
 ;; Improved kill-whole-line which doesn't change cursor position.
@@ -973,7 +975,6 @@ region."
     ;; Restore column position
     (move-to-column col)
     ))
-
 (global-set-key (kbd "C-S-k") 'annihilate-lines)
 
 ;; Drag up/down single line or lines in region.
@@ -1197,8 +1198,8 @@ whitespace following it). If no regexps match, just skips over
 (set-frame-parameter (selected-frame) 'alpha '(100))
 ;; (set-frame-parameter (selected-frame) 'alpha '(98))
 
-;; Turn on blinking/flashing cursor?
-(blink-cursor-mode t)
+;; Turn on blinking/flashing cursor? (-1 to disable)
+(blink-cursor-mode -1)
 ;; Blink forever!
 (setq blink-cursor-blinks 0)
 (when (display-graphic-p)
@@ -1280,7 +1281,7 @@ whitespace following it). If no regexps match, just skips over
   :ensure nil
   :config
   (setq
-   ;; Can scroll using C-v and M-v.
+   ;; Can scroll in isearch?
    isearch-allow-scroll t
 
    ;; Highlight more matches after a delay.
@@ -1288,6 +1289,13 @@ whitespace following it). If no regexps match, just skips over
    isearch-lazy-count t
    lazy-highlight-initial-delay info-delay
    )
+
+  ;; Fix broken C-g.
+  (define-key isearch-mode-map (kbd "C-g")
+              (lambda () (interactive)
+                (isearch-abort)
+                (isearch-abort)
+              ))
 
   ;; Display last searched string in minibuffer prompt.
   (add-hook 'isearch-mode-hook
@@ -1763,7 +1771,7 @@ whitespace following it). If no regexps match, just skips over
   :config
 
   (defun mark-inside-backticks ()
-    "Mark up to enclosing backticks, not including the backticks."
+    "Mark up to enclosing `backticks`, not including the backticks."
     (interactive)
     (search-forward "`")
     (backward-char)
@@ -1772,7 +1780,7 @@ whitespace following it). If no regexps match, just skips over
     (forward-char)
     )
   (defun mark-outside-backticks ()
-    "Mark the enclosing backticks, including the backticks."
+    "Mark the enclosing `backticks`, including the backticks."
     (interactive)
     (search-forward "`")
     (set-mark (point))
@@ -2120,7 +2128,11 @@ on `whitespace-mode'."
 
 ;; Generate links to Github for current code location.
 (use-package git-link
-  :defer t)
+  :defer t
+  :config
+  ;; With a double prefix argument invert the value of `git-link-use-commit'.
+  (setq git-link-use-commit t)
+  )
 
 ;; .gitignore etc.
 (use-package git-modes)
