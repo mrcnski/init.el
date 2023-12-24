@@ -24,11 +24,15 @@
 ;;   - [x] set native-comp load-path (in early-init.el)
 ;;   - [ ] switch to built-in tree-sitter (once it's easier to setup...)
 ;;   - [ ] use new indent package (once stipples are available)
-
+;;
 ;;; Code:
 
 ;; Show more error info?
 (setq debug-on-error nil)
+
+(defun load-init-file (file)
+  "Loads FILE inside init/ folder."
+  (load-file (concat user-emacs-directory "init/" file)))
 
 ;;; User-Defined Variables
 
@@ -1211,6 +1215,9 @@ whitespace following it). If no regexps match, just skips over
 (tooltip-mode nil)
 (defvar x-gtk-use-system-tooltips)
 (setq x-gtk-use-system-tooltips nil)
+
+;; Make mark visible.
+(load-init-file "mmv.el")
 
 ;; Load Theme
 

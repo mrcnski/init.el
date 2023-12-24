@@ -1,12 +1,17 @@
 # Ignore everything...
+
 *
 
 # ... but not these files.
+
+!early-init.el
+!init.el
+!init
+!init/*
+
 !.eshell-rc
 !.eshell-login
 !.gitignore
 !README.org
-!early-init.el
-!init.el
 !images
 !images/*
