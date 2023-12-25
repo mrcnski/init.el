@@ -4,7 +4,9 @@
 ;;
 ;;; Code:
 
+(require 'ring)
 (require 'init-basics)
+(require 'init-vertico-et-al)
 (require 'init-functions-and-shortcuts)
 
 ;; Display number of matches when searching.
@@ -16,27 +18,108 @@
 ;; Avy mode (jump to a char/word using a decision tree).
 (use-package avy
   :bind (
-         ("C-," . avy-goto-line-end)
+         ("C-," . avy-goto-end-of-line)
          ("C-." . avy-goto-char)
-         )
-  :init
-  ;; Jump to the end of a line using avy's decision tree.
-  (defun avy-goto-line-end ()
-    "Jump to a line using avy and go to the end of the line."
-    (interactive)
-    (avy-goto-line)
-    (end-of-line)
-    )
-  :config
-  ;; Use more characters (and better ones) in the decision tree.
-  ;; QWERTY keys.
-  (setq avy-keys '(
-                   ?a ?s ?d ?f ?j ?k ?l ?\;
-                      ?w    ?r ?u    ?o
-                   ))
 
-  ;; Set the background to gray to highlight the decision tree?
-  (setq avy-background nil)
+         ("s-C-," . avy-save-remote-line-and-yank)
+         ("s-C-." . avy-save-remote-symbol-and-yank)
+         )
+
+  :config
+  (setq
+   ;; Use more characters (and better ones) in the decision tree.
+   ;; QWERTY keys.
+   avy-keys '(
+              ?a ?s ?d ?f ?g ?h ?j ?k ?l ?\;
+              ?w    ?r             ?o
+              )
+   ;; Set the background to gray to highlight the decision tree?
+   avy-background nil
+   ;; Jump automatically when there's one candidate left?
+   avy-single-candidate-jump nil
+   )
+
+  (defun avy-action-kill-whole-line (pt)
+    (save-mark-and-excursion
+      (goto-char pt)
+      (kill-whole-line))
+    (select-window
+     (cdr (ring-ref avy-ring 0)))
+    t)
+  (defun avy-action-copy-whole-line (pt)
+    (save-mark-and-excursion
+      (goto-char pt)
+      (kill-ring-save-lines)
+      )
+    (select-window
+     (cdr (ring-ref avy-ring 0)))
+    t)
+  (defun avy-action-yank-whole-line (pt)
+    (avy-action-copy-whole-line pt)
+    (save-mark-and-excursion
+      (end-of-line)
+      (yank)
+      )
+    t)
+  (defun avy-action-mark-to-char (pt)
+    (activate-mark)
+    (goto-char pt))
+  (defun avy-action-helpful (pt)
+    (save-mark-and-excursion
+      (goto-char pt)
+      (helpful-at-point))
+    t)
+  (defun avy-action-embark (pt)
+    (unwind-protect
+        (save-mark-and-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
+
+  (defun avy-action-ripgrep-exact-project (pt)
+    (save-mark-and-excursion
+      (goto-char pt)
+      (let ((symbol (thing-at-point 'symbol t)))
+        (consult-ripgrep-exact-save nil symbol))
+      )
+    t)
+  (defun avy-action-ripgrep-exact-current (pt)
+    (save-mark-and-excursion
+      (goto-char pt)
+      (let ((symbol (thing-at-point 'symbol t)))
+        (consult-ripgrep-exact-save 4 symbol))
+      )
+    t)
+  (defun avy-action-ripgrep-inexact-project (pt)
+    (save-mark-and-excursion
+      (goto-char pt)
+      (let ((symbol (thing-at-point 'symbol t)))
+        (consult-ripgrep-inexact-save nil symbol))
+      )
+    t)
+  (defun avy-action-ripgrep-inexact-current (pt)
+    (save-mark-and-excursion
+      (goto-char pt)
+      (let ((symbol (thing-at-point 'symbol t)))
+        (consult-ripgrep-inexact-save 4 symbol))
+      )
+    t)
+
+  (setf
+   (alist-get ?K avy-dispatch-alist) 'avy-action-kill-whole-line
+   (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
+   (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line
+   (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char
+   (alist-get ?H avy-dispatch-alist) 'avy-action-helpful
+   (alist-get ?z avy-dispatch-alist) 'avy-action-embark
+
+   (alist-get ?u avy-dispatch-alist) 'avy-action-ripgrep-exact-project
+   (alist-get ?U avy-dispatch-alist) 'avy-action-ripgrep-exact-current
+   (alist-get ?i avy-dispatch-alist) 'avy-action-ripgrep-inexact-project
+   (alist-get ?I avy-dispatch-alist) 'avy-action-ripgrep-inexact-current
+   )
   )
 
 ;; Move buffers around.
