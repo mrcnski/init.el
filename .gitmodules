@@ -1,0 +1,3 @@
+[submodule "nimbus-theme"]
+	path = packages/nimbus-theme
+	url = https://github.com/mrcnski/nimbus-theme

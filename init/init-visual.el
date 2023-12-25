@@ -50,7 +50,7 @@
 
 ;; Nimbus is my personal theme, available on Melpa.
 (use-package nimbus-theme
-  :load-path "~/.emacs.d/nimbus-theme"
+  :load-path "~/.emacs.d/packages/nimbus-theme"
   :config
   (nimbus-theme)
   )
