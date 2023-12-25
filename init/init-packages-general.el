@@ -73,7 +73,7 @@
   (add-hook 'eat-eshell-exec-hook #'eat-eshell-emacs-mode)
   )
 
-;; Show example usage when examining elisp functions.
+;; Show example usage when examining elisp functions in help.
 (use-package elisp-demos
   :config
   (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1))
@@ -222,6 +222,16 @@
   :config
   ;; Set to nil to disable pulsing.
   (setq-default goggles-pulse nil)
+  )
+
+(use-package helpful
+  :bind (
+         ("C-h f" . helpful-callable)
+         ("C-h v" . helpful-variable)
+         ("C-h k" . helpful-key)
+         ("C-h x" . helpful-command)
+         ("C-c C-d" . helpful-at-point)
+         )
   )
 
 ;; Highlight indentation.

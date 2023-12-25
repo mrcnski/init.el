@@ -220,6 +220,13 @@
   ;; (setq consult-project-root-function #'vc-root-dir)
   ;;;; 4. locate-dominating-file
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
+
+  (use-package consult-dir
+  :ensure t
+  :bind (("C-x C-d" . consult-dir)
+         :map minibuffer-local-completion-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file)))
   )
 
 ;; Enable richer annotations using Marginalia.
@@ -247,8 +254,15 @@
    ;; ("C-;" . embark-dwim)        ;; good alternative: M-.
    ("C-h B" . embark-bindings) ;; alternative for `describe-bindings'
 
-    :map embark-general-map
-    ("K" . my/embark-search)
+   :map embark-general-map
+   ("h" . helpful-at-point)
+   ("K" . my/embark-search)
+   :map embark-variable-map
+   ("h" . helpful-variable)
+   :map embark-function-map
+   ("K" . my/embark-search)
+   :map embark-symbol-map
+   ("h" . helpful-callable)
    )
 
   :init
