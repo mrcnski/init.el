@@ -4,6 +4,8 @@
 ;;
 ;;; Code:
 
+(require 'init-functions-and-shortcuts)
+
 ;; Enable vertico
 (use-package vertico
   :init
@@ -267,7 +269,14 @@
                  nil
                  (window-parameters (mode-line-format . none))))
 
-  (setq embark-quit-after-action nil)
+  ;; Use C-u before embark-act to reverse the behavior.
+  (setq embark-quit-after-action
+        '(
+          ;; (eshell . t)
+          ;; (embark-copy-as-kill . nil)
+          ;; (embark-insert . t)
+          (t . t)
+          ))
 
   ;; Show embark help popup?
   (add-to-list 'embark-indicators 'embark-minimal-indicator)

@@ -74,7 +74,7 @@
    ((font-exists-p "Iosevka")
     (set-face-attribute
      'default nil :font "Iosevka:weight=Regular" :height 110)
-    ;; 'default nil :font "Iosevka:weight=Light" :height 120)
+    ;; 'default nil :font "Iosevka:weight=Light" :height 110)
     (setq-default line-spacing 0)
     )
    ((font-exists-p "Hack")

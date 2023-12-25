@@ -62,6 +62,7 @@
   "Save the buffer and then revert it."
   (interactive)
   (save-buffer)
+  (delete-all-overlays)
   (revert-buffer-quick))
 (global-set-key (kbd "s-r") 'save-revert-buffer)
 
@@ -294,10 +295,16 @@ region."
 (defun kill-ring-save-lines ()
   "Save the current line, or all lines included in the region."
   (interactive)
-  (select-lines)
-  (call-interactively 'kill-ring-save)
-  (kill-append "\n" t)
-  )
+  (let (
+        ;; If last command was a kill, copy-region-as-kill would append.
+        (last-command nil)
+        )
+    (save-mark-and-excursion
+      (select-lines)
+      (call-interactively 'copy-region-as-kill)
+      (kill-append "\n" t)
+      )
+    ))
 (global-set-key (kbd "M-W") 'kill-ring-save-lines)
 
 ;; Drag up/down single line or lines in region.
@@ -339,29 +346,36 @@ into one."
 (defun duplicate-line-below ()
   "Duplicate the current line below while keeping point location."
   (interactive)
-  (let ((point-at-beginning (eq (point) (line-beginning-position))))
+  (let ((point-at-beginning (eq (point) (line-beginning-position)))
+        ;; If last command was a kill, copy-region-as-kill would append.
+        (last-command nil)
+        )
     (save-mark-and-excursion
       (beginning-of-line)
       (select-line)
-      (call-interactively 'kill-ring-save)
+      (call-interactively 'copy-region-as-kill)
       (open-line 1)
       (yank)
       )
-      (when point-at-beginning
-        (forward-line))
-  ))
+    (when point-at-beginning
+      (forward-line))
+    ))
 (defun duplicate-line-above ()
   "Duplicate the current line above while keeping point location."
   (interactive)
-  (save-mark-and-excursion
-    (beginning-of-line)
-    (select-line)
-    (call-interactively 'kill-ring-save)
-    (forward-line 1)
-    (open-line 1)
-    (yank)
-    )
-  )
+  (let (
+        ;; If last command was a kill, copy-region-as-kill would append.
+        (last-command nil)
+        )
+    (save-mark-and-excursion
+      (beginning-of-line)
+      (select-line)
+      (call-interactively 'copy-region-as-kill)
+      (forward-line 1)
+      (open-line 1)
+      (yank)
+      )
+    ))
 (global-set-key (kbd "s-M-n") 'duplicate-line-below)
 (global-set-key (kbd "s-M-p") 'duplicate-line-above)
 
@@ -437,7 +451,7 @@ into one."
 
 (global-set-key (kbd "C-v") 'scroll-up-fraction)
 (global-set-key (kbd "M-v") 'scroll-down-fraction)
-(global-set-key (kbd "C-V") 'scroll-up)
+(global-set-key (kbd "C-S-v") 'scroll-up)
 (global-set-key (kbd "M-V") 'scroll-down)
 (global-set-key (kbd "C-M-v") 'scroll-other-window-up-fraction)
 (global-set-key (kbd "C-M-V") 'scroll-other-window-down-fraction)

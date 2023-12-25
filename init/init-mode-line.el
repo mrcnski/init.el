@@ -87,7 +87,7 @@
                          ))
      " "
      ;; Limited set of useful minor modes.
-     `(:eval (when (and (boundp 'iedit-mode) iedit-mode "[=iedit=] ")))
+     `(:eval (when (and (boundp 'iedit-mode) iedit-mode) "[=iedit=] "))
 
      ;; Read-only.
      '(:eval (when buffer-read-only

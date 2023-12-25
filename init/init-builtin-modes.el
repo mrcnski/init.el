@@ -8,7 +8,20 @@
 
 (use-package isearch
   :ensure nil
+  :bind (
+         :map isearch-mode-map
+         ("C-g" . isearch-abort-fixed)
+         )
+  :init
+  (defun isearch-abort-fixed ()
+    "Fix broken C-g."
+    (interactive)
+    (isearch-abort)
+    (isearch-abort)
+    )
+
   :config
+
   (setq
    ;; Can scroll in isearch?
    isearch-allow-scroll t
@@ -18,13 +31,6 @@
    isearch-lazy-count t
    lazy-highlight-initial-delay info-delay
    )
-
-  ;; Fix broken C-g.
-  (define-key isearch-mode-map (kbd "C-g")
-              (lambda () (interactive)
-                (isearch-abort)
-                (isearch-abort)
-              ))
 
   ;; Display last searched string in minibuffer prompt.
   (add-hook 'isearch-mode-hook
