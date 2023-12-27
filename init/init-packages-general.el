@@ -6,6 +6,7 @@
 
 (require 'ring)
 (require 'init-basics)
+(require 'init-builtin-settings)
 (require 'init-vertico-et-al)
 (require 'init-functions-and-shortcuts)
 
@@ -200,9 +201,10 @@
 
 ;; Workspaces.
 (use-package eyebrowse
+  ;; TODO: Needed?
   ;; To prevent mode-line display errors.
-  :demand t
-
+  ;; :demand t
+  :load-path "~/.emacs.d/packages/eyebrowse"
   :bind (
          ("s-," . eyebrowse-prev-window-config)
          ("s-." . eyebrowse-next-window-config)
@@ -238,8 +240,10 @@
    eyebrowse-close-window-config-prompt t
 
    eyebrowse-mode-line-separator " "
-   eyebrowse-mode-line-left-delimiter "["
-   eyebrowse-mode-line-right-delimiter "]"
+   eyebrowse-mode-line-left-delimiter ""
+   eyebrowse-mode-line-right-delimiter ""
+   eyebrowse-mode-line-current-left-delimiter "["
+   eyebrowse-mode-line-current-right-delimiter "]"
    )
 
   (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold t)
@@ -247,38 +251,15 @@
   ;;; Show workspaces in title bar.
 
   ;; Only recalculate the workspaces string when it actually changes.
-  (defvar eyebrowse-workspaces)
-  (defun eyebrowse-current-workspace ()
-    "Get the current workspace number."
-    (eyebrowse--get 'current-slot))
-  (defun eyebrowse-workspaces-update ()
-    "Updates eyebrowse workspaces."
-    ;; Update any visible org-agenda buffers.
-    ;; (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
-    ;; Update the workspaces string.
-    (let ((workspaces (substring-no-properties (eyebrowse-mode-line-indicator))))
-      (setq eyebrowse-workspaces workspaces)))
-  (defun eyebrowse-workspaces-update-one-arg (_arg1)
-    "Advice for `eyebrowse-workspaces-update' with one arg."
-    (eyebrowse-workspaces-update))
-  (defun eyebrowse-workspaces-update-two-args (_arg1 _arg2)
-    "Advice for `eyebrowse-workspaces-update' with two args."
-    (eyebrowse-workspaces-update))
-  (eyebrowse-workspaces-update)
+  (defun frame-title-eyebrowse-update ()
+    "Updates eyebrowse indicator in the frame title."
+    (let* ((indicator (substring-no-properties (eyebrowse-mode-line-indicator))))
+      (setq frame-title-eyebrowse
+            (when (not (string-empty-p indicator))
+              (format " - %s" indicator)))))
+  (frame-title-eyebrowse-update)
 
-  (add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-update)
-  (advice-add 'eyebrowse-close-window-config :after #'eyebrowse-workspaces-update)
-  (advice-add 'eyebrowse-rename-window-config :after #'eyebrowse-workspaces-update-two-args)
-  (advice-add 'other-frame :after #'eyebrowse-workspaces-update-one-arg)
-  (advice-add 'make-frame :after #'eyebrowse-workspaces-update)
-  (advice-add 'delete-frame :after #'eyebrowse-workspaces-update)
-
-  ;; Append to title list.
-  (add-to-list 'frame-title-format
-               '(:eval (when (not (string-empty-p eyebrowse-workspaces))
-                         (format " - %s - %s" eyebrowse-workspaces (eyebrowse-current-workspace))))
-               t
-               )
+  (add-hook 'eyebrowse-indicator-change-hook 'frame-title-eyebrowse-update)
   )
 
 ;; Fix the capitalization commands.

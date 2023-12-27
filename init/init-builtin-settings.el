@@ -126,15 +126,11 @@
  c-default-style "stroustrup"
  )
 
-;; Change window name to be more descriptive.
-(setq frame-title-format
-      '((:eval (when (and (buffer-modified-p) buffer-file-name) "*"))
-        "Emacs - "
-        (buffer-file-name
-         "%f" (dired-directory dired-directory "%b"))
-        ))
+;; Set window name/title.
+(defvar frame-title-eyebrowse)
+(setq frame-title-format '("Emacs" frame-title-eyebrowse))
 
-;; Set c-style comments to be "//" by default (these are just better, sorry).
+;; Set c-style comments to be "//".
 (add-hook 'c-mode-common-hook
           (lambda ()
             ;; Preferred comment style

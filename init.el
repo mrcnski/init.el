@@ -33,7 +33,7 @@
 ;; Show more error info?
 (setq debug-on-error nil)
 
-(add-to-list 'load-path "/Users/marcin/.emacs.d/init")
+(add-to-list 'load-path "~/.emacs.d/init")
 
 (require 'init-basics)
 (require 'init-package) ;; Can use Melpa packages after this.
@@ -55,6 +55,7 @@
 (require 'init-packages-project)
 (require 'init-packages-languages)
 (require 'init-org)
+;; Put it last to override any changes from packages.
 (require 'init-mode-line)
 
 ;;; Load customizations
