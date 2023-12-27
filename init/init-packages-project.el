@@ -4,6 +4,8 @@
 ;;
 ;;; Code:
 
+(require 'init-basics)
+
 ;; Company mode for auto-completion.
 (use-package company
   :bind (
@@ -165,7 +167,7 @@
 
    ;; Set shorter delay for displaying errors at point.
    flycheck-display-errors-delay (* 1 info-delay)
-   sentence-end-double-space nil ;; Stupid check.
+   sentence-end-double-space nil ;; Unnecessary check.
    flycheck-checker-error-threshold 600
    flycheck-emacs-lisp-load-path 'inherit
    )

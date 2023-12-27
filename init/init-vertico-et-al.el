@@ -259,14 +259,9 @@
    ("C-h B" . embark-bindings) ;; alternative for `describe-bindings'
 
    :map embark-general-map
-   ("h" . helpful-at-point)
    ("K" . my/embark-search)
-   :map embark-variable-map
-   ("h" . helpful-variable)
    :map embark-function-map
    ("K" . my/embark-search)
-   :map embark-symbol-map
-   ("h" . helpful-callable)
    )
 
   :init

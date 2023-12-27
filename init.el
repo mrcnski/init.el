@@ -37,12 +37,12 @@
 
 (require 'init-basics)
 (require 'init-package) ;; Can use Melpa packages after this.
-(require 'init-early-utils) ;; Things good to have early.
+(require 'init-early-utils) ;; Things important to have early.
+(require 'init-functions-and-shortcuts)
 (require 'init-vertico-et-al) ;; Also good to have early.
 (require 'init-builtin-settings)
 (require 'init-builtin-modes)
 (require 'init-visual)
-(require 'init-functions-and-shortcuts)
 
 ;; Stop execution here for terminal (used only for quick editing).
 (when (not (display-graphic-p))

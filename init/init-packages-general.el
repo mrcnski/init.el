@@ -253,10 +253,10 @@
   ;; Only recalculate the workspaces string when it actually changes.
   (defun frame-title-eyebrowse-update ()
     "Updates eyebrowse indicator in the frame title."
-    (let* ((indicator (substring-no-properties (eyebrowse-mode-line-indicator))))
+    (let ((indicator (substring-no-properties (eyebrowse-mode-line-indicator))))
       (setq frame-title-eyebrowse
             (when (not (string-empty-p indicator))
-              (format " - %s" indicator)))))
+              (format " -- %s" indicator)))))
   (frame-title-eyebrowse-update)
 
   (add-hook 'eyebrowse-indicator-change-hook 'frame-title-eyebrowse-update)
@@ -286,16 +286,6 @@
   :config
   ;; Set to nil to disable pulsing.
   (setq-default goggles-pulse nil)
-  )
-
-(use-package helpful
-  :bind (
-         ("C-h f" . helpful-callable)
-         ("C-h v" . helpful-variable)
-         ("C-h k" . helpful-key)
-         ("C-h x" . helpful-command)
-         ("C-c C-d" . helpful-at-point)
-         )
   )
 
 ;; Highlight indentation.
