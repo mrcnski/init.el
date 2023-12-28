@@ -4,9 +4,11 @@
 ;;
 ;;; Code:
 
-;; Set transparency.
-(set-frame-parameter (selected-frame) 'alpha '(100))
-;; (set-frame-parameter (selected-frame) 'alpha '(98))
+(require 'init-visual-frame)
+;; Make mark visible.
+(require 'init-visual-mmv)
+
+;;; Cursor settings.
 
 ;; Turn on blinking/flashing cursor? (-1 to disable)
 (blink-cursor-mode -1)
@@ -17,20 +19,12 @@
 ;; Stretch cursor to be as wide as the character at point.
 (setq x-stretch-cursor 1)
 
-;; Allow resizing by pixels.
-(setq frame-resize-pixelwise t)
-
-(toggle-frame-maximized) ;; Maximize!
-
 ;; Enable popup tooltips, use emacs tooltip implementation.
 (tooltip-mode nil)
 (defvar x-gtk-use-system-tooltips)
 (setq x-gtk-use-system-tooltips nil)
 
-;; Make mark visible.
-(require 'init-visual-mmv)
-
-;; Load Theme
+;;; Load Theme
 
 (defadvice load-theme (before clear-previous-themes activate)
   "Clear existing theme settings instead of layering them."
@@ -55,7 +49,7 @@
   (nimbus-theme)
   )
 
-;; Set font.
+;;; Set font.
 
 ;; Set font only if we're not in the terminal.
 (when (display-graphic-p)

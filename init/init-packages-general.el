@@ -6,9 +6,9 @@
 
 (require 'ring)
 (require 'init-basics)
-(require 'init-builtin-settings)
 (require 'init-vertico-et-al)
 (require 'init-functions-and-shortcuts)
+(require 'init-visual-frame)
 
 ;; Display number of matches when searching.
 (use-package anzu

@@ -126,10 +126,6 @@
  c-default-style "stroustrup"
  )
 
-;; Set window name/title.
-(defvar frame-title-eyebrowse)
-(setq frame-title-format '("Emacs" frame-title-eyebrowse))
-
 ;; Set c-style comments to be "//".
 (add-hook 'c-mode-common-hook
           (lambda ()
