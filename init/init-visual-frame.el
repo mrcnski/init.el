@@ -8,7 +8,9 @@
 
 ;; Set window name/title.
 (defvar frame-title-eyebrowse)
-(setq frame-title-format '("Emacs" frame-title-eyebrowse))
+(defvar frame-title-keys)
+(defvar frame-title-separator "  —  ")
+(setq frame-title-format '("Emacs" frame-title-eyebrowse frame-title-keys))
 
 ;; (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 ;; Assuming you are using a dark theme.

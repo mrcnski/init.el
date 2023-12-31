@@ -19,6 +19,8 @@
 ;; - Use M-x bug-hunter-init-file to locate errors.
 ;; - Use M-x profiler-start and profiler-report to profile runtime.
 ;; - Use restart-emacs to restart after making changes.
+;; - For traces:
+;;     M-: (trace-function #'some-function nil (lambda () (backtrace-to-string (backtrace-get-frames 'backtrace))))
 ;;
 ;; TODO:
 ;;

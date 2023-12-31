@@ -31,8 +31,8 @@
    ;; Use more characters (and better ones) in the decision tree.
    ;; QWERTY keys.
    avy-keys '(
-              ?a ?s ?d ?f ?g ?h ?j ?k ?l ?\;
-              ?w    ?r             ?o
+              ?a ?s ?d ?f ?j ?k ?l ?\;
+                 ?w ?e ?r       ?o
               )
    ;; Set the background to gray to highlight the decision tree?
    avy-background nil
@@ -65,10 +65,16 @@
   (defun avy-action-mark-to-char (pt)
     (activate-mark)
     (goto-char pt))
-  (defun avy-action-helpful (pt)
-    (save-mark-and-excursion
-      (goto-char pt)
-      (helpful-at-point))
+  (defun avy-action-describe (pt)
+    (let ((symbol))
+      (save-mark-and-excursion
+        (goto-char pt)
+        (setq symbol (thing-at-point 'symbol t))
+        )
+      (select-window
+       (cdr (ring-ref avy-ring 0)))
+      (describe-symbol (intern symbol))
+      )
     t)
   (defun avy-action-embark (pt)
     (unwind-protect
@@ -78,43 +84,43 @@
       (select-window
        (cdr (ring-ref avy-ring 0))))
     t)
+  (defun avy-action-flycheck (pt)
+    (save-mark-and-excursion
+      (goto-char pt)
+      (flycheck-display-error-at-point)
+      )
+    t)
 
+  (defun avy-action-ripgrep-apply (fun &rest args)
+    (let ((symbol))
+      (save-mark-and-excursion
+        (goto-char pt)
+        (setq symbol (thing-at-point 'symbol t))
+        )
+      (select-window
+       (cdr (ring-ref avy-ring 0)))
+      (funcall fun args symbol)
+      )
+    t)
   (defun avy-action-ripgrep-exact-project (pt)
-    (save-mark-and-excursion
-      (goto-char pt)
-      (let ((symbol (thing-at-point 'symbol t)))
-        (consult-ripgrep-exact-save nil symbol))
-      )
-    t)
+    (avy-action-ripgrep-apply #'consult-ripgrep-exact-save nil))
   (defun avy-action-ripgrep-exact-current (pt)
-    (save-mark-and-excursion
-      (goto-char pt)
-      (let ((symbol (thing-at-point 'symbol t)))
-        (consult-ripgrep-exact-save 4 symbol))
-      )
-    t)
+    (avy-action-ripgrep-apply #'consult-ripgrep-exact-save 4))
   (defun avy-action-ripgrep-inexact-project (pt)
-    (save-mark-and-excursion
-      (goto-char pt)
-      (let ((symbol (thing-at-point 'symbol t)))
-        (consult-ripgrep-inexact-save nil symbol))
-      )
-    t)
+    (avy-action-ripgrep-apply #'consult-ripgrep-inexact-save nil))
   (defun avy-action-ripgrep-inexact-current (pt)
-    (save-mark-and-excursion
-      (goto-char pt)
-      (let ((symbol (thing-at-point 'symbol t)))
-        (consult-ripgrep-inexact-save 4 symbol))
-      )
-    t)
+    (avy-action-ripgrep-apply #'consult-ripgrep-inexact-save 4))
+
+  ;; TODO: flycheck-display-error-at-point
 
   (setf
    (alist-get ?K avy-dispatch-alist) 'avy-action-kill-whole-line
    (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
    (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line
    (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char
-   (alist-get ?H avy-dispatch-alist) 'avy-action-helpful
+   (alist-get ?h avy-dispatch-alist) 'avy-action-describe
    (alist-get ?z avy-dispatch-alist) 'avy-action-embark
+   (alist-get ?! avy-dispatch-alist) 'avy-action-flycheck
 
    (alist-get ?u avy-dispatch-alist) 'avy-action-ripgrep-exact-project
    (alist-get ?U avy-dispatch-alist) 'avy-action-ripgrep-exact-current
@@ -170,27 +176,6 @@
 (use-package expand-region
   :bind ("C-;" . er/expand-region)
   :config
-
-  (defun mark-inside-backticks ()
-    "Mark up to enclosing `backticks`, not including the backticks."
-    (interactive)
-    (search-forward "`")
-    (backward-char)
-    (set-mark (point))
-    (search-backward "`")
-    (forward-char)
-    )
-  (defun mark-outside-backticks ()
-    "Mark the enclosing `backticks`, including the backticks."
-    (interactive)
-    (search-forward "`")
-    (set-mark (point))
-    (search-backward "`" nil nil 2)
-    )
-
-  (setq er/try-expand-list
-        (append er/try-expand-list
-                '(mark-inside-backticks mark-outside-backticks)))
 
   ;; Fix region not highlighting.
   (setq
@@ -256,7 +241,7 @@
     (let ((indicator (substring-no-properties (eyebrowse-mode-line-indicator))))
       (setq frame-title-eyebrowse
             (when (not (string-empty-p indicator))
-              (format " -- %s" indicator)))))
+              (format "%s%s" frame-title-separator indicator)))))
   (frame-title-eyebrowse-update)
 
   (add-hook 'eyebrowse-indicator-change-hook 'frame-title-eyebrowse-update)
@@ -288,19 +273,31 @@
   (setq-default goggles-pulse nil)
   )
 
+(use-package gptel)
+
 ;; Highlight indentation.
 ;; TODO: Use https://github.com/jdtsmith/indent-bars#installconfig
-(use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
+;; REMOVED: Causing weird issues, and I never really used it.
+;; (use-package highlight-indent-guides
+;;   :hook (prog-mode . highlight-indent-guides-mode)
+;;   :config
+;;   (setq
+;;    highlight-indent-guides-method 'column
+;;    ;; Automatically calculate faces?
+;;    highlight-indent-guides-auto-enabled nil
+;;    ;; Should the current indentation under point be highlighted?
+;;    highlight-indent-guides-responsive 'top
+;;    highlight-indent-guides-delay 0
+;;    )
+;;   )
+
+;; Highlight surrounding parentheses.
+(use-package highlight-parentheses
+  :hook (prog-mode . highlight-parentheses-mode)
   :config
-  (setq
-   highlight-indent-guides-method 'column
-   ;; Automatically calculate faces?
-   highlight-indent-guides-auto-enabled nil
-   ;; Should the current indentation under point be highlighted?
-   highlight-indent-guides-responsive 'top
-   highlight-indent-guides-delay 0
-   )
+  (setq hl-paren-colors '("cyan2")
+        hl-paren-delay highlight-delay
+        )
   )
 
 ;; Highlight more elisp syntax.
@@ -365,10 +362,54 @@
           ))
   )
 
+(use-package keys
+  :load-path "~/.emacs.d/packages/keys" ; Coming to MELPA soon I hope
+  :config
+
+  ;; Customize some settings
+  (setq
+   keys-keys '("s-w" "M-F" "C-M-y" "C-x 2" "C-M-," "C-S-v" "s-D" "M-W")
+   keys-display-amount 2 ; How many keys to show at once
+   keys-indicator-separator " | " ; Customize the indicator!
+   keys-random t ; By default, keys are shown in a random order
+
+                ; Calling associated commands manually is an error!
+   keys-force t ; So if you bind `git-link` to C-c g, you get an error when
+                ; invoking `M-x git-link` with this configuration set.
+   )
+
+  ;; Update the indicator every time it should change.
+  ;; You can also just do `(:eval (when global-keys-mode (keys-indicator)))`,
+  ;;   but this avoids constantly re-calculating the indicator.
+  ;; The same idea applies for the mode-line, header, etc.
+  ;; (defvar frame-title-keys)
+  ;; (defvar frame-title-separator "  —  ")
+  ;; (setq frame-title-format '("Emacs" frame-title-keys))
+  (add-hook
+   'keys-post-change-hook
+   #'(lambda ()
+       (let ((indicator (keys-indicator)))
+         (setq frame-title-keys
+               (when (and global-keys-mode (not (string-empty-p indicator)))
+                 (format "%s%s" frame-title-separator indicator))))))
+
+  ;; Ready to turn on keys-mode!
+  (global-keys-mode)
+
+  ;; Integrate with midnight-mode.
+  (require 'midnight)
+  (midnight-delay-set 'midnight-delay "1:00am")
+  (add-hook 'midnight-hook 'keys-reset)
+  )
+
 ;; A package for choosing a color by updating text sample.
 ;; See https://www.emacswiki.org/emacs/MakeColor.
 (use-package make-color
   :defer t)
+
+(use-package mark-yank
+  :bind ("C-M-y" . mark-yank)
+  :config (mark-yank-mode 1))
 
 ;; Multiple cursors.
 (use-package multiple-cursors
@@ -383,6 +424,9 @@
 
          ;; Reclaim some keys...
          ("<return>" . nil)
+         ("C-'" . nil)
+
+         :map mc/mark-more-like-this-extended-keymap
          ("C-'" . nil)
          )
   :config
@@ -430,7 +474,7 @@
   :ensure nil
   :config
   (setq uniquify-buffer-name-style 'forward
-        uniquify-min-dir-content 1
+        uniquify-min-dir-content 2
         uniquify-strip-common-suffix nil
         )
   )
@@ -439,8 +483,11 @@
 (use-package which-key
   :config
   (which-key-mode)
-  (setq which-key-sort-order 'which-key-key-order-alpha)
-  (setq which-key-sort-uppercase-first nil))
+  (setq
+   which-key-sort-order 'which-key-key-order-alpha
+   which-key-sort-uppercase-first nil
+   )
+  )
 
 (use-package whitespace
   ;; :hook (prog-mode . whitespace-mode)

@@ -20,6 +20,42 @@
 ;; Enable OSX full screen shortcut.
 (global-set-key (kbd "C-s-f") 'toggle-frame-maximized)
 
+(defun backward-symbol ()
+  "The backwards version of `forward-symbol'."
+  (interactive)
+  (forward-symbol -1)
+  )
+(defun kill-symbol ()
+  "The symbol version of `kill-word'."
+  (interactive)
+  (save-mark-and-excursion
+    (push-mark)
+    (activate-mark)
+    (forward-symbol 1)
+    (call-interactively 'kill-region)
+    )
+  )
+(defun backward-kill-symbol ()
+  "The backwards, symbol version of `kill-word'."
+  (interactive)
+  (save-mark-and-excursion
+    (push-mark)
+    (activate-mark)
+    (forward-symbol -1)
+    (call-interactively 'kill-region)
+    )
+  )
+(defun transpose-symbols (arg)
+  "The symbol version of `transpose-words'. ARG!"
+  (interactive "*p")
+  (transpose-subr 'forward-symbol arg)
+  )
+(global-set-key (kbd "M-F") 'forward-symbol)
+(global-set-key (kbd "M-B") 'backward-symbol)
+(global-set-key (kbd "M-D") 'kill-symbol)
+(global-set-key (kbd "M-S-<backspace>") 'backward-kill-symbol)
+(global-set-key (kbd "M-T") 'transpose-symbols)
+
 (defun isearch-backward-symbol-at-point (&optional arg)
   "The backwards version of `isearch-forward-symbol-at-point'. ARG!"
   (interactive "P")
@@ -48,14 +84,19 @@
   (kill-line 0))
 (global-set-key (kbd "s-<backspace>") 'kill-line-backwards)
 
+;; It is the opposite of fill-paragraph.
+;; https://www.emacswiki.org/emacs/UnfillParagraph
+(defun unfill-paragraph ()
+  "Takes a multi-line paragraph and makes it into a single line of text."
+  (interactive)
+  (let ((fill-column (point-max)))
+    (fill-paragraph nil)))
+ (global-set-key (kbd "M-Q") 'unfill-paragraph)
+
 ;; Disable annoying popup on OSX.
 (global-set-key (kbd "s-t") 'make-frame)
 ;; I don't want to accidentally press this.
 (global-set-key (kbd "s-q") nil)
-
-;; Actions to perform when saving.
-;; (add-hook 'before-save-hook 'whitespace-cleanup)
-;; (add-hook 'before-save-hook 'ispell-comments-and-strings)
 
 ;; Save the buffer and revert it (reload from disk).
 (defun save-revert-buffer ()
@@ -376,8 +417,8 @@ into one."
       (yank)
       )
     ))
-(global-set-key (kbd "s-M-n") 'duplicate-line-below)
-(global-set-key (kbd "s-M-p") 'duplicate-line-above)
+(global-set-key (kbd "M-N") 'duplicate-line-below)
+(global-set-key (kbd "M-P") 'duplicate-line-above)
 
 ;; Indentation functions.
 

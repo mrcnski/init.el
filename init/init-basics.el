@@ -22,7 +22,9 @@
 (defvar user-emacs-etc-directory (concat user-emacs-config-directory "etc/"))
 (defvar user-emacs-elpa-directory (concat user-emacs-config-directory "elpa/"))
 
-(defvar highlight-delay .03)
+;; Should be based on keyboard rate, to not trigger when cursor is moving.
+(defvar highlight-delay .04)
+
 (defvar info-delay .25)
 
 ;; Open .emacs init.

@@ -9,7 +9,7 @@
 ;;; Code:
 
 (defface mmv-face
-  '((t :inherit cursor :box t))
+  '((t (:underline "black")))
   "Face used for showing the mark's position.")
 
 (defvar-local mmv-mark-overlay nil
@@ -51,7 +51,7 @@ invisible."
   (interactive)
   (setq mmv-is-mark-visible (not mmv-is-mark-visible))
   (if mmv-is-mark-visible
-      (set-face-attribute 'mmv-face nil :background "maroon2" :foreground "white")
+      (set-face-attribute 'mmv-face nil :underline "black")
     (set-face-attribute 'mmv-face nil :background 'unspecified :foreground 'unspecified))
   (mmv-draw-mark))
 

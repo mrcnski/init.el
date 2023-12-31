@@ -111,16 +111,16 @@
                   )))
            (format "[status: %s] " status)
            )))
+     ;; which-function-mode
+     '(:eval
+       (when (and (boundp 'which-func-mode) which-func-mode)
+         (let ((f (which-function)))
+           (when f
+             (concat "[" f "] ")
+             ))))
+
      ;; Recursive editing level.
      "%[%] "
-
-     ;; REMOVED: Performance hit and I wasn't using it much.
-     ;; '(:eval
-     ;;   (when (derived-mode-p 'prog-mode 'text-mode 'conf-mode)
-     ;;     (let ((f (which-function)))
-     ;;       (when f
-     ;;         (concat "[" f "] ")
-     ;;         ))))
 
      ;; " "
      ;; '(:eval (propertize (format-time-string "%H:%M")))

@@ -4,3 +4,6 @@
 [submodule "eyebrowse"]
 	path = packages/eyebrowse
 	url = https://github.com/mrcnski/eyebrowse
+[submodule "keys"]
+	path = packages/keys
+	url = https://github.com/mrcnski/keys
