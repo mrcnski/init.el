@@ -305,7 +305,7 @@
     (setq
      eshell-hist-ignoredups t
      ;; Set the history file.
-     eshell-history-file-name "~/.bash_history"
+     eshell-history-file-name "~/.zsh_history"
      ;; If nil, use HISTSIZE as the history size.
      eshell-history-size 10000
      )
@@ -346,29 +346,29 @@
        `(
          ;; Line to distinguish end of previous output.
          ("==="
-          'font-lock-comment-face)
+          font-lock-comment-face)
          ("\n")
          ;; Timestamp.
          (,(format-time-string "[%a, %b %d | %H:%M:%S]\n" (current-time))
-          'font-lock-keyword-face)
+          font-lock-keyword-face)
          ;; Directory.
          ;;
          ;; Try to abbreviate-file-name of current directory as per `eshell'
          ;; defaults, e.g. display `~' instead of `/path/to/user/home'.
          (,(format "[%s]" (abbreviate-file-name (eshell/pwd)))
-          'font-lock-constant-face)
+          font-lock-constant-face)
          ;; Git branch.
          (,(if (string= git-branch "") "" (format " %s" git-branch))
-          'font-lock-preprocessor-face)
+          font-lock-preprocessor-face)
          ;; The last exit code.
          (,(if-let ((status eshell-last-command-status))
                (if (= status 0) "" (format " [%s]" status)))
-          'error)
+          error)
          ("\n")
          ;; NOTE: Choose between prompts # and $ depending on user privileges,
          ;; as per Bourne and eshell defaults.
          (,(if (zerop (user-uid)) " # " " $ ")
-          'minibuffer-prompt)
+          minibuffer-prompt)
          )
        ""))
     )
@@ -382,10 +382,6 @@
     :config
     ;; Enable in all Eshell buffers.
     (eshell-syntax-highlighting-global-mode 1))
-
-  ;; Add z to eshell.
-  ;; Jumps to most recently visited directories.
-  (use-package eshell-z)
   )
 
 (use-package outline

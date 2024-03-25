@@ -1,6 +1,6 @@
 ;;; init.el --- Emacs configuration file. -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2017-2023 Marcin Swieczkowski
+;; Copyright (C) 2017-2024 Marcin Swieczkowski
 ;;
 ;;; Commentary:
 ;;
@@ -49,8 +49,7 @@
 ;; Stop execution here for terminal (used only for quick editing).
 (when (not (display-graphic-p))
   (with-current-buffer " *load*"
-    (goto-char (point-max)))
-  )
+    (goto-char (point-max))))
 
 (require 'init-packages-general)
 (require 'init-packages-git)
