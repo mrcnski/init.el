@@ -272,8 +272,8 @@
   ;; Set keys up in this hook. This doesn't work in :bind.
   (add-hook 'eshell-first-time-mode-hook
             #'(lambda ()
-                (define-key eshell-mode-map (kbd "M-m") 'eshell-bol)
-                (define-key eshell-mode-map (kbd "C-a") 'beginning-of-line)
+                (define-key eshell-mode-map (kbd "C-a") 'eshell-bol)
+                (define-key eshell-mode-map (kbd "M-m") 'beginning-of-line)
                 (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
                 (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
 

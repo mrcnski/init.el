@@ -7,3 +7,6 @@
 [submodule "keys"]
 	path = packages/keys
 	url = https://github.com/mrcnski/keys
+[submodule "packages/catppuccin-theme"]
+	path = packages/catppuccin-theme
+	url = https://github.com/catppuccin/emacs

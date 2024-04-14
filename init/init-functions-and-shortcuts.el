@@ -234,19 +234,27 @@ another window."
 (global-set-key (kbd "M-O") 'other-window-reverse)
 
 ;; Commands to split window and move focus to other window.
+(defun split-window-below-balance ()
+  "Split window horizontally and balance windows."
+  (interactive)
+  (split-window-below)
+  (balance-windows))
 (defun split-window-below-focus ()
   "Split window horizontally and move focus to other window."
   (interactive)
-  (split-window-below)
-  (balance-windows)
+  (split-window-below-balance)
   ;; Update any visible org-agenda buffers.
   (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
   (other-window 1))
+(defun split-window-right-balance ()
+  "Split window vertically and balance windows."
+  (interactive)
+  (split-window-right)
+  (balance-windows))
 (defun split-window-right-focus ()
   "Split window vertically and move focus to other window."
   (interactive)
-  (split-window-right)
-  (balance-windows)
+  (split-window-right-balance)
   ;; Update any visible org-agenda buffers.
   (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
   (other-window 1))
@@ -258,6 +266,8 @@ another window."
   ;; Update any visible org-agenda buffers.
   (when (fboundp 'org-agenda-refresh) (org-agenda-refresh))
   )
+(global-set-key (kbd "C-x 2") 'split-window-below-balance)
+(global-set-key (kbd "C-x 3") 'split-window-right-balance)
 (global-set-key (kbd "C-0") 'delete-window-balance)
 (global-set-key (kbd "C-1") 'delete-other-windows)
 (global-set-key (kbd "C-2") 'split-window-below-focus)
