@@ -24,7 +24,6 @@
 ;;
 ;; TODO:
 ;;
-;; - [x] Fix awful performance in Emacs 29.1 [done by switching to emacs-plus]
 ;; - [ ] With Emacs 29+:
 ;;   - [x] set native-comp load-path (in early-init.el)
 ;;   - [ ] switch to built-in tree-sitter (once it's easier to setup...)

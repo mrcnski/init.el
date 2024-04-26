@@ -475,12 +475,14 @@
   )
 
 ;; This package provides functions to accentuate and reset the active window.
-(use-package selected-window-accent-mode
-  :config
-  (selected-window-accent-mode 1)
-  :custom
-  (selected-window-accent-mode-style 'default)
-  )
+;; REMOVED: Breaks fringes.
+;; See https://github.com/captainflasmr/selected-window-accent-mode/issues/3.
+;; (use-package selected-window-accent-mode
+;;   :config
+;;   (selected-window-accent-mode 1)
+;;   :custom
+;;   (selected-window-accent-mode-style 'default)
+;;   )
 
 ;; Commands for converting between programmatic cases.
 (use-package string-inflection

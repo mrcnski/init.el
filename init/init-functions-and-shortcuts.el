@@ -116,7 +116,7 @@
 (global-set-key (kbd "C-x s") 'save-all)
 
 ;; Automatically save all file-visiting buffers when Emacs loses focus.
-(add-hook 'after-focus-change-hook 'save-all)
+(add-function :after after-focus-change-function #'save-all)
 ;; Run `save-all' when idle for a while.
 ;; Shouldn't run too quickly as it is a bit distracting.
 (run-with-idle-timer 60 t 'save-all)
