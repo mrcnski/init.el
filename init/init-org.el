@@ -335,7 +335,7 @@ exist after each headings's drawers."
     :bind (
            :map org-recur-mode-map
 
-           ;; ("C-c d" . org-recur-finish)
+           ("C-c d" . org-recur-finish)
            ("C-c 0" . org-recur-schedule-today)
            ("C-c 1" . org-recur-schedule-1)
            ("C-c 2" . org-recur-schedule-2)

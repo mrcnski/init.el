@@ -273,8 +273,6 @@
   (setq-default goggles-pulse nil)
   )
 
-(use-package gptel)
-
 ;; Highlight indentation.
 ;; TODO: Use https://github.com/jdtsmith/indent-bars#installconfig
 ;; REMOVED: Causing weird issues, and I never really used it.
@@ -333,12 +331,13 @@
   (add-hook
    'after-change-major-mode-hook
    (lambda ()
-     (when (derived-mode-p 'org-mode)
-       (setq-local idle-highlight-exceptions '("-" "*" "**" "***" "****" "*****")))
+     ;; Go from least-specific to most specific.
+     (when (derived-mode-p 'text-mode)
+       (setq-local idle-highlight-exceptions '("-")))
      (when (derived-mode-p 'outline-mode)
        (setq-local idle-highlight-exceptions '("*" "**" "***" "****" "*****")))
-     (when (derived-mode-p 'markdown-mode)
-       (setq-local idle-highlight-exceptions '("-")))
+     (when (derived-mode-p 'org-mode)
+       (setq-local idle-highlight-exceptions '("-" "*" "**" "***" "****" "*****")))
      ))
   )
 
@@ -368,7 +367,7 @@
 
   ;; Customize some settings
   (setq
-   keys-keys '("s-w" "M-F" "C-M-y" "C-x 2" "C-M-," "C-S-v" "s-D" "M-W")
+   keys-keys '("s-w" "M-F" "C-M-y" "C-x 2" "C-M-," "s-D" "M-W")
    keys-display-amount 2 ; How many keys to show at once
    keys-indicator-separator " | " ; Customize the indicator!
    keys-random t ; By default, keys are shown in a random order
@@ -450,6 +449,14 @@
 (use-package saveplace
   :config
   (save-place-mode t)
+  )
+
+;; This package provides functions to accentuate and reset the active window.
+(use-package selected-window-accent-mode
+  :config
+  (selected-window-accent-mode 1)
+  :custom
+  (selected-window-accent-mode-style 'default)
   )
 
 ;; Commands for converting between programmatic cases.

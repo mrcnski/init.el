@@ -42,19 +42,19 @@
    )
   )
 
-;; Nimbus is my personal theme, available on Melpa.
-(use-package nimbus-theme
-  :load-path "~/.emacs.d/packages/nimbus-theme"
-  :config
-  (nimbus-theme)
-  )
-
 ;; The best light theme ever?
 (use-package catppuccin-theme
   :load-path "~/.emacs.d/packages/catppuccin-theme"
   :config
   (setq catppuccin-flavor 'latte) ;; or 'latte, 'macchiato, or 'mocha
   (catppuccin-reload))
+
+;; Nimbus is my personal theme, available on Melpa.
+(use-package nimbus-theme
+  :load-path "~/.emacs.d/packages/nimbus-theme"
+  :config
+  (nimbus-theme)
+  )
 
 ;;; Set font.
 

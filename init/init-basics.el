@@ -8,7 +8,6 @@
 (defvar user-text-directory "~/Text/")
 
 (defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
-(defvar user-data-path (concat user-text-directory "data.txt"))
 (defvar user-org-directory (concat user-text-directory "org/"))
 
 (defvar user-ideas-org (concat user-org-directory "ideas.org"))
