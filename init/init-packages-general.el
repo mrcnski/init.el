@@ -136,7 +136,30 @@
          ("<s-down>"  . buf-move-down)
          ("<s-left>"  . buf-move-left)
          ("<s-right>" . buf-move-right)
-         ))
+         )
+  )
+
+;; First-time setup:
+;; M-x copilot-install-server
+;; M-x copilot-login
+;;
+;; Check status:
+;; M-x copilot-diagnose
+;;
+;; See also https://robert.kra.hn/posts/2023-02-22-copilot-emacs-setup/.
+(use-package copilot
+  :load-path "~/.emacs.d/packages/copilot.el"
+  :hook ((prog-mode) . copilot-mode)
+  :bind (
+         :map copilot-completion-map
+              ("<tab>" . copilot-accept-completion)
+              ("TAB" . copilot-accept-completion)
+              ("M-f" . copilot-accept-completion-by-word)
+              ("C-g" . copilot-clear-overlay)
+              )
+  :custom
+  (copilot-indent-offset-warning-disable t)
+  )
 
 ;; Copy selected region to be pasted into Slack/Github/etc.
 (use-package copy-as-format
