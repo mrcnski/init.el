@@ -539,6 +539,7 @@ into one."
   (setq skip-prefixes-alist
         `(
           (text-mode . (,org-list-item-regexp))
+          (yaml-mode . (,org-list-item-regexp))
           (org-mode . (,org-header-regexp ,org-list-item-regexp "#" "|"))
           (lisp-mode . ,lisp)
           (emacs-lisp-mode . ,lisp)

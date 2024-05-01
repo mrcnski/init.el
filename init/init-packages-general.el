@@ -441,19 +441,18 @@
 
          ;; Add cursors with the mouse!
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)
-
-         :map mc/keymap
-
-         ;; Reclaim some keys...
-         ("<return>" . nil)
-         ("C-'" . nil)
-
-         :map mc/mark-more-like-this-extended-keymap
-         ("C-'" . nil)
          )
+
   :config
   (setq mc/always-run-for-all t)
+
+  ;; Reclaim some keys
+  (define-key mc/keymap (kbd "<return>") nil)
+  (define-key mc/keymap (kbd "C-'") nil)
+  (define-key mc/mark-more-like-this-extended-keymap (kbd "C-'") nil)
+  (define-key mc/mark-more-like-this-extended-keymap (kbd "<return>") nil)
   )
+
 
 ;; Deal more comfortably with long text.
 (use-package olivetti)
