@@ -6,6 +6,56 @@
 
 (require 'init-packages-project)
 
+;; Treesitter
+
+;; ;; Better syntax highlighting.
+;; (use-package tree-sitter
+;;   :demand t
+
+;;   :config
+
+;;   (use-package tree-sitter-langs
+;;     :demand t
+;;     )
+
+;;   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+;;   (global-tree-sitter-mode)
+;;   )
+
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode)
+  )
+
+(setq treesit-language-source-alist
+      '(
+        (astro "https://github.com/virchau13/tree-sitter-astro")
+        (css "https://github.com/tree-sitter/tree-sitter-css")
+        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+        (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+        ))
+;; (mapc #'treesit-install-language-grammar '(astro css typescript tsx))
+
+;; Astro
+
+(use-package astro-ts-mode
+  :after (treesit-auto)
+
+  :config
+  (let ((astro-recipe (make-treesit-auto-recipe
+                     :lang 'astro
+                     :ts-mode 'astro-ts-mode
+                     :url "https://github.com/virchau13/tree-sitter-astro"
+                     :revision "master"
+                     :source-dir "src")))
+    (add-to-list 'treesit-auto-recipe-list astro-recipe))
+
+  (define-key astro-ts-mode-map (kbd "M-o") nil)
+  )
+
 ;; C#
 
 (use-package csharp-mode

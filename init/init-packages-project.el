@@ -221,19 +221,5 @@
    )
   )
 
-;; Better syntax highlighting.
-(use-package tree-sitter
-  :demand t
-
-  :config
-
-  (use-package tree-sitter-langs
-    :demand t
-    )
-
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
-  (global-tree-sitter-mode)
-  )
-
 (provide 'init-packages-project)
 ;;; init-packages-project.el ends here
