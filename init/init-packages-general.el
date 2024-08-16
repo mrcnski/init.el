@@ -343,7 +343,12 @@
 
 ;; Highlight symbol under point.
 (use-package idle-highlight-mode
-  :hook ((prog-mode conf-mode text-mode eshell-mode) . idle-highlight-mode)
+  :hook ((prog-mode . idle-highlight-mode)
+         (conf-mode . idle-highlight-mode)
+         (text-mode . idle-highlight-mode)
+         (eshell-mode . idle-highlight-mode)
+         )
+  
   :config
 
   (setq

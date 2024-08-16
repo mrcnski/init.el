@@ -15,7 +15,7 @@
 ;; consistency/utility on Macs.
 (global-set-key (kbd "s-p") 'previous-buffer)
 (global-set-key (kbd "s-n") 'next-buffer)
-(global-set-key (kbd "s-k") 'kill-this-buffer)
+(global-set-key (kbd "s-k") 'kill-current-buffer)
 
 ;; Enable OSX full screen shortcut.
 (global-set-key (kbd "C-s-f") 'toggle-frame-maximized)
@@ -437,25 +437,6 @@ into one."
 (add-hook 'text-mode-hook #'(lambda () (setq-local indent-amount 2)))
 (add-hook 'yaml-mode-hook #'(lambda () (setq-local indent-amount 2)))
 
-(defun indent-left ()
-  "Indent left by the amount used in the mode, or the default amount."
-  (interactive)
-  (cond ((region-active-p)
-         (indent-region-relative (region-beginning) (region-end) (- indent-amount)))
-        (t
-         (indent-region-relative (point) (point) (- indent-amount))
-         ))
-  )
-(defun indent-right ()
-  "Indent right by the amount used in the mode, or the default amount."
-  (interactive)
-  (cond ((region-active-p)
-         (indent-region-relative (region-beginning) (region-end) indent-amount))
-        (t
-         (indent-region-relative (point) (point) indent-amount)
-         ))
-  )
-
 (defun indent-region-relative (beg end amount)
   "Indent from BEG to END by the specified AMOUNT."
   (save-mark-and-excursion
@@ -465,6 +446,27 @@ into one."
     (setq end (line-end-position))
     (indent-rigidly beg end amount)
     )
+  )
+
+(defun indent-left ()
+  "Indent left by the amount used in the mode, or the default amount."
+  (interactive)
+  (cond ((region-active-p)
+         (indent-region-relative (region-beginning) (region-end) (- indent-amount))
+         )
+        (t
+         (indent-region-relative (point) (point) (- indent-amount))
+         ))
+  )
+(defun indent-right ()
+  "Indent right by the amount used in the mode, or the default amount."
+  (interactive)
+  (cond ((region-active-p)
+         (indent-region-relative (region-beginning) (region-end) indent-amount)
+         )
+        (t
+         (indent-region-relative (point) (point) indent-amount)
+         ))
   )
 
 (global-set-key (kbd "C-<") 'indent-left)
