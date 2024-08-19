@@ -6,6 +6,7 @@
 
 (use-package org
   :ensure nil
+  :demand t
 
   :bind (
          ;; Insert link with C-c C-l.
@@ -380,6 +381,10 @@ exist after each headings's drawers."
      org-super-agenda-groups
      '(
        ;; Each group has an implicit OR operator between its selectors.
+       (:name "Morning"
+              :category "morning"
+              :tag "morning"
+              )
        (:name "Today"  ; Optionally specify section name
               :time-grid t  ; Items that appear on the time grid.
               :todo "TODAY"   ; Items that have this todo keyword.
@@ -426,6 +431,11 @@ exist after each headings's drawers."
               :category "self"
               :tag "self"
               :order 8
+              )
+       (:name "Cooking"
+              :category "cooking"
+              :tag "cooking"
+              :order 9
               )
        (:name "Physical"
               :category "physical"
