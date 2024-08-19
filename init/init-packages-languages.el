@@ -56,6 +56,32 @@
   (define-key astro-ts-mode-map (kbd "M-o") nil)
   )
 
+;; Beancount
+
+(use-package beancount
+  :bind ("C-M-b" .
+         (lambda ()
+           (interactive)
+           (find-file "~/Dropbox/beancount/main.bean")))
+  :hook (
+         (beancount-mode . flymake-bean-check-enable)
+         (beancount-mode . outline-minor-mode)
+         (beancount-mode . my-beancount-hook)
+         )
+  :mode ("\\.bean\\(?:count\\)?\\'" . beancount-mode)
+
+  :init
+  (defun my-beancount-hook ()
+    (outline-hide-sublevels 3)
+    )
+
+  :config
+  ;; (setq beancount-accounts-files
+  ;;       (directory-files "~/Dropbox/beancount/accounts/"
+  ;;                        'full
+  ;;                        (rx ".bean" eos)))
+  )
+
 ;; C#
 
 (use-package csharp-mode

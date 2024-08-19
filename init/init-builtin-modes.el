@@ -386,11 +386,14 @@
 
 (use-package outline
   :ensure nil
-  :demand t
   :bind (
-         :map outline-mode-map
-         ("M-n" . outline-next-heading)
-         ("M-p" . outline-previous-heading)
+         :map outline-minor-mode-map
+
+         ("M-n" . outline-next-visible-heading)
+         ("M-p" . outline-previous-visible-heading)
+         ("C-<return>" . outline-insert-heading)
+         ("C-<" . outline-promote)
+         ("C->" . outline-demote)
          )
   )
 
