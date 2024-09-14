@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: verse
+# key: verse
+# --
+{% include verse.html
+text="$1"
+verse="$2"
+%}

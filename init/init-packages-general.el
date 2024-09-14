@@ -348,7 +348,7 @@
          (text-mode . idle-highlight-mode)
          (eshell-mode . idle-highlight-mode)
          )
-  
+
   :config
 
   (setq
@@ -601,6 +601,20 @@ on `whitespace-mode'."
          (text-mode . ws-butler-mode)
          (conf-mode . ws-butler-mode)
          )
+  )
+
+(use-package yasnippet
+  :bind ("C-c y" . yas-insert-snippet)
+
+  :config
+
+  (define-key yas-minor-mode-map (kbd "<tab>") nil)
+  (define-key yas-minor-mode-map (kbd "TAB") nil)
+
+  (setq
+   yas-snippet-dirs (list (concat user-emacs-directory "snippets/"))
+   )
+  (yas-global-mode 1)
   )
 
 (provide 'init-packages-general)
