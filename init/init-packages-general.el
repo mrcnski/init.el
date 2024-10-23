@@ -426,6 +426,7 @@
   ;; Integrate with midnight-mode.
   (require 'midnight)
   (midnight-delay-set 'midnight-delay "1:00am")
+  (remove-hook 'midnight-hook 'clean-buffer-list)
   (add-hook 'midnight-hook 'keys-reset)
   )
 

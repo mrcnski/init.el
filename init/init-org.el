@@ -119,6 +119,7 @@
    ;; Don't align tags.
    ;; org-tags-column 0
    ;; org-auto-align-tags nil
+   org-agenda-tags-column 0
 
    ;; Should the ORDERED property also be shown as a tag?
    org-track-ordered-property-with-tag t

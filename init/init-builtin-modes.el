@@ -338,7 +338,6 @@
          ;; deleted as regular text. Allow text inserted before the prompt to
          ;; inherit this property, as per eshell defaults.
          (propertize (car list)
-                     'read-only      t
                      'face           (cdr list)
                      'front-sticky   '(font-lock-face read-only)
                      'rear-nonsticky '(font-lock-face read-only)))
