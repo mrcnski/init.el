@@ -4,6 +4,8 @@
 ;;
 ;;; Code:
 
+(require 'init-basics)
+
 ;; Enable commands that are disabled by default.
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
@@ -81,16 +83,8 @@
  ;; Replace yes/no prompts with y/n.
  use-short-answers t
 
- ;; Inhibit backups?
- backup-inhibited t
- ;; Make backup files when creating a file?
- make-backup-files nil
- ;; Silently delete old backup versions.
- delete-old-versions t
- ;; Auto save?
- auto-save-default nil
  ;; Create interlock files?
- create-lockfiles nil
+ create-lockfiles t
  ;; Send deleted files to trash.
  delete-by-moving-to-trash t
 
@@ -142,7 +136,32 @@
 (add-to-list 'auto-mode-alist '("\\.prdoc\\'" . yaml-mode))
 (add-to-list 'auto-mode-alist '("\\.zndsl\\'" . yaml-mode))
 
-;; Set some built-in modes.
+;;; Backup settings.
+
+;; Note that in dired, backup files are omitted.
+(setq
+ ;; Where to put backups? (~/.local/emacs/backups)
+ backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-config-directory)))
+ ;; Inhibit backups?
+ backup-inhibited nil
+ ;; Make backup files when creating a file?
+ make-backup-files t
+ ;; Safest but slowest backup method.
+ backup-by-copying t
+ ;; Silently delete old backup versions.
+ delete-old-versions t
+ kept-new-versions 6
+ kept-old-versions 2
+ ;; Make numeric backup versions unconditionally.
+ version-control t
+ ;; Backup files that are in version control?
+ vc-make-backup-files t
+
+ ;; Auto save?
+ auto-save-default nil
+ )
+
+;;; Set some built-in modes.
 
 ;; Use compressed files like normal files.
 (auto-compression-mode t)
@@ -218,7 +237,7 @@
 
 (run-with-idle-timer 120 t 'kill-gpg-buffers)
 
-;; Mouse settings
+;;; Mouse settings
 
 (setq
  ;; Make the mouse wheel not accelerate.

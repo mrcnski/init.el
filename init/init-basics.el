@@ -40,12 +40,5 @@
   (find-file user-scratchpad-path))
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
 
-;; Open data.txt.
-(defun open-data-file ()
-  "Open data file."
-  (interactive)
-  (find-file user-data-path))
-(global-set-key (kbd "C-c d") 'open-data-file)
-
 (provide 'init-basics)
 ;;; init-basics.el ends here
