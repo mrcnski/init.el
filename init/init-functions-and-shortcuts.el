@@ -342,6 +342,7 @@ region."
     (move-to-column col)
     ))
 (global-set-key (kbd "C-S-k") 'annihilate-lines)
+(global-set-key (kbd "C-S-w") 'annihilate-lines)
 
 (defun kill-ring-save-lines ()
   "Save the current line, or all lines included in the region."

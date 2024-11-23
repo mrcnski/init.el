@@ -149,13 +149,17 @@
 ;; See also https://robert.kra.hn/posts/2023-02-22-copilot-emacs-setup/.
 (use-package copilot
   :load-path "~/.emacs.d/packages/copilot.el"
-  :hook ((prog-mode) . copilot-mode)
+  :hook ((prog-mode conf-mode) . copilot-mode)
   :bind (
          :map copilot-completion-map
-              ("<tab>" . copilot-accept-completion)
-              ("TAB" . copilot-accept-completion)
-              ("M-f" . copilot-accept-completion-by-word)
+              ;; ("C-<tab>" . copilot-accept-completion)
+              ;; ("C-TAB"   . copilot-accept-completion)
               ("C-g" . copilot-clear-overlay)
+              ("C-f" . copilot-accept-completion)
+              ("M-f" . copilot-accept-completion-by-word)
+              ("C-e" . copilot-accept-completion-by-line)
+              ("M-n" . copilot-next-completion)
+              ("M-p" . copilot-previous-completion)
               )
   :custom
   (copilot-indent-offset-warning-disable t)
@@ -381,6 +385,8 @@
   (keyfreq-autosave-mode 1)
   (setq keyfreq-excluded-commands
         '(
+          mwheel-scroll
+          org-self-insert-command
           self-insert-command
           forward-char
           backward-char
@@ -395,7 +401,7 @@
 
   ;; Customize some settings
   (setq
-   keys-keys '("s-w" "M-F" "C-M-y" "C-x 2" "C-M-," "s-D" "M-W")
+   keys-keys '("s-w" "M-F" "C-M-y" "C-M-," "s-D" "M-W")
    keys-display-amount 2 ; How many keys to show at once
    keys-indicator-separator " | " ; Customize the indicator!
    keys-random t ; By default, keys are shown in a random order
