@@ -440,12 +440,14 @@ into one."
 
 (defun indent-region-relative (beg end amount)
   "Indent from BEG to END by the specified AMOUNT."
-  (save-mark-and-excursion
-    (goto-char beg)
-    (setq beg (line-beginning-position))
-    (goto-char end)
-    (setq end (line-end-position))
-    (indent-rigidly beg end amount)
+  (let ((deactivate-mark nil))
+    (save-mark-and-excursion
+      (goto-char beg)
+      (setq beg (line-beginning-position))
+      (goto-char end)
+      (setq end (line-end-position))
+      (indent-rigidly beg end amount)
+      )
     )
   )
 
