@@ -7,9 +7,6 @@
 [submodule "packages/catppuccin-theme"]
 	path = packages/catppuccin-theme
 	url = https://github.com/catppuccin/emacs
-[submodule "packages/copilot.el"]
-	path = packages/copilot.el
-	url = https://github.com/copilot-emacs/copilot.el
 [submodule "packages/keys"]
 	path = packages/keys
 	url = https://github.com/mrcnski/keys

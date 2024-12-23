@@ -148,7 +148,6 @@
 ;;
 ;; See also https://robert.kra.hn/posts/2023-02-22-copilot-emacs-setup/.
 (use-package copilot
-  :load-path "~/.emacs.d/packages/copilot.el"
   :hook ((prog-mode conf-mode) . copilot-mode)
   :bind (
          :map copilot-completion-map
