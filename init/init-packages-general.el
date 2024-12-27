@@ -180,7 +180,9 @@
   :defer 2)
 
 ;; Better terminal emulation.
-;; NOTE: Don't put this in eshell config or it doesn't work.
+;; Use C-c C-j to enable input.
+;;
+;; NOTE: Don't put this in the eshell config, or it doesn't work.
 (use-package eat
   :config
   (add-hook 'eshell-load-hook #'eat-eshell-mode)

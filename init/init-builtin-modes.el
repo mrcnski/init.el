@@ -94,9 +94,10 @@
     ;; NOTE: Use C-x M-o to show omitted files.
     :hook (dired-mode . dired-omit-mode)
     :bind ("s-d" . dired-jump)
-    :config
-    (setq dired-omit-files
+    :custom
+    (dired-omit-files
           (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
+    (dired-omit-verbose nil)
     )
 
   ;; More dired colors.

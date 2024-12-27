@@ -159,6 +159,9 @@
 
  ;; Auto save?
  auto-save-default nil
+
+ ;; Create lockfiles (prepended with .#) to avoid editing collisions?
+ create-lockfiles t
  )
 
 ;;; Set some built-in modes.
