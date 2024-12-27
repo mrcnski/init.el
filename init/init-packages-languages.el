@@ -54,6 +54,8 @@
     (add-to-list 'treesit-auto-recipe-list astro-recipe))
 
   (define-key astro-ts-mode-map (kbd "M-o") nil)
+
+  (setq astro-ts-mode-indent-offset 4)
   )
 
 ;; Beancount
@@ -177,28 +179,23 @@
   (define-key rjsx-mode-map (kbd "C-d") nil)
   (define-key rjsx-mode-map ">" nil))
 
-;; REMOVED: Performance issues I think? Try again?
 ;; Typescript
-;; (use-package tide
-;;   :ensure t
-;;   :after (typescript-mode company flycheck)
-;;   :hook (
-;;          (typescript-mode . tide-setup)
-;;          (typescript-mode . tide-hl-identifier-mode)
-;;          ;; REMOVED: Messes up point position.
-;;          ;; (before-save . tide-format-before-save)
-;;          )
-;;   :config
-;;   (setq
-;;    typescript-indent-level 2
-;;    )
-;;   )
 (use-package typescript-mode
   :mode "\\.tsx?$"
   :hook
   (typescript-mode . eglot-ensure)
   :custom
-  (typescript-indent-level 2)
+  (typescript-indent-level 4)
+  (typescript-ts-mode-indent-offset 4)
+  )
+(use-package tide
+  :ensure t
+  :after (typescript-ts-mode company flycheck)
+  :hook (
+         (typescript-ts-mode . tide-setup)
+         ;; REMOVED: Messes up point position.
+         ;; (before-save . tide-format-before-save)
+         )
   )
 
 ;; JSON

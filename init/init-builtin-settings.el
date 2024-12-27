@@ -29,7 +29,7 @@
  tab-width 4
  ;; HTML tab width / indent level.
  sgml-basic-offset 2
- js-indent-level 2
+ js-indent-level 4
  fill-column 80
  ;; Highlight end of buffer?
  indicate-empty-lines t
