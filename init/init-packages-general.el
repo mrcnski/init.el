@@ -616,8 +616,11 @@ on `whitespace-mode'."
 
   :config
 
+  ;; Take back the tab key.
   (define-key yas-minor-mode-map (kbd "<tab>") nil)
   (define-key yas-minor-mode-map (kbd "TAB") nil)
+  ;; Remove from menu bar.
+  (define-key yas-minor-mode-map [menu-bar] nil)
 
   (setq
    yas-snippet-dirs (list (concat user-emacs-directory "snippets/"))

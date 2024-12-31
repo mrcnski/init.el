@@ -196,6 +196,8 @@
          )
   :config
   (setq projectile-completion-system 'auto)
+  ;; Remove from menu bar.
+  (define-key projectile-mode-map [menu-bar] nil)
 
   ;; Integrate projectile with consult.
   (use-package consult-projectile

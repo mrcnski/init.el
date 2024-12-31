@@ -120,6 +120,14 @@
  c-default-style "stroustrup"
  )
 
+(define-key global-map [menu-bar buffer] nil)
+(define-key global-map [menu-bar edit] nil)
+(define-key global-map [menu-bar file] nil)
+(define-key global-map [menu-bar help-menu] nil)
+(define-key global-map [menu-bar options] nil)
+(define-key global-map [menu-bar tools] nil)
+(define-key minibuffer-mode-map [menu-bar] nil)
+
 ;; Set c-style comments to be "//".
 (add-hook 'c-mode-common-hook
           (lambda ()
