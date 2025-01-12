@@ -142,7 +142,6 @@
 
 ;; Setup selected file endings to open in certain modes.
 (add-to-list 'auto-mode-alist '("\\.prdoc\\'" . yaml-mode))
-(add-to-list 'auto-mode-alist '("\\.zndsl\\'" . yaml-mode))
 
 ;;; Backup settings.
 
@@ -194,9 +193,14 @@
 (add-hook 'yaml-mode-hook 'display-line-numbers-mode)
 (add-hook 'markdown-mode-hook 'display-line-numbers-mode)
 
-;; Auto refresh dired.
-(setq global-auto-revert-non-file-buffers t)
-
+;; Auto refresh dired?
+;;
+;; NOTE: Disabled for now, since dired view could change while
+;; viewing/interacting with it. If re-enabling, set `auto-revert-verbose' to
+;; `nil'.
+(setq global-auto-revert-non-file-buffers nil)
+;; Show auto-revert messages?
+(setq auto-revert-verbose t)
 ;; Auto revert files that changed on disk.
 (global-auto-revert-mode t)
 

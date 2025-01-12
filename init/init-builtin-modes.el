@@ -94,10 +94,11 @@
     ;; NOTE: Use C-x M-o to show omitted files.
     :hook (dired-mode . dired-omit-mode)
     :bind ("s-d" . dired-jump)
-    :custom
-    (dired-omit-files
-          (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$"))
-    (dired-omit-verbose nil)
+    :config
+    (setq
+     dired-omit-files (concat dired-omit-files "\\|\\.bk$\\|^\\.DS_Store$")
+     dired-omit-verbose nil
+     )
     )
 
   ;; More dired colors.
@@ -160,22 +161,6 @@
                 (unless (eq ibuffer-sorting-mode 'alphabetic)
                   (ibuffer-do-sort-by-alphabetic))))
     )
-  )
-
-;; Track recently-opened files.
-(use-package recentf
-  :ensure nil
-  :config
-  (setq recentf-max-saved-items 5000)
-  (recentf-mode t)
-  )
-
-;; Save minibuffer history across Emacs sessions.
-(use-package savehist
-  :ensure nil
-  :config
-  (savehist-mode t)
-  (add-to-list 'savehist-additional-variables 'vertico-repeat-history)
   )
 
 ;; Ediff settings
@@ -405,6 +390,22 @@
   (setq show-paren-when-point-in-periphery nil)
   (setq show-paren-when-point-inside-paren nil)
   (show-paren-mode t)
+  )
+
+;; Track recently-opened files.
+(use-package recentf
+  :ensure nil
+  :config
+  (setq recentf-max-saved-items 5000)
+  (recentf-mode t)
+  )
+
+;; Save minibuffer history across Emacs sessions.
+(use-package savehist
+  :ensure nil
+  :config
+  (savehist-mode t)
+  (add-to-list 'savehist-additional-variables 'vertico-repeat-history)
   )
 
 ;; Undo/redo window configurations.

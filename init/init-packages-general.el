@@ -160,8 +160,15 @@
               ("M-n" . copilot-next-completion)
               ("M-p" . copilot-previous-completion)
               )
-  :custom
-  (copilot-indent-offset-warning-disable t)
+  :config
+  (setq
+   copilot-indent-offset-warning-disable t
+   ;; Try to reduce the warning rate.
+   ;;
+   ;; NOTE: Try setting `copilot-max-char-warning-disable' if this continues to
+   ;; be a problem.
+   copilot-max-char (* 1000 1000)
+   )
   )
 
 ;; Copy selected region to be pasted into Slack/Github/etc.
