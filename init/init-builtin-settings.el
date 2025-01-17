@@ -219,39 +219,6 @@
 ;; Turn on subword-mode everywhere.
 (global-subword-mode t)
 
-;; Set up gpg.
-;; For full instructions, see https://emacs.stackexchange.com/a/12213.
-
-;; Don't bring up key recipient dialogue.
-(require 'epa-file)
-(setq epa-file-select-keys nil)
-(setq epa-file-encrypt-to '("scatman@bu.edu"))
-
-;; Fix EasyPG error.
-;; From https://colinxy.github.io/software-installation/2016/09/24/emacs25-easypg-issue.html.
-(defvar epa-pinentry-mode)
-(setq epa-pinentry-mode 'loopback)
-
-;; Kill GPG buffers when idle.
-(defun kill-gpg-buffers ()
-  "Kill GPG buffers."
-  (interactive)
-  (let ((buffers-killed 0))
-    (dolist (buffer (buffer-list))
-      (with-current-buffer buffer
-        (when (string-match ".*\.gpg$" (buffer-name buffer))
-          (message "Auto killing .gpg buffer '%s'" (buffer-name buffer))
-          (when (buffer-modified-p buffer)
-            (save-buffer))
-          (kill-buffer buffer)
-          (setq buffers-killed (+ buffers-killed 1)))))
-    (unless (zerop buffers-killed)
-      ;; Kill gpg-agent.
-      (shell-command "gpgconf --kill gpg-agent")
-      (message "%s .gpg buffers have been autosaved and killed" buffers-killed))))
-
-(run-with-idle-timer 120 t 'kill-gpg-buffers)
-
 ;;; Mouse settings
 
 (setq
