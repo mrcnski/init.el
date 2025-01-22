@@ -10,3 +10,6 @@
 [submodule "packages/keys"]
 	path = packages/keys
 	url = https://github.com/mrcnski/keys
+[submodule "packages/aider"]
+	path = packages/aider
+	url = https://github.com/tninja/aider.el

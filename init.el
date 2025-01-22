@@ -51,6 +51,7 @@
     (goto-char (point-max))))
 
 (require 'init-packages-general)
+(require 'init-packages-ai)
 (require 'init-packages-git)
 (require 'init-packages-project)
 (require 'init-packages-languages)
