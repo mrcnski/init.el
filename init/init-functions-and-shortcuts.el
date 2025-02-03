@@ -434,6 +434,21 @@ into one."
 (global-set-key (kbd "M-N") 'duplicate-line-below)
 (global-set-key (kbd "M-P") 'duplicate-line-above)
 
+(defun open-line-below (arg)
+  "Insert a newline at the end of the current line. ARG?"
+  (interactive "p")
+  (save-mark-and-excursion
+    (call-interactively 'goto-line-below t (vector arg)))
+  )
+(defun open-line-above (arg)
+  "Insert a newline at the end of the current line. ARG?"
+  (interactive "p")
+  (save-mark-and-excursion
+    (call-interactively 'goto-line-above t (vector arg)))
+  )
+(global-set-key (kbd "s-C-o") 'open-line-below)
+(global-set-key (kbd "s-C-M-o") 'open-line-above)
+
 ;; Indentation functions.
 
 (defvar indent-amount 4)
