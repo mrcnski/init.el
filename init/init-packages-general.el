@@ -206,7 +206,7 @@
          ("s-7" . eyebrowse-switch-to-window-config-7)
          ("s-8" . eyebrowse-switch-to-window-config-8)
          ("s-9" . eyebrowse-switch-to-window-config-9)
-         ("s-/" . eyebrowse-close-window-config)
+         ("s-=" . eyebrowse-close-window-config)
          ("s--" . eyebrowse-rename-window-config)
          )
 
@@ -226,6 +226,7 @@
    ;; single window with the scratch buffer in it)
    eyebrowse-new-workspace t
    eyebrowse-close-window-config-prompt t
+   eyebrowse-known-tags-file (locate-user-emacs-file "var/eyebrowse-tags.el")
 
    eyebrowse-mode-line-separator " "
    eyebrowse-mode-line-left-delimiter ""
