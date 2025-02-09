@@ -25,9 +25,8 @@
 ;; TODO:
 ;;
 ;; - [ ] With Emacs 29+:
-;;   - [x] set native-comp load-path (in early-init.el)
 ;;   - [ ] switch to built-in tree-sitter (once it's easier to setup...)
-;;   - [ ] use new indent package (once stipples are available)
+;;   - [ ] (requires tree-sitter) use new indent package (once stipples are available)
 ;;
 ;;; Code:
 
@@ -64,6 +63,7 @@
 (when (file-exists-p custom-file)
   (load custom-file t))
 
+;;; Finish up
 (server-start)
 (message "init.el finished loading successfully!")
 

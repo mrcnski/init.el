@@ -418,10 +418,6 @@
 (use-package make-color
   :defer t)
 
-(use-package mark-yank
-  :bind ("C-M-y" . mark-yank)
-  :config (mark-yank-mode 1))
-
 ;; Multiple cursors.
 (use-package multiple-cursors
   :bind (

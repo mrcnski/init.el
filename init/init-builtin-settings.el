@@ -57,15 +57,12 @@
  ring-bell-function 'ignore
  ;; Set up ediff windows in the same frame.
  ediff-window-setup-function 'ediff-setup-windows-plain
- window-combination-resize nil
  ;; Display keystrokes immediately.
  echo-keystrokes 0.01
  ;; Disable startup screen.
  inhibit-startup-message t
  ;; Change the initial *scratch* buffer.
  initial-scratch-message ""
- ;; Focus new help windows when opened.
- help-window-select t
  ;; Always confirm before closing Emacs?
  confirm-kill-emacs nil
  ;; Delay for displaying function/variable information.
@@ -74,8 +71,6 @@
  tooltip-hide-delay (* 60 60)
  ;; Delay for showing tooltips, in seconds.
  tooltip-delay 0
- ;; Fix flickering in Emacs 26 on OSX.
- recenter-redisplay nil
  ;; Follow symlinks without asking?
  vc-follow-symlinks t
  ;; Undo limit.
@@ -108,18 +103,31 @@
  ;; Enable recursive editing of minibuffer?
  enable-recursive-minibuffers t
  minibuffer-depth-indicate-mode t
- ;; Move point to beginning or end of buffer when scrolling.
- scroll-error-top-bottom t
- mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control)))
+
+ ;;; Window settings
 
  ;; Set a larger minimum window width. Smaller than this is hard to read.
  window-min-width 30
  window-min-height 10
+ ;; Focus new help windows when opened.
+ help-window-select t
+ window-combination-resize nil
 
- ;; Language-specific settings?
+ ;;; Other
+
  c-default-style "stroustrup"
  )
 
+;; Scroll settings
+(setq
+ ;; Move point to beginning or end of buffer when scrolling?
+ scroll-error-top-bottom t
+ mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control)))
+ )
+;; How far to scroll windows upward.
+(setq-default scroll-up-aggressively nil)
+
+;; Clean up the Mac Menu Bar.
 (define-key global-map [menu-bar buffer] nil)
 (define-key global-map [menu-bar edit] nil)
 (define-key global-map [menu-bar file] nil)
