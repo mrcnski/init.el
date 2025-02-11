@@ -250,10 +250,10 @@
    eshell-scroll-to-bottom-on-input t
    ;; Remove unnecessary extra newline.
    eshell-banner-message "Welcome to the Emacs shell!\n"
-   ;; File locations.
-   eshell-rc-script (concat user-emacs-directory ".eshell-rc")
-   eshell-login-script (concat user-emacs-directory ".eshell-login")
    )
+
+  ;; Add consult-outline support.
+  (add-hook 'eshell-mode-hook (lambda () (setq outline-regexp eshell-prompt-regexp)))
 
   ;; Set keys up in this hook. This doesn't work in :bind.
   (add-hook 'eshell-first-time-mode-hook
@@ -283,7 +283,13 @@
         (let ((eshell-history-ring newest-cmd-ring))
           (eshell-write-history eshell-history-file-name t)))))
   (add-hook 'eshell-pre-command-hook #'eshell-append-history)
+  ;; TODO: why is this needed?
   (add-hook 'eshell-mode-hook #'(lambda () (setq eshell-exit-hook nil)))
+
+  ;; Show the directory contents after changing directories.
+  (add-hook 'eshell-directory-change-hook
+            (lambda ()
+              (eshell/ls "-a")))
 
   (use-package em-hist
     :ensure nil
@@ -297,13 +303,23 @@
      )
     )
 
+  (use-package em-script
+    :ensure nil
+    :config
+    (setq
+     ;; File locations.
+     eshell-rc-script (concat user-emacs-directory ".eshell-rc")
+     eshell-login-script (concat user-emacs-directory ".eshell-login")
+     )
+    )
+
   ;; Open a new eshell buffer.
   (defun eshell-new ()
     "Open a new eshell buffer."
     (interactive)
     (eshell t))
 
-  ;; Set up a custom prompt.
+  ;;; Set up a custom prompt.
 
   ;; Bits taken from https://emacs.stackexchange.com/a/33408/15023.
   (defun custom-eshell-prompt ()
@@ -361,7 +377,11 @@
   ;; Should the prompt be highlighted?
   (setq eshell-highlight-prompt nil)
 
-  ;; Load external eshell packages.
+  ;;; Load external eshell packages.
+
+  (use-package compnav-eshell
+    :load-path "~/.emacs.d/packages/compnav-eshell"
+    )
 
   (use-package eshell-syntax-highlighting
     :config
