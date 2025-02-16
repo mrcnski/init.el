@@ -378,8 +378,8 @@
 
   ;; Customize some settings
   (setq
-   keys-keys '("s-w" "M-F" "C-M-y" "C-M-," "s-D" "M-W")
-   keys-display-amount 2 ; How many keys to show at once
+   keys-keys '("s-w" "M-F" "C-M-," "s-D" "C-o")
+   keys-display-amount 3 ; How many keys to show at once
    keys-indicator-separator " | " ; Customize the indicator!
    keys-random t ; By default, keys are shown in a random order
 
@@ -426,6 +426,9 @@
 
          ;; Add cursors with the mouse!
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)
+
+         ;; :map mc/keymap
+         ;; ("C-g" .
          )
 
   :config
@@ -440,7 +443,9 @@
 
 
 ;; Deal more comfortably with long text.
-(use-package olivetti)
+(use-package olivetti
+  :hook ((text-mode . olivetti-mode))
+  )
 
 ;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode

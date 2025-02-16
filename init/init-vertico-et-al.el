@@ -88,6 +88,7 @@
   ;; Replace bindings. Lazily loaded by `use-package'.
   :bind (
          ("M-i" . consult-imenu)
+         ("C-#" . consult-outline)
          ("s-j" . consult-buffer) ;; orig. switch-to-buffer
          ("s-m" . consult-mark)
          ("s-i" . consult-ripgrep-inexact-save)
@@ -130,7 +131,6 @@
     "Save before calling `consult-ripgrep', matching exactly."
     (interactive "P")
     (save-all)
-    (defvar consult-ripgrep-args)
     (let ((consult-ripgrep-args
            "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
                --case-sensitive --no-heading --with-filename --line-number \
@@ -148,7 +148,6 @@
     "Save before calling `consult-ripgrep', matching inexactly."
     (interactive "P")
     (save-all)
-    (defvar consult-ripgrep-args)
     (let ((consult-ripgrep-args
            "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / \
                --ignore-case --no-heading --with-filename --line-number \
@@ -182,25 +181,36 @@
   ;; after lazily loading the package.
   :config
 
-  ;; Optionally configure preview. The default value
-  ;; is 'any, such that any key triggers the preview.
-  ;; (setq consult-preview-key 'any)
-  ;; (setq consult-preview-key (kbd "M-."))
-  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+  (defvar recenter-fraction 0.33)
+  (defun recenter-at-fraction (&rest _)
+    "Recenter the point at 1/3 of the window height after jumping with imenu."
+    (recenter (truncate (* recenter-fraction (window-height)))))
+
+  (remove-hook 'consult-after-jump-hook 'recenter)
+  (add-hook 'consult-after-jump-hook 'recenter-at-fraction)
+
+  ;;; Previews.
+
+  ;; The default value is 'any, such that any key triggers the preview.
+  (setq consult-preview-key "C-.")
+
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
   (consult-customize
    consult-bookmark
+   consult-line
+   consult-goto-line
    consult-theme
-   consult-recent-file
-   consult-ripgrep
    consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   :preview-key '(:debounce 0.2 any)
-   ;; :preview-key "M-."
+   :preview-key 'any
+   ;; :preview-key '("C-.")
    )
+
   ;; Run some more hooks when previewing files.
   (add-to-list 'consult-preview-allowed-hooks 'global-hl-todo-mode-check-buffers)
+
+  ;;; Narrowing.
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
@@ -209,6 +219,8 @@
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
   ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+  ;;; Misc.
 
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.

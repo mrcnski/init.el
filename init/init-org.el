@@ -332,7 +332,6 @@ exist after each headings's drawers."
 
   ;; Recurring org-mode tasks.
   (use-package org-recur
-    ;; :load-path "~/projects/org-recur/"
     :after org
     :bind (
            :map org-recur-mode-map
