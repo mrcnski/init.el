@@ -48,7 +48,20 @@
   (use-package exec-path-from-shell
     :config
     ;; Set the shell (default is /bin/zsh on MacOS).
-    (setq shell-file-name "/bin/bash")
+    (setq
+     exec-path-from-shell-shell-name "/bin/bash"
+     ;; Don't start interactively (should be faster). Env vars should be defined
+     ;; in .profile.
+     exec-path-from-shell-arguments '("-l")
+     )
+    ;; Set the desired env vars.
+    (dolist (var '(
+                   "ANTHROPIC_API_KEY"
+                   "COMPNAV_DIR"
+                   "COMPNAV_H_REPOS_DIR"
+                   "HISTSIZE"
+                   ))
+      (add-to-list 'exec-path-from-shell-variables var))
     (exec-path-from-shell-initialize)
     ))
 
