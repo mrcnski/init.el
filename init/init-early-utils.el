@@ -63,6 +63,11 @@
                    ))
       (add-to-list 'exec-path-from-shell-variables var))
     (exec-path-from-shell-initialize)
+
+    ;; Check that each variable has been set.
+    (dolist (var exec-path-from-shell-variables)
+      (unless (getenv var)
+        (message "Warning: env var %s is not set" var)))
     ))
 
 ;; Enable restarting Emacs from within Emacs.

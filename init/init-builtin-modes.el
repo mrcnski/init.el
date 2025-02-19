@@ -299,7 +299,7 @@
      ;; Set the history file.
      eshell-history-file-name "~/.zsh_history"
      ;; If nil, use HISTSIZE as the history size.
-     eshell-history-size 10000
+     eshell-history-size nil
      )
     )
 
