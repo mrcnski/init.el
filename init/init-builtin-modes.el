@@ -25,6 +25,12 @@
   (setq
    ;; Can scroll in isearch?
    isearch-allow-scroll t
+   ;; Moving around while in isearch, yank text to the search string.
+   isearch-yank-on-move nil
+   ;; Whether a direction change should move to another match.
+   isearch-repeat-on-direction-change t
+   ;; Define the behavior of wrapping when there are no more matches.
+   isearch-wrap-pause 'no
 
    ;; Highlight more matches after a delay.
    isearch-lazy-highlight t
@@ -248,8 +254,6 @@
    eshell-scroll-to-bottom-on-output nil
    ;; Always insert at the bottom.
    eshell-scroll-to-bottom-on-input t
-   ;; Remove unnecessary extra newline.
-   eshell-banner-message "Welcome to the Emacs shell!\n"
    )
 
   ;; Add consult-outline support.
@@ -291,8 +295,18 @@
             (lambda ()
               (eshell/ls "-a")))
 
+  (use-package em-banner
+    :ensure nil
+    :config
+    (setq
+     ;; Remove unnecessary extra newline.
+     eshell-banner-message "Welcome to the Emacs shell!\n"
+     )
+    )
+
   (use-package em-hist
     :ensure nil
+
     :config
     (setq
      eshell-hist-ignoredups t

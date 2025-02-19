@@ -39,17 +39,12 @@
 (defvar ediff-window-setup-function)
 (defvar c-default-style)
 (setq
- ;; Tries to preserve last open window point when multiple buffers are open for
- ;; the same file.
- switch-to-buffer-preserve-window-point t
  select-enable-clipboard t
  select-enable-primary t
  save-interprogram-paste-before-kill t
  ;; Enable complete documentation for apropos functions?
  apropos-do-all t
  kill-ring-max 1000
- ;; Ensure that files end with a newline.
- require-final-newline t
  ;; Add newline at end of buffer with C-n.
  next-line-add-newlines t
  ;; Flash the frame on every error?
@@ -78,10 +73,19 @@
  ;; Replace yes/no prompts with y/n.
  use-short-answers t
 
- ;; Create interlock files?
- create-lockfiles t
- ;; Send deleted files to trash.
- delete-by-moving-to-trash t
+ ;; Tab will always just try to indent.
+ tab-always-indent 't
+ ;; Resize the minibuffer when needed.
+ resize-mini-windows t
+ ;; Enable recursive editing of minibuffer?
+ enable-recursive-minibuffers t
+ minibuffer-depth-indicate-mode t
+
+ ;;; Buffer settings
+
+ ;; Tries to preserve last open window point when multiple buffers are open for
+ ;; the same file.
+ switch-to-buffer-preserve-window-point t
 
  ;; Where should we open new buffers by default?
  display-buffer-base-action '(display-buffer-below-selected)
@@ -93,16 +97,20 @@
    ("\\*Ibuffer\\*"
     (display-buffer-same-window))
    )
+
+ ;;; File settings
+
+ ;; Non-nil means suppress warning messages for symlinked files.
+ find-file-suppress-same-file-warnings t
+ ;; Create interlock files?
+ create-lockfiles t
+ ;; Send deleted files to trash.
+ delete-by-moving-to-trash t
  ;; Open files in existing frames.
  pop-up-frames nil
  pop-up-windows t
- ;; Tab will always just try to indent.
- tab-always-indent 't
- ;; Resize the minibuffer when needed.
- resize-mini-windows t
- ;; Enable recursive editing of minibuffer?
- enable-recursive-minibuffers t
- minibuffer-depth-indicate-mode t
+ ;; Ensure that files end with a newline.
+ require-final-newline t
 
  ;;; Window settings
 
