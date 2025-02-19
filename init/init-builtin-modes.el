@@ -276,6 +276,12 @@
                 (define-key eshell-hist-mode-map (kbd "M-s") nil)
                 ))
 
+  ;; Always moves point to the end of the current input, first.
+  (advice-add 'eshell-previous-matching-input-from-input :before
+              #'(lambda (&rest _) (call-interactively 'end-of-buffer)))
+  (advice-add 'eshell-send-input :before
+              #'(lambda (&rest _) (call-interactively 'end-of-buffer)))
+
   ;; Fix eshell overwriting history.
   ;; From https://emacs.stackexchange.com/a/18569/15023.
   (setq eshell-save-history-on-exit nil)

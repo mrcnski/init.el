@@ -57,6 +57,10 @@
      :stream t
      :key (getenv "ANTHROPIC_API_KEY")
      ))
+
+  ;; Always moves point to the end of the current input, first.
+  (advice-add 'gptel-send :before
+              #'(lambda (&rest _) (call-interactively 'end-of-buffer)))
   )
 
 (provide 'init-packages-ai)
