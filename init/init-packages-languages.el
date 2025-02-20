@@ -46,11 +46,11 @@
 
   :config
   (let ((astro-recipe (make-treesit-auto-recipe
-                     :lang 'astro
-                     :ts-mode 'astro-ts-mode
-                     :url "https://github.com/virchau13/tree-sitter-astro"
-                     :revision "master"
-                     :source-dir "src")))
+                       :lang 'astro
+                       :ts-mode 'astro-ts-mode
+                       :url "https://github.com/virchau13/tree-sitter-astro"
+                       :revision "master"
+                       :source-dir "src")))
     (add-to-list 'treesit-auto-recipe-list astro-recipe))
 
   (define-key astro-ts-mode-map (kbd "M-o") nil)
@@ -265,43 +265,48 @@
 
 ;; Rust
 
-(use-package rust-mode
-  :bind (:map rust-mode-map ("C-c n" . rust-format-buffer))
-  :config
-  (setq
-   rust-format-on-save nil
-   rust-rustfmt-switches '("+nightly")
-   )
-  )
+;; (use-package rust-mode
+;;   :bind (:map rust-mode-map ("C-c n" . rust-format-buffer))
+;;   :config
+;;   (setq
+;;    rust-format-on-save nil
+;;    rust-rustfmt-switches '("+nightly")
+;;    )
+;;   )
 
 ;; Enhanced Rust mode with automatic LSP support.
 (use-package rustic
-  :bind (:map rustic-mode-map ("C-c n" . rustic-format-file))
-
-  ;; :init
-
-  ;; (defun format-rust ()
-  ;;   (interactive)
-  ;;   ;; Save all buffers since `rustic-cargo-fmt' formats all buffers belonging
-  ;;   ;; to the workspace.
-  ;;   (save-all)
-  ;;   (rustic-cargo-fmt)
-  ;;   )
+  :bind (
+         :map rustic-mode-map
+         ("C-c n" . rustic-format-file)
+         ("C-c m" . rustic-compile)
+         )
 
   :config
 
   (setq
-   ;; eglot seems to be the best option right now.
-   rustic-lsp-client 'eglot
+   ;; Use an LSP client?
+   rustic-lsp-client nil
    rustic-format-on-save nil
    rustic-rustfmt-args "+nightly"
    )
+
+  ;; Compilation settings.
+  (setq rustic-compile-command "cargo lcheck")
+  (add-to-list 'display-buffer-alist
+               '("\\*rustic-compilation\\*"
+                 (display-buffer-reuse-window
+                  display-buffer-same-window)))
+  (advice-add 'rustic-compile :before
+            #'(lambda (&rest _) (call-interactively 'save-all)))
+  (add-hook 'rustic-mode-hook
+            #'(lambda (&rest _) (setq-local compilation-read-command nil)))
   )
 
 ;; Manually set which rust mode I want to use.
 (setq auto-mode-alist
       (cl-remove "\\.rs\\'" auto-mode-alist :test 'equal :key 'car))
-(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
 
 ;; TOML
 
