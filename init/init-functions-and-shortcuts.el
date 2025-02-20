@@ -288,9 +288,6 @@ another window."
   (push-mark (line-end-position) nil t)
   )
 
-;; Replace default C-l, it's useless.
-(global-set-key (kbd "C-l") 'select-line)
-
 ;; Select entire line or lines.
 ;; + Will entirely select any line that's even partially within the region.
 ;; + Behaves like C-S-k.
@@ -314,6 +311,14 @@ the region."
   (beginning-of-line)
   )
 (global-set-key (kbd "C-S-l") 'select-lines)
+
+(defun save-line ()
+  "Select and save the rest of the current line."
+  (interactive)
+  (select-line)
+  (call-interactively 'kill-ring-save)
+  )
+(global-set-key (kbd "C-l") 'save-line)
 
 ;; Improved kill-whole-line which doesn't change cursor position.
 ;; Can be called on multiple lines.

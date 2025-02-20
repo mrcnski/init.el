@@ -66,7 +66,7 @@
   ;; Rebind the M-digit keys to prevent conflict with winum.
   (dotimes (i 10)
     (define-key company-active-map (kbd (format "M-%d" i)) nil)
-    (define-key company-active-map (read-kbd-macro (format "s-%d" i)) 'company-complete-number))
+    (define-key company-active-map (read-kbd-macro (format "s-%d" i)) 'company-complete-tooltip-row))
 
   ;; Add commands that should abort completion.
   (add-to-list 'company-continue-commands 'rust-format-buffer t)
@@ -114,7 +114,7 @@
   :config
   (editorconfig-mode 1))
 
-; TODO: Built-in in 29.1
+;; TODO: Built-in in 29.1
 (use-package eglot
   :defer t
   :config
@@ -134,6 +134,11 @@
    ;; Disable annoying rust-analyzer progress reports in echo area.
    eglot-report-progress nil
    )
+
+  ;; Disable error diagnostics.
+  (with-eval-after-load "eglot"
+    (add-to-list 'eglot-stay-out-of 'flymake))
+
   ;; Disable the annoying doc popups in the minibuffer.
   ;; Show messages in the echo area for errors only.
   ;; From https://github.com/joaotavora/eglot/discussions/898#discussioncomment-2609402

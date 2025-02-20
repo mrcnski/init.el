@@ -277,6 +277,8 @@
                 ))
 
   ;; Always moves point to the end of the current input, first.
+  (advice-add 'consult-history :before
+              #'(lambda (&rest _) (call-interactively 'end-of-buffer)))
   (advice-add 'eshell-previous-matching-input-from-input :before
               #'(lambda (&rest _) (call-interactively 'end-of-buffer)))
   (advice-add 'eshell-send-input :before
