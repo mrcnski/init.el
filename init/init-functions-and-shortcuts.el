@@ -1,4 +1,4 @@
-;;; init-functions-and-shortcuts --- My Functions and Shortcuts/Keybindings.
+;;; init-functions-and-shortcuts --- My Functions and Shortcuts/Keybindings. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

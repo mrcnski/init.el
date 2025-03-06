@@ -203,7 +203,10 @@
 (use-package json-mode
   :defer t
   :config
-  (setq json-reformat:indent-width 2)
+  (setq
+   json-reformat:indent-width 4
+   json-ts-mode-indent-offset 4
+   )
   (add-hook 'json-mode-hook
             (lambda ()
               (make-local-variable 'js-indent-level)
@@ -292,7 +295,7 @@
    )
 
   ;; Compilation settings.
-  (setq rustic-compile-command "cargo lcheck")
+  (setq rustic-compile-command "cargo lcheck --tests")
   (add-to-list 'display-buffer-alist
                '("\\*rustic-compilation\\*"
                  (display-buffer-reuse-window

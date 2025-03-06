@@ -51,12 +51,16 @@
   :config
   (setq
    gptel-model 'claude-3-5-sonnet-20241022
-   gptel-backend
-   (gptel-make-anthropic
-       "Claude"
-     :stream t
-     :key (getenv "ANTHROPIC_API_KEY")
-     ))
+   gptel-backend (gptel-make-anthropic
+                     "Claude"
+                   :stream t
+                   :key (getenv "ANTHROPIC_API_KEY")
+                   )
+   )
+  (add-to-list 'display-buffer-alist
+               '("\\*Claude\\*"
+                 (display-buffer-reuse-window
+                  display-buffer-same-window)))
 
   ;; Always moves point to the end of the current input, first.
   (advice-add 'gptel-send :before

@@ -1,4 +1,4 @@
-;;; init-visual-mmv --- Make Mark Visible
+;;; init-visual-mmv --- Make Mark Visible -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

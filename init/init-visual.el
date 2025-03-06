@@ -1,4 +1,4 @@
-;;; init-visual --- Visual Settings
+;;; init-visual --- Visual Settings -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

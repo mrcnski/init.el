@@ -216,11 +216,14 @@
   (smart-jump-setup-default-registers)
   )
 
+;; NOTE: Requires ripgrep with pcre2 support.
 (use-package dumb-jump
   :config
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
   (setq
+   dumb-jump-debug nil
    dumb-jump-force-searcher 'rg
+   ;; dumb-jump-prefer-searcher 'rg
    ;; Ignore `target`, `node_modules` directories.
    ;;
    ;; I think dumb-jump's regexes require pcre2.
