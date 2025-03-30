@@ -1,7 +1,9 @@
 .DS_Store
+.aider*
 
 customize.el
 eln-cache
 elpa
+notes.org
 tree-sitter
 var

@@ -1,4 +1,4 @@
-;;; init-mode-line --- Set mode-line format.
+;;; init-mode-line --- Set mode-line format. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

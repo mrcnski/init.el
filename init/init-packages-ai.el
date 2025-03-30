@@ -46,7 +46,7 @@
          ("C-`" . gptel)
 
          :map gptel-mode-map
-         ("s-<return>" . gptel-send)
+         ("<return>" . gptel-send)
          )
   :config
   (setq
