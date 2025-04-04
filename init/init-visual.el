@@ -4,20 +4,10 @@
 ;;
 ;;; Code:
 
+(require 'init-visual-cursor)
 (require 'init-visual-frame)
 ;; Make mark visible.
 (require 'init-visual-mmv)
-
-;;; Cursor settings.
-
-;; Turn on blinking/flashing cursor? (-1 to disable)
-(blink-cursor-mode -1)
-;; Blink forever!
-(setq blink-cursor-blinks 0)
-(when (display-graphic-p)
-  (setq-default cursor-type 'box))
-;; Stretch cursor to be as wide as the character at point.
-(setq x-stretch-cursor 1)
 
 ;; Enable popup tooltips, use emacs tooltip implementation.
 (tooltip-mode nil)
