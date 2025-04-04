@@ -579,15 +579,6 @@ on `whitespace-mode'."
   (winum-mode)
   )
 
-;; Automatically clean up extraneous whitespace.
-(use-package ws-butler
-  :hook (
-         (prog-mode . ws-butler-mode)
-         (text-mode . ws-butler-mode)
-         (conf-mode . ws-butler-mode)
-         )
-  )
-
 (use-package yasnippet
   :bind ("C-c y" . yas-insert-snippet)
 

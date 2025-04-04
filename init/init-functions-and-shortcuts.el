@@ -121,6 +121,15 @@
 ;; Shouldn't run too quickly as it is a bit distracting.
 (run-with-idle-timer 60 t 'save-all)
 
+;; Cleanup whitespace.
+(defun my-delete-trailing-whitespace ()
+  "Deletes trailing whitespace, with the possibility for custom logic."
+  ;; (when (derived-mode-p 'prog-mode)
+    (delete-trailing-whitespace)
+    ;; )
+  )
+(add-hook 'before-save-hook 'my-delete-trailing-whitespace)
+
 (global-set-key (kbd "M-SPC") 'cycle-spacing)
 
 ;; Code folding.
