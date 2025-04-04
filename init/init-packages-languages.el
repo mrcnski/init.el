@@ -282,7 +282,8 @@
   :bind (
          :map rustic-mode-map
          ("C-c n" . rustic-format-file)
-         ("C-c m" . rustic-compile)
+         ("C-c ," . rustic-cargo-check)
+         ("C-c ." . rustic-cargo-test)
          )
 
   :config
@@ -291,7 +292,8 @@
    ;; Use an LSP client?
    rustic-lsp-client nil
    rustic-format-on-save nil
-   rustic-rustfmt-args "+nightly"
+   rustic-rustfmt-bin "cargo"
+   rustic-rustfmt-args "+nightly fmt --all"
    )
 
   ;; Compilation settings.
@@ -300,10 +302,22 @@
                '("\\*rustic-compilation\\*"
                  (display-buffer-reuse-window
                   display-buffer-same-window)))
-  (advice-add 'rustic-compile :before
+  (advice-add 'rustic-cargo-check :before
+            #'(lambda (&rest _) (call-interactively 'save-all)))
+  (advice-add 'rustic-recompile :before
             #'(lambda (&rest _) (call-interactively 'save-all)))
   (add-hook 'rustic-mode-hook
             #'(lambda (&rest _) (setq-local compilation-read-command nil)))
+
+  (setq rustic-cargo-test-exec-command "ltest")
+  (add-to-list 'display-buffer-alist
+               '("\\*cargo-test\\*"
+                 (display-buffer-reuse-window
+                  display-buffer-same-window)))
+  (advice-add 'rustic-cargo-test-rerun :before
+            #'(lambda (&rest _) (call-interactively 'save-all)))
+  (advice-add 'rustic-cargo-test :before
+            #'(lambda (&rest _) (call-interactively 'save-all)))
   )
 
 ;; Manually set which rust mode I want to use.
