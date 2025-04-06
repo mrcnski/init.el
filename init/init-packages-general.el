@@ -245,7 +245,9 @@
     (let ((indicator (substring-no-properties (eyebrowse-mode-line-indicator))))
       (setq frame-title-eyebrowse
             (when (not (string-empty-p indicator))
-              (format "%s%s" frame-title-separator indicator)))))
+              (format "%s%s" frame-title-separator indicator)))
+      (frame-title-update)
+      ))
   (frame-title-eyebrowse-update)
 
   (add-hook 'eyebrowse-indicator-change-hook 'frame-title-eyebrowse-update)

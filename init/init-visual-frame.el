@@ -1,4 +1,4 @@
-;;; init-visual-frame --- Frame Settings
+;;; init-visual-frame --- Frame Settings -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;
@@ -11,6 +11,10 @@
 (defvar frame-title-keys)
 (defvar frame-title-separator "  —  ")
 (setq frame-title-format '("Emacs" frame-title-eyebrowse frame-title-keys))
+(defun frame-title-update ()
+  "Update the frame title."
+  (set-frame-parameter nil 'title (format-mode-line frame-title-format)))
+(run-with-idle-timer 1 t 'frame-title-update)
 
 ;; (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 ;; Assuming you are using a dark theme.
