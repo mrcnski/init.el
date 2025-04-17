@@ -10,9 +10,6 @@
  package-user-dir user-emacs-elpa-directory
  ;; Prefer the newest version of a package.
  load-prefer-newer t
- ;; TODO: is this correct?
- ;; Only enable packages found in this file (not all installed packages).
- package-enable-at-startup nil
  )
 ;; Add package sources.
 (unless (assoc-default "melpa" package-archives)

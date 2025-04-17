@@ -57,9 +57,9 @@
   (declare-function font-exists-p "init.el")
 
   (cond
-   ((font-exists-p "Iosevka Comfy Fixed")
+   ((font-exists-p "Aporetic Sans Mono")
     (set-face-attribute
-     'default nil :font "Iosevka Comfy Fixed:weight=Regular" :height 110)
+     'default nil :font "Aporetic Sans Mono:weight=Regular" :height 110)
     (setq-default line-spacing 0)
     )
    ((font-exists-p "Iosevka")
