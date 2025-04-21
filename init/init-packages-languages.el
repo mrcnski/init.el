@@ -84,6 +84,16 @@
   ;;                        (rx ".bean" eos)))
   )
 
+;; CSS / SCSS
+
+(use-package css-mode
+  :ensure nil
+  :config
+  (setopt
+   css-indent-offset 2
+   )
+  )
+
 ;; C#
 
 (use-package csharp-mode
@@ -158,18 +168,19 @@
 
 ;; REMOVED: Complained it couldn't find prettier. Also was trying to run on
 ;; Emacs Lisp etc.
-;; ;; Formats prettier-compatible source code on save. Automatically finds and uses
-;; ;; prettier config.
-;; (use-package prettier
-;;   :bind ("C-c n" . prettier-prettify)
-;;   :config
-;;   ;; Set this to nil if you don't want Prettier to prettify (format) the buffer
-;;   ;; when saving.
-;;   (setq prettier-prettify-on-save-flag nil)
-;;   ;; Turn on the minor mode in all major modes supported by your version of
-;;   ;; Prettier.
-;;   (global-prettier-mode)
-;;   )
+;; Formats prettier-compatible source code on save. Automatically finds and uses
+;; prettier config.
+(use-package prettier
+  :config
+  (define-key typescript-ts-mode-map "C-c n" 'prettier-prettify)
+  ;; Set this to nil if you don't want Prettier to prettify (format) the buffer
+  ;; when saving.
+  (setq prettier-prettify-on-save-flag nil)
+
+  ;; Turn on the minor mode in all major modes supported by your version of
+  ;; Prettier.
+  ;; (global-prettier-mode)
+  )
 
 ;; React
 (use-package rjsx-mode
@@ -179,14 +190,27 @@
   (define-key rjsx-mode-map (kbd "C-d") nil)
   (define-key rjsx-mode-map ">" nil))
 
+;; Stylus / .styl
+(use-package sws-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.styl\\'" . sws-mode))
+  )
+
 ;; Typescript
 (use-package typescript-mode
   :mode "\\.tsx?$"
   :hook
   (typescript-mode . eglot-ensure)
-  :custom
-  (typescript-indent-level 4)
-  (typescript-ts-mode-indent-offset 4)
+
+  :config
+  (setopt
+   typescript-indent-level 2
+   typescript-ts-mode-indent-offset 2
+   )
+
+  ;; Fixes some weird bug in the mode where I can't type an uppercase C.
+  ;; TODO: maybe it was something I did.
+  (define-key typescript-ts-mode-map "C" nil)
   )
 (use-package tide
   :ensure t
@@ -331,6 +355,8 @@
   :mode "\\.toml\\'"
   )
 
+;; Web
+
 (use-package web-mode
   :mode (
          ("\\.js?\\'" . web-mode)
@@ -344,7 +370,7 @@
 
   (setq
    web-mode-markup-indent-offset 2
-   web-mode-css-indent-offset 4
+   web-mode-css-indent-offset 2
    web-mode-code-indent-offset 2
 
    web-mode-enable-current-element-highlight t

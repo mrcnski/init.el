@@ -25,20 +25,21 @@
          ("s-g" . magit-status))
 
   :init
-  (setq
+  (setopt
    ;; Show fine differences for all displayed diff hunks.
    magit-diff-refine-hunk `all
    ;; How to display new magit buffers?
    magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
    ;; Don't ask before saving repository buffers.
    magit-save-repository-buffers 'dontask
-   ;; Stop magit from stupidly messing up my window configuration when quitting
-   ;; buffers.
+   ;; Stop magit from messing up my window configuration when quitting buffers.
    magit-bury-buffer-function 'quit-window
    ;; Show diffs in the commit flow?
    magit-commit-show-diff nil
    ;; How many recent commits to show in certain log sections.
-   magit-log-section-commit-count 50
+   magit-log-section-commit-count 16
+   ;; Might be a small performance benefit to native vs. homebrew git.
+   magit-git-executable "/usr/bin/git"
    )
 
   :config

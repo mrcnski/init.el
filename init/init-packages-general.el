@@ -480,6 +480,8 @@
   :defer t
   )
 
+(use-package sudo-edit)
+
 ;; For inserting, changing, and, deleting surrounding pairs of quotes, braces,
 ;; etc.
 (use-package surround
