@@ -61,10 +61,6 @@
 ;; Beancount
 
 (use-package beancount
-  :bind ("C-M-b" .
-         (lambda ()
-           (interactive)
-           (find-file "~/Dropbox/beancount/main.bean")))
   :hook (
          (beancount-mode . flymake-bean-check-enable)
          (beancount-mode . outline-minor-mode)
@@ -82,6 +78,16 @@
   ;;       (directory-files "~/Dropbox/beancount/accounts/"
   ;;                        'full
   ;;                        (rx ".bean" eos)))
+  )
+
+;; CSS / SCSS
+
+(use-package css-mode
+  :ensure nil
+  :config
+  (setopt
+   css-indent-offset 2
+   )
   )
 
 ;; C#
@@ -185,7 +191,7 @@
   :hook
   (typescript-mode . eglot-ensure)
   :custom
-  (typescript-indent-level 4)
+  (typescript-indent-level 2)
   (typescript-ts-mode-indent-offset 4)
   )
 (use-package tide
@@ -330,6 +336,8 @@
 (use-package toml-mode
   :mode "\\.toml\\'"
   )
+
+;; Web
 
 (use-package web-mode
   :mode (

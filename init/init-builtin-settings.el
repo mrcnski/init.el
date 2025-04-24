@@ -102,8 +102,6 @@
 
  ;; Non-nil means suppress warning messages for symlinked files.
  find-file-suppress-same-file-warnings t
- ;; Create interlock files?
- create-lockfiles t
  ;; Send deleted files to trash.
  delete-by-moving-to-trash t
  ;; Open files in existing frames.
@@ -184,7 +182,7 @@
  auto-save-default nil
 
  ;; Create lockfiles (prepended with .#) to avoid editing collisions?
- create-lockfiles t
+ create-lockfiles nil
  )
 
 ;;; Set some built-in modes.

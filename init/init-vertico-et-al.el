@@ -202,7 +202,7 @@
    consult-goto-line
    consult-theme
    consult-xref
-   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
+   ;; consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
    :preview-key 'any
    ;; :preview-key '("C-.")
    )

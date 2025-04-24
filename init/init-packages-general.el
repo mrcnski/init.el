@@ -380,8 +380,8 @@
 
   ;; Customize some settings
   (setq
-   keys-keys '("s-w" "M-F" "C-M-," "s-D" "C-o")
-   keys-display-amount 3 ; How many keys to show at once
+   keys-keys '("M-F" "C-M-," "C-o")
+   keys-display-amount 2 ; How many keys to show at once
    keys-indicator-separator " | " ; Customize the indicator!
    keys-random t ; By default, keys are shown in a random order
 
@@ -479,6 +479,8 @@
 (use-package string-inflection
   :defer t
   )
+
+(use-package sudo-edit)
 
 ;; For inserting, changing, and, deleting surrounding pairs of quotes, braces,
 ;; etc.
