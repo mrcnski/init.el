@@ -90,13 +90,13 @@
 
   (defun enable-diff-hl ()
     ;; Make the fringe wide enough to display correctly.
-    (setq-local left-fringe-width 16)
+    ;; (setq-local left-fringe-width 16)
     (turn-on-diff-hl-mode))
 
   :config
 
-  ;; Show diffs in margin when running in terminal.
-  (unless (window-system) (diff-hl-margin-mode))
+  ;; Show diffs in margin, the fringe display was broken.
+  (diff-hl-margin-mode)
 
   ;; Show diffs while buffer is being edited.
   (diff-hl-flydiff-mode)
@@ -214,6 +214,9 @@
 (use-package smart-jump
   :config
   (smart-jump-setup-default-registers)
+
+  (advice-add 'smart-jump-go :before
+            #'(lambda (&rest _) (call-interactively 'save-all)))
   )
 
 ;; NOTE: Requires ripgrep with pcre2 support.

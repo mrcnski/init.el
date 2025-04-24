@@ -85,8 +85,8 @@
    org-adapt-indentation nil
    org-startup-indented nil
    org-odd-levels-only nil
-   ;; Use different styling for nested bullets.
-   org-list-demote-modify-bullet '(("+" . "-") ("-" . "+") ("*" . "+"))
+   ;; Use different styling for nested bullets?
+   org-list-demote-modify-bullet nil
 
    org-ellipsis " …"
 

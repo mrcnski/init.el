@@ -61,10 +61,6 @@
 ;; Beancount
 
 (use-package beancount
-  :bind ("C-M-b" .
-         (lambda ()
-           (interactive)
-           (find-file "~/Dropbox/beancount/main.bean")))
   :hook (
          (beancount-mode . flymake-bean-check-enable)
          (beancount-mode . outline-minor-mode)
