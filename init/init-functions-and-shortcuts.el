@@ -165,6 +165,13 @@
 (global-set-key (kbd "M-=") 'text-scale-increase)
 (global-set-key (kbd "M--") 'text-scale-decrease)
 
+(defun highlight-off (beg end)
+  (remove-overlays beg end 'face 'bookmark-face)
+  )
+(defun highlight-on (beg end)
+  (let ((ov (make-overlay beg end)))
+    (overlay-put ov 'face 'bookmark-face))
+  )
 (defun highlight-line ()
   "Toggle highlighting the current line."
   (interactive)
@@ -173,9 +180,8 @@
          (overlays (overlays-in beg end)))
     (if (-any? #'(lambda (ov) (equal (overlay-get ov 'face) 'bookmark-face))
                overlays)
-        (remove-overlays beg end 'face 'bookmark-face)
-      (let ((ov (make-overlay beg end)))
-        (overlay-put ov 'face 'bookmark-face)))))
+        (highlight-off beg end)
+      (highlight-on beg end))))
 (global-set-key (kbd "C-c l") 'highlight-line)
 
 (defun indent-buffer ()

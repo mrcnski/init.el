@@ -32,8 +32,7 @@
    magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
    ;; Don't ask before saving repository buffers.
    magit-save-repository-buffers 'dontask
-   ;; Stop magit from messing up my window configuration when quitting
-   ;; buffers.
+   ;; Stop magit from messing up my window configuration when quitting buffers.
    magit-bury-buffer-function 'quit-window
    ;; Show diffs in the commit flow?
    magit-commit-show-diff nil
