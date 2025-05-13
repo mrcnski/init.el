@@ -162,16 +162,16 @@
 ;;   (setq js2-strict-missing-semi-warning nil)
 ;;   )
 
-;; REMOVED: Complained it couldn't find prettier. Also was trying to run on
-;; Emacs Lisp etc.
 ;; Formats prettier-compatible source code on save. Automatically finds and uses
 ;; prettier config.
 (use-package prettier
+  :hook (
+         (typescript-ts-mode . prettier-mode)
+         )
+
   :config
-  (define-key typescript-ts-mode-map "C-c n" 'prettier-prettify)
-  ;; Set this to nil if you don't want Prettier to prettify (format) the buffer
-  ;; when saving.
-  (setq prettier-prettify-on-save-flag nil)
+  ;; Should Prettier format the buffer when saving?
+  (setq prettier-prettify-on-save-flag t)
 
   ;; Turn on the minor mode in all major modes supported by your version of
   ;; Prettier.
@@ -204,8 +204,8 @@
    typescript-ts-mode-indent-offset 2
    )
 
+  (define-key typescript-ts-mode-map "C-c n" 'prettier-prettify)
   ;; Fixes some weird bug in the mode where I can't type an uppercase C.
-  ;; TODO: maybe it was something I did.
   (define-key typescript-ts-mode-map "C" nil)
   )
 (use-package tide
@@ -213,7 +213,7 @@
   :after (typescript-ts-mode company flycheck)
   :hook (
          (typescript-ts-mode . tide-setup)
-         ;; REMOVED: Messes up point position.
+         ;; REMOVED: Use prettier instead.
          ;; (before-save . tide-format-before-save)
          )
   )

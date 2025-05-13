@@ -193,7 +193,13 @@
 (defun indent-buffer ()
   "Indent the whole buffer."
   (interactive)
-  (indent-region (point-min) (point-max))
+  (cond
+   ((derived-mode-p 'typescript-ts-mode)
+    (prettier-prettify)
+    )
+   (t
+    (indent-region (point-min) (point-max))
+    ))
   )
 (global-set-key (kbd "C-c n") 'indent-buffer)
 
