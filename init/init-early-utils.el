@@ -56,7 +56,9 @@
      )
     ;; Set the desired env vars.
     (dolist (var '(
+                   "ANTHROPIC_AUTH_TOKEN"
                    "ANTHROPIC_API_KEY"
+                   "ANTHROPIC_BASE_URL"
                    "COMPNAV_DIR"
                    "COMPNAV_H_REPOS_DIR"
                    "HISTSIZE"

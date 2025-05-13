@@ -18,6 +18,7 @@
     (interactive)
     (isearch-abort)
     (isearch-abort)
+    (isearch-abort)
     )
 
   :config

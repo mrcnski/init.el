@@ -323,9 +323,9 @@
                  (display-buffer-reuse-window
                   display-buffer-same-window)))
   (advice-add 'rustic-cargo-check :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+              #'(lambda (&rest _) (call-interactively 'save-all)))
   (advice-add 'rustic-recompile :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+              #'(lambda (&rest _) (call-interactively 'save-all)))
   (add-hook 'rustic-mode-hook
             #'(lambda (&rest _) (setq-local compilation-read-command nil)))
 
@@ -335,9 +335,9 @@
                  (display-buffer-reuse-window
                   display-buffer-same-window)))
   (advice-add 'rustic-cargo-test-rerun :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+              #'(lambda (&rest _) (call-interactively 'save-all)))
   (advice-add 'rustic-cargo-test :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+              #'(lambda (&rest _) (call-interactively 'save-all)))
   )
 
 ;; Manually set which rust mode I want to use.
