@@ -103,6 +103,10 @@
 ;; Emmet
 
 (use-package emmet-mode
+  :bind (
+         :map emmet-mode-keymap
+              ("C-j" . nil)
+         )
   :hook (
          (sgml-mode . emmet-mode)
          (css-mode . emmet-mode)
