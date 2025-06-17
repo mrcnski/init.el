@@ -354,7 +354,13 @@
 
 ;; Modify multiple occurrences simultaneously.
 (use-package iedit
-  :bind ("C-=" . iedit-mode)
+  :bind (
+         ("C-=" . iedit-mode)
+
+         :map iedit-mode-occurrence-keymap
+         ;; `iedit-delete-occurrences'
+         ("M-D" . nil)
+         )
   )
 
 ;; Frequency statistics of keys.
@@ -558,9 +564,6 @@ on `whitespace-mode'."
 ;; Switch windows more easily.
 (use-package winum
   :init
-  ;; Prevent winum from inserting its own number in the mode-line
-  ;; (spaceline already does so).
-  ;; (setq winum-auto-setup-mode-line nil)
 
   ;; This has to be in :init for some reason.
   (setq winum-keymap
@@ -574,7 +577,7 @@ on `whitespace-mode'."
           (define-key map (kbd "M-7") 'winum-select-window-7)
           (define-key map (kbd "M-8") 'winum-select-window-8)
           (define-key map (kbd "M-9") 'winum-select-window-9)
-          (define-key map (kbd "M-0") 'winum-select-window-0)
+          (define-key map (kbd "M-0") 'winum-select-window-0-or-10)
           map))
 
   :config
