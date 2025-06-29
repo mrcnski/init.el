@@ -5,5 +5,6 @@ customize.el
 eln-cache
 elpa
 notes.org
+snippets
 tree-sitter
 var

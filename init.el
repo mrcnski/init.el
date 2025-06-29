@@ -25,7 +25,7 @@
 ;; TODO:
 ;;
 ;; - [ ] With Emacs 29+:
-;;   - [ ] switch to built-in tree-sitter (once it's easier to setup...)
+;;   - [x] switch to built-in tree-sitter (once it's easier to setup...)
 ;;   - [ ] (requires tree-sitter) use new indent package (once stipples are available)
 ;;
 ;;; Code:

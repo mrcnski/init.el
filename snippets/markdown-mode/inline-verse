@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: inline-verse
-# key: inline
-# --
-
-{% include inline-verse.html verse="$1" %}
