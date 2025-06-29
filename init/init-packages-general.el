@@ -449,12 +449,6 @@
   (define-key mc/mark-more-like-this-extended-keymap (kbd "<return>") nil)
   )
 
-
-;; Deal more comfortably with long text.
-(use-package olivetti
-  :hook ((text-mode . olivetti-mode))
-  )
-
 ;; Highlight color strings with the corresponding color.
 (use-package rainbow-mode
   :defer t

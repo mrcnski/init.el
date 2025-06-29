@@ -257,6 +257,28 @@
    eshell-scroll-to-bottom-on-input t
    )
 
+  ;; Fix prompt navigation functions.
+  (defun eshell-previous-prompt-fixed ()
+    "Go to previous instance of `eshell-prompt-regexp'.
+If already at a prompt, go to the previous previous one.
+Position cursor at the end of the prompt."
+    (interactive)
+    (let ((current-point (point)))
+      ;; Attempt to move to the previous prompt.
+      (if (re-search-backward eshell-prompt-regexp nil t)
+          (goto-char (match-end 0)))
+
+      ;; If the point hasn't changed, try moving two prompts back.
+      (when (= (point) current-point)
+        (when (re-search-backward eshell-prompt-regexp nil t 2)
+          (goto-char (match-end 0))))))
+  (defun eshell-next-prompt-fixed ()
+    "Go to next instance of `eshell-prompt-regexp'.
+Position cursor at the end of the prompt."
+    (interactive)
+    (when (re-search-forward eshell-prompt-regexp nil t)
+      (goto-char (match-end 0))))
+
   ;; Add consult-outline support.
   (add-hook 'eshell-mode-hook (lambda () (setq outline-regexp eshell-prompt-regexp)))
 
@@ -265,8 +287,8 @@
             #'(lambda ()
                 (define-key eshell-mode-map (kbd "C-a") 'eshell-bol)
                 (define-key eshell-mode-map (kbd "M-m") 'beginning-of-line)
-                (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt)
-                (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt)
+                (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt-fixed)
+                (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt-fixed)
 
                 ;; Better history command!
                 (define-key eshell-mode-map (kbd "M-r") 'consult-history)
