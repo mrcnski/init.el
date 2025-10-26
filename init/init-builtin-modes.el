@@ -434,6 +434,14 @@ Position cursor at the end of the prompt."
     (eshell-syntax-highlighting-global-mode 1))
   )
 
+(use-package flymake
+  :ensure nil
+  :bind (
+         ("C-s-[" . flymake-goto-prev-error)
+         ("C-s-]" . flymake-goto-next-error)
+         )
+  )
+
 (use-package outline
   :ensure nil
   :bind (

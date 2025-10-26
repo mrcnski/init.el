@@ -35,7 +35,7 @@
    ;; Stop magit from messing up my window configuration when quitting buffers.
    magit-bury-buffer-function 'quit-window
    ;; Show diffs in the commit flow?
-   magit-commit-show-diff nil
+   magit-commit-show-diff t
    ;; How many recent commits to show in certain log sections.
    magit-log-section-commit-count 50
    )

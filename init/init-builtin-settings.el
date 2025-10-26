@@ -89,10 +89,11 @@
 
  ;; Where should we open new buffers by default?
  display-buffer-base-action '(display-buffer-below-selected)
+ ;; display-buffer-base-action '(display-buffer-same-window)
  ;; Specify custom behavior for misbehaving buffers.
  display-buffer-alist
  '(("\\*Help\\*"
-    (display-buffer-reuse-window
+    (display-buffer-same-window
      display-buffer-below-selected))
    ("\\*Ibuffer\\*"
     (display-buffer-same-window))
@@ -133,14 +134,8 @@
 ;; How far to scroll windows upward.
 (setq-default scroll-up-aggressively nil)
 
-;; Clean up the Mac Menu Bar.
-(define-key global-map [menu-bar buffer] nil)
-(define-key global-map [menu-bar edit] nil)
-(define-key global-map [menu-bar file] nil)
-(define-key global-map [menu-bar help-menu] nil)
-(define-key global-map [menu-bar options] nil)
-(define-key global-map [menu-bar tools] nil)
-(define-key minibuffer-mode-map [menu-bar] nil)
+;; Disable the Mac Menu Bar.
+(menu-bar-mode -1)
 
 ;; Set c-style comments to be "//".
 (add-hook 'c-mode-common-hook

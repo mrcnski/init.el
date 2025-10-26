@@ -164,7 +164,11 @@
          (conf-mode . flycheck-mode)
          )
   :commands flycheck-mode
-  :bind ("C-!" . flycheck-list-errors)
+  :bind (
+         ("C-!" . flycheck-list-errors)
+         ("C-s-[" . flycheck-previous-error)
+         ("C-s-]" . flycheck-next-error)
+         )
   :config
   (setq
    flycheck-check-syntax-automatically '(mode-enabled save)
