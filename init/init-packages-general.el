@@ -139,6 +139,13 @@
          )
   )
 
+(use-package context-clues
+  :load-path "~/.emacs.d/packages/context-clues" ; Coming to MELPA soon I hope
+  :bind ("s-'" . context-clues)
+  :config
+  (setq context-clues-message-format "Copied {description}: {text}")
+  )
+
 ;; Copy selected region to be pasted into Slack/Github/etc.
 (use-package copy-as-format
   :config
