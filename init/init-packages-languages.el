@@ -191,6 +191,7 @@
 ;; prettier config.
 (use-package prettier
   :hook (
+         (typescript-mode . prettier-mode)
          (typescript-ts-mode . prettier-mode)
          )
 
@@ -220,8 +221,7 @@
 ;; Typescript
 (use-package typescript-mode
   :mode "\\.tsx?$"
-  :hook
-  (typescript-mode . eglot-ensure)
+  ;; :hook (typescript-mode . eglot-ensure)
 
   :config
   (setopt
@@ -235,12 +235,19 @@
   )
 (use-package tide
   :ensure t
-  :after (typescript-ts-mode company flycheck)
+  :after (
+          flycheck
+          ;; typescript-mode
+          typescript-ts-mode
+          )
   :hook (
+         (typescript-mode . tide-setup)
          (typescript-ts-mode . tide-setup)
          ;; REMOVED: Use prettier instead.
          ;; (before-save . tide-format-before-save)
          )
+  :config
+  (setopt tide-jump-to-definition-reuse-window nil)
   )
 
 ;; JSON

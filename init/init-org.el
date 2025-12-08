@@ -37,7 +37,7 @@
 
   :hook (
          (org-mode . org-mode-hook-fun)
-         (org-mode . company-mode)
+         ;; (org-mode . company-mode)
          )
 
   :init

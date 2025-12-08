@@ -164,7 +164,11 @@
          (conf-mode . flycheck-mode)
          )
   :commands flycheck-mode
-  :bind ("C-!" . flycheck-list-errors)
+  :bind (
+         ("C-!" . flycheck-list-errors)
+         ("C-s-[" . flycheck-previous-error)
+         ("C-s-]" . flycheck-next-error)
+         )
   :config
   (setq
    flycheck-check-syntax-automatically '(mode-enabled save)
@@ -216,7 +220,7 @@
   (smart-jump-setup-default-registers)
 
   (advice-add 'smart-jump-go :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+              #'(lambda (&rest _) (call-interactively 'save-all)))
   )
 
 ;; NOTE: Requires ripgrep with pcre2 support.

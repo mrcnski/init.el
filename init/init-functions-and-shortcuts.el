@@ -485,6 +485,7 @@ into one."
 
 (defvar indent-amount 4)
 ;; Set per-mode overrides.
+(add-hook 'scss-mode-hook #'(lambda () (setq-local indent-amount 2)))
 (add-hook 'text-mode-hook #'(lambda () (setq-local indent-amount 2)))
 (add-hook 'yaml-mode-hook #'(lambda () (setq-local indent-amount 2)))
 

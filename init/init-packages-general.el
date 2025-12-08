@@ -386,7 +386,7 @@
 
   ;; Customize some settings
   (setq
-   keys-keys '("M-F" "C-M-," "C-o")
+   keys-keys '()
    keys-display-amount 2 ; How many keys to show at once
    keys-indicator-separator " | " ; Customize the indicator!
    keys-random t ; By default, keys are shown in a random order
@@ -435,9 +435,16 @@
          ;; Add cursors with the mouse!
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)
 
-         ;; :map mc/keymap
-         ;; ("C-g" .
+         :map mc/keymap
+         ("C-g" . mc/keyboard-quit-fixed)
          )
+  :init
+  (defun mc/keyboard-quit-fixed ()
+    "Fix broken C-g."
+    (interactive)
+    (mc/keyboard-quit)
+    (mc/keyboard-quit)
+    )
 
   :config
   (setq mc/always-run-for-all t)
@@ -498,10 +505,12 @@
 (use-package uniquify
   :ensure nil
   :config
-  (setq uniquify-buffer-name-style 'forward
-        uniquify-min-dir-content 2
-        uniquify-strip-common-suffix nil
-        )
+  (setq
+   uniquify-buffer-name-style 'post-forward-angle-brackets
+   uniquify-min-dir-content 2
+   uniquify-strip-common-suffix nil
+   uniquify-strip-common-suffix nil
+   )
   )
 
 ;; Display available keys.

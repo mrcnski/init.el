@@ -88,11 +88,11 @@
  switch-to-buffer-preserve-window-point t
 
  ;; Where should we open new buffers by default?
- display-buffer-base-action '(display-buffer-below-selected)
+ display-buffer-base-action '(display-buffer-same-window)
  ;; Specify custom behavior for misbehaving buffers.
  display-buffer-alist
  '(("\\*Help\\*"
-    (display-buffer-reuse-window
+    (display-buffer-same-window
      display-buffer-below-selected))
    ("\\*Ibuffer\\*"
     (display-buffer-same-window))
