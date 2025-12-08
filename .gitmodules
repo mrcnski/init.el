@@ -13,3 +13,6 @@
 [submodule "packages/compnav-eshell"]
 	path = packages/compnav-eshell
 	url = https://github.com/mrcnski/compnav-eshell
+[submodule "packages/context-clues"]
+	path = packages/context-clues
+	url = https://github.com/mrcnski/context-clues

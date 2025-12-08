@@ -37,7 +37,9 @@
 (defun open-scratchpad-file ()
   "Open scratchpad file."
   (interactive)
-  (find-file user-scratchpad-path))
+  (find-file user-scratchpad-path)
+  (org-mode)
+  )
 (global-set-key (kbd "C-c s") 'open-scratchpad-file)
 
 (provide 'init-basics)
