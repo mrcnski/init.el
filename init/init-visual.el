@@ -74,6 +74,18 @@
     (setq-default line-spacing 0)
     )
    )
+
+  (set-face-attribute 'variable-pitch nil
+                      :font "Iosevka Etoile"
+                      :height 110
+                      :weight 'light)
+
+  (use-package mixed-pitch
+    :hook
+    (text-mode . mixed-pitch-mode)
+    :config
+    (setq mixed-pitch-variable-pitch-cursor nil)
+    )
   )
 
 (provide 'init-visual)
