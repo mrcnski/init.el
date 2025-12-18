@@ -1,6 +1,6 @@
 ;;; init.el --- Emacs configuration file. -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2017-2024 Marcin Swieczkowski
+;; Copyright (C) 2017-2026 Marcin Swieczkowski
 ;;
 ;;; Commentary:
 ;;

@@ -1,8 +1,10 @@
-;;; init-package --- Package settings.
+;;; init-package --- Package settings. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;
 ;;; Code:
+
+(require 'init-basics)
 
 (require 'package)
 (setq

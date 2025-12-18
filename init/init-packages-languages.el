@@ -1,4 +1,4 @@
-;;; init-packages-languages --- Load language packages.
+;;; init-packages-languages --- Load language packages. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

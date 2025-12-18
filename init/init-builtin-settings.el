@@ -1,4 +1,4 @@
-;;; init-builtin-settings --- Builtin settings.
+;;; init-builtin-settings --- Builtin settings. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

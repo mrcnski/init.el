@@ -1,4 +1,4 @@
-;;; init-packages-project --- Load project packages.
+;;; init-packages-project --- Load project packages. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;
@@ -220,7 +220,7 @@
   (smart-jump-setup-default-registers)
 
   (advice-add 'smart-jump-go :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+              #'(lambda (&rest _) (call-interactively 'save-all)))
   )
 
 ;; NOTE: Requires ripgrep with pcre2 support.
