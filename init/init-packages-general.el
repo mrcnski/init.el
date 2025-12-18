@@ -1,4 +1,4 @@
-;;; init-packages-general --- Load general packages.
+;;; init-packages-general --- Load general packages. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

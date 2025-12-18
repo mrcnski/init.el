@@ -1,4 +1,4 @@
-;;; init-builtin-modes --- Built-in mode settings
+;;; init-builtin-modes --- Built-in mode settings -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

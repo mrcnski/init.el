@@ -1,8 +1,10 @@
-;;; init-packages-git --- Load git packages.
+;;; init-packages-git --- Load git packages. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;
 ;;; Code:
+
+(require 'init-basics)
 
 ;; Generate links to Github for current code location.
 (use-package git-link

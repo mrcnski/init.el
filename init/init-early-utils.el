@@ -1,4 +1,4 @@
-;;; init-early-utils --- Utilities that are useful to have ASAP (in case loading crashes).
+;;; init-early-utils --- Utilities that are useful to have ASAP (in case loading crashes). -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

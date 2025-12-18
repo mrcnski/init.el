@@ -1,8 +1,10 @@
-;;; init-org --- Org mode settings and packages.
+;;; init-org --- Org mode settings and packages. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;
 ;;; Code:
+
+(require 'init-basics)
 
 (use-package org
   :ensure nil
@@ -88,17 +90,16 @@
    ;; Use different styling for nested bullets?
    org-list-demote-modify-bullet nil
 
-   org-ellipsis " …"
+   org-ellipsis " ..."
+   ;; Try to keep cursor before ellipses.
+   org-special-ctrl-a/e t
+   ;; Smart editing of invisible region around ellipses.
+   org-catch-invisible-edits 'smart
 
    ;; Non-nil means unchecked boxes will prevent switching the parent to DONE.
    org-enforce-todo-checkbox-dependencies nil
    ;; All subtasks must be DONE before marking a task as DONE.
    org-enforce-todo-dependencies t
-
-   ;; Try to keep cursor before ellipses.
-   org-special-ctrl-a/e t
-   ;; Smart editing of invisible region around ellipses.
-   org-catch-invisible-edits 'smart
 
    ;; Prefer rescheduling to future dates and times.
    org-read-date-prefer-future 'time
@@ -212,9 +213,9 @@
     )
 
   (defun org-fix-blank-lines (&optional prefix)
-    "Ensure that blank lines exist between headings and between headings and their contents.
-With prefix, operate on whole buffer. Ensures that blank lines
-exist after each headings's drawers."
+    "Ensure that blank lines exist between headings and between headings and
+their contents. With prefix, operate on whole buffer. Ensures that blank
+lines exist after each headings's drawers."
     (interactive "P")
     (org-map-entries
      (lambda ()

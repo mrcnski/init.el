@@ -1,4 +1,4 @@
-;;; init-packages-project --- Load project packages.
+;;; init-packages-project --- Load project packages. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;

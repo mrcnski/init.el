@@ -1,4 +1,4 @@
-;;; init-vertico-et-al --- vertico + consult + orderless + marginalia.
+;;; init-vertico-et-al --- vertico + consult + orderless + marginalia. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;
