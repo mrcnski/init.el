@@ -17,8 +17,6 @@
     "Install Tree-sitter grammars if they are absent."
     (interactive)
     (dolist (grammar
-             ;; Note the version numbers. These are the versions that
-             ;; are known to work with Combobulate *and* Emacs.
              '(
                (astro . ("https://github.com/virchau13/tree-sitter-astro" "master"))
                (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
@@ -27,6 +25,7 @@
                (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
                (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
                (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+               (prisma . ("https://github.com/victorhqc/tree-sitter-prisma" "v1.5.0"))
                (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
                (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
                (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
@@ -39,9 +38,6 @@
       ;; this obviously prevents that from happening.
       (unless (treesit-language-available-p (car grammar))
         (treesit-install-language-grammar (car grammar)))))
-
-  ;; Optional. Combobulate works in both xxxx-ts-modes and
-  ;; non-ts-modes.
 
   ;; You can remap major modes with `major-mode-remap-alist'. Note
   ;; that this does *not* extend to hooks! Make sure you migrate them
@@ -182,20 +178,22 @@
 ;;   (setq js2-strict-missing-semi-warning nil)
 ;;   )
 
-;; REMOVED: Complained it couldn't find prettier. Also was trying to run on
-;; Emacs Lisp etc.
-;; ;; Formats prettier-compatible source code on save. Automatically finds and uses
-;; ;; prettier config.
-;; (use-package prettier
-;;   :bind ("C-c n" . prettier-prettify)
-;;   :config
-;;   ;; Set this to nil if you don't want Prettier to prettify (format) the buffer
-;;   ;; when saving.
-;;   (setq prettier-prettify-on-save-flag nil)
-;;   ;; Turn on the minor mode in all major modes supported by your version of
-;;   ;; Prettier.
-;;   (global-prettier-mode)
-;;   )
+;; Formats prettier-compatible source code on save. Automatically finds and uses
+;; prettier config.
+(use-package prettier
+  :hook (
+         (typescript-mode . prettier-mode)
+         (typescript-ts-mode . prettier-mode)
+         )
+
+  :config
+  ;; Should Prettier format the buffer when saving?
+  (setq prettier-prettify-on-save-flag t)
+
+  ;; Turn on the minor mode in all major modes supported by your version of
+  ;; Prettier.
+  ;; (global-prettier-mode)
+  )
 
 ;; React
 (use-package rjsx-mode
@@ -273,6 +271,10 @@
   :defer t
   :bind (:map nim-mode-map ("RET" . newline-and-indent))
   )
+
+;; Prisma
+
+(use-package prisma-ts-mode)
 
 ;; Python
 
