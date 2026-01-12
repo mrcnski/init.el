@@ -323,12 +323,14 @@
 
   (global-hl-todo-mode)
 
-  (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
-  (add-to-list 'hl-todo-keyword-faces '("GIGO" . "#cc9393"))
-  (add-to-list 'hl-todo-keyword-faces '("WARNING" . "#cc9393"))
-  (add-to-list 'hl-todo-keyword-faces '("SAFETY" . "#cc9393"))
-  (add-to-list 'hl-todo-keyword-faces '("RACE" . "#cc9393"))
   (add-to-list 'hl-todo-keyword-faces '("DEPRECATED" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces '("INFO" . "#9ccc65"))
+  (add-to-list 'hl-todo-keyword-faces '("NOTE" . "#9ccc65"))
+  (add-to-list 'hl-todo-keyword-faces '("RACE" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces '("REMOVED" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces '("SAFETY" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces '("TODO" . "#eaaa0c"))
+  (add-to-list 'hl-todo-keyword-faces '("WARNING" . "#cc9393"))
   )
 
 ;; Highlight symbol under point.

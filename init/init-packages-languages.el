@@ -191,8 +191,10 @@
 ;; prettier config.
 (use-package prettier
   :hook (
+         (json-ts-mode . prettier-mode)
          (typescript-mode . prettier-mode)
          (typescript-ts-mode . prettier-mode)
+         (web-mode . prettier-mode)
          )
 
   :config
