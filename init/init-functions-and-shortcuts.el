@@ -130,7 +130,7 @@
   )
 (add-hook 'before-save-hook 'my-delete-trailing-whitespace)
 
-(global-set-key (kbd "M-SPC") 'cycle-spacing)
+(global-set-key (kbd "M-SPC") 'just-one-space)
 
 ;; Code folding.
 (use-package hideshow
@@ -468,6 +468,17 @@ into one."
   )
 (global-set-key (kbd "s-C-o") 'open-line-below)
 (global-set-key (kbd "s-C-M-o") 'open-line-above)
+
+(defun ensure-surrounding-blank-lines ()
+  "Ensure the cursor is on a blank line with one surrounding blank line."
+  (interactive)
+  (delete-all-space)
+  (newline 2)
+  (indent-according-to-mode)
+  (call-interactively 'goto-line-above t)
+  (call-interactively 'goto-line-above t)
+  )
+(global-set-key (kbd "C-S-o") 'ensure-surrounding-blank-lines)
 
 ;; Indentation functions.
 

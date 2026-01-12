@@ -182,8 +182,12 @@
 ;; prettier config.
 (use-package prettier
   :hook (
+         ;; REMOVED: really broken!
+         ;; (astro-ts-mode . prettier-mode)
+         (json-ts-mode . prettier-mode)
          (typescript-mode . prettier-mode)
          (typescript-ts-mode . prettier-mode)
+         (web-mode . prettier-mode)
          )
 
   :config
