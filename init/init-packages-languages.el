@@ -259,6 +259,12 @@
 
 (use-package markdown-mode
   :mode "\\.md\\'"
+  :bind (
+         :map markdown-mode-map
+         ("M-p" . markdown-previous-visible-heading)
+         ("M-n" . markdown-next-visible-heading)
+         ("C-c C-c" . markdown-do)
+         )
   :config
   ;; This mode overrides the return key! Stop!
   (define-key markdown-mode-map (kbd "<return>") nil)
