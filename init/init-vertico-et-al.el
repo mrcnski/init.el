@@ -16,7 +16,7 @@
    vertico-scroll-margin 3
 
    ;; Show more candidates
-   ;; vertico-count 20
+   vertico-count 11
 
    ;; Grow and shrink the Vertico minibuffer
    ;; vertico-resize t

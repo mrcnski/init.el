@@ -213,9 +213,9 @@ another window."
 (global-set-key (kbd "C-c h") 'region-history-other)
 
 (defun project-notes ()
-  "Open a notes.org file in the root of the project."
+  "Open a notes.md file in the root of the project."
   (interactive)
-  (find-file (concat (vc-root-dir) "notes.org"))
+  (find-file (concat (vc-root-dir) "notes.md"))
   )
 (global-set-key (kbd "s-o") 'project-notes)
 
@@ -620,7 +620,7 @@ into one."
           (sh-mode . ("#+"))
           (python-mode . ("#+"))
           (red-mode . ("comment"))
-          (markdown-mode . ("^#+" "^-"))
+          (markdown-mode . (,org-list-item-regexp "^#+"))
           )))
 
 (defun skip-prefixes ()
