@@ -201,15 +201,18 @@
 (add-hook 'yaml-mode-hook 'display-line-numbers-mode)
 (add-hook 'markdown-mode-hook 'display-line-numbers-mode)
 
-;; Auto refresh dired?
-;;
-;; NOTE: Disabled for now, since dired view could change while
-;; viewing/interacting with it. If re-enabling, set `auto-revert-verbose' to
-;; `nil'.
-(setq global-auto-revert-non-file-buffers nil)
-;; Show auto-revert messages?
-(setq auto-revert-verbose t)
-;; Auto revert files that changed on disk.
+(setq
+ ;; Auto refresh dired?
+ ;;
+ ;; NOTE: Disabled for now, since dired view could change while
+ ;; viewing/interacting with it. If re-enabling, set `auto-revert-verbose' to
+ ;; `nil'.
+ global-auto-revert-non-file-buffers nil
+ ;; Show auto-revert messages?
+ auto-revert-verbose t
+ ;; Auto revert files that changed on disk.
+ auto-revert-interval 1
+ )
 (global-auto-revert-mode t)
 
 ;; Disable eldoc mode, causes huge slowdown in Rust files and more annoying than

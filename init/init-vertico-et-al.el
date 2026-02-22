@@ -127,6 +127,9 @@
   ;; The :init configuration is always executed (Not lazy)
   :init
 
+  ;; Declare as dynamic so we can bind it with let
+  (defvar consult-ripgrep-args)
+
   (defun consult-ripgrep-exact-save (&optional prefix initial)
     "Save before calling `consult-ripgrep', matching exactly."
     (interactive "P")
