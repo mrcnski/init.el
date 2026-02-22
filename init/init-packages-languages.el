@@ -50,7 +50,6 @@
              (bash-mode . bash-ts-mode)
              (conf-toml-mode . toml-ts-mode)
              (go-mode . go-ts-mode)
-             (css-mode . css-ts-mode)
              (json-mode . json-ts-mode)
              (js-json-mode . json-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
