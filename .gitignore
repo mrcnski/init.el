@@ -1,5 +1,6 @@
 .DS_Store
 .aider*
+.agent-shell
 
 customize.el
 eln-cache
