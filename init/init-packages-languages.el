@@ -229,10 +229,6 @@
    typescript-indent-level 2
    typescript-ts-mode-indent-offset 2
    )
-
-  (define-key typescript-ts-mode-map "C-c n" 'prettier-prettify)
-  ;; Fixes some weird bug in the mode where I can't type an uppercase C.
-  (define-key typescript-ts-mode-map "C" nil)
   )
 (use-package tide
   :ensure t
