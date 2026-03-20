@@ -1,8 +1,28 @@
-;;; init-packages-general --- Load general packages. -*- lexical-binding: t; -*-
+;;; init-packages-ai --- Load AI packages. -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
 ;;
 ;;; Code:
+
+(use-package agent-shell
+  :ensure t
+  :ensure-system-package
+  (
+   (claude . "brew install claude-code")
+   (claude-agent-acp . "npm install -g @zed-industries/claude-agent-acp")
+   )
+  :bind (
+         ("C-q" . agent-shell)
+
+         :map agent-shell-mode-map
+         ("M-p" . agent-shell-previous-item)
+         ("M-n" . agent-shell-next-item)
+         )
+  :config
+  (setq
+   agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)
+   )
+  )
 
 ;; REMOVED: Doesn't work.
 ;; First-time setup:
@@ -44,33 +64,6 @@
 ;;   copilot-max-char (* 1000 1000)
 ;;   )
 ;;  )
-
-;; REMOVED: Not allowed at Amplify.
-;; (use-package gptel
-;;   :bind (
-;;          ("C-`" . gptel)
-
-;;          :map gptel-mode-map
-;;          ("<return>" . gptel-send)
-;;          )
-;;   :config
-;;   (setq
-;;    gptel-model 'claude-3-5-sonnet-20241022
-;;    gptel-backend (gptel-make-anthropic
-;;                      "Claude"
-;;                    :stream t
-;;                    :key (getenv "ANTHROPIC_API_KEY")
-;;                    )
-;;    )
-;;   (add-to-list 'display-buffer-alist
-;;                '("\\*Claude\\*"
-;;                  (display-buffer-reuse-window
-;;                   display-buffer-same-window)))
-
-;;   ;; Always moves point to the end of the current input, first.
-;;   (advice-add 'gptel-send :before
-;;               #'(lambda (&rest _) (call-interactively 'end-of-buffer)))
-;;   )
 
 (provide 'init-packages-ai)
 ;;; init-packages-ai.el ends here
