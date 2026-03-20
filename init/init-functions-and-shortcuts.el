@@ -13,6 +13,7 @@
 ;; Set up keys using super. s-a, s-x, s-c, and s-v correspond to
 ;; select-all, save, cut, copy, and paste, which I've left for
 ;; consistency/utility on Macs.
+(global-set-key (kbd "s-a") 'mark-whole-buffer)
 (global-set-key (kbd "s-p") 'previous-buffer)
 (global-set-key (kbd "s-n") 'next-buffer)
 (global-set-key (kbd "s-k") 'kill-current-buffer)
@@ -87,11 +88,11 @@
 ;; It is the opposite of fill-paragraph.
 ;; https://www.emacswiki.org/emacs/UnfillParagraph
 (defun unfill-paragraph ()
-  "Takes a multi-line paragraph and makes it into a single line of text."
+  "Take a multi-line paragraph and make it into a single line of text."
   (interactive)
   (let ((fill-column (point-max)))
     (fill-paragraph nil)))
- (global-set-key (kbd "M-Q") 'unfill-paragraph)
+(global-set-key (kbd "M-Q") 'unfill-paragraph)
 
 ;; Disable annoying popup on OSX.
 (global-set-key (kbd "s-t") 'make-frame)

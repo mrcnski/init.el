@@ -209,8 +209,8 @@
 ;; Typescript
 (use-package typescript-mode
   :mode "\\.tsx?$"
-  :hook
-  (typescript-mode . eglot-ensure)
+  ;; :hook
+  ;; (typescript-mode . eglot-ensure)
   :custom
   (typescript-indent-level 2)
   (typescript-ts-mode-indent-offset 4)
