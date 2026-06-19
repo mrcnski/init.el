@@ -91,7 +91,7 @@
       )
     t)
 
-  (defun avy-action-ripgrep-apply (fun &rest args)
+  (defun avy-action-ripgrep-apply (pt fun arg)
     (let ((symbol))
       (save-mark-and-excursion
         (goto-char pt)
@@ -99,17 +99,17 @@
         )
       (select-window
        (cdr (ring-ref avy-ring 0)))
-      (funcall fun args symbol)
+      (funcall fun arg symbol)
       )
     t)
   (defun avy-action-ripgrep-exact-project (pt)
-    (avy-action-ripgrep-apply #'consult-ripgrep-exact-save nil))
+    (avy-action-ripgrep-apply pt #'consult-ripgrep-exact-save nil))
   (defun avy-action-ripgrep-exact-current (pt)
-    (avy-action-ripgrep-apply #'consult-ripgrep-exact-save 4))
+    (avy-action-ripgrep-apply pt #'consult-ripgrep-exact-save 4))
   (defun avy-action-ripgrep-inexact-project (pt)
-    (avy-action-ripgrep-apply #'consult-ripgrep-inexact-save nil))
+    (avy-action-ripgrep-apply pt #'consult-ripgrep-inexact-save nil))
   (defun avy-action-ripgrep-inexact-current (pt)
-    (avy-action-ripgrep-apply #'consult-ripgrep-inexact-save 4))
+    (avy-action-ripgrep-apply pt #'consult-ripgrep-inexact-save 4))
 
   ;; TODO: flycheck-display-error-at-point
 
@@ -414,7 +414,7 @@
   ;; (setq frame-title-format '("Emacs" frame-title-keys))
   (add-hook
    'keys-post-change-hook
-   #'(lambda ()
+   (lambda ()
        (let ((indicator (keys-indicator)))
          (setq frame-title-keys
                (when (and global-keys-mode (not (string-empty-p indicator)))

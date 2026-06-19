@@ -323,9 +323,7 @@ lines exist after each headings's drawers."
     ;; Refresh org-agenda after changing an item status.
     ;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
     ;; Refresh org-agenda after rescheduling a task.
-    (defadvice org-schedule (after refresh-agenda activate)
-      "Refresh `org-agenda'."
-      (org-agenda-refresh))
+    (advice-add 'org-schedule :after (lambda (&rest _) (org-agenda-refresh)))
 
     ;; Refresh org-agenda after an org-capture.
     (add-hook 'org-capture-after-finalize-hook 'org-agenda-refresh)
