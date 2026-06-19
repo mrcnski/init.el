@@ -149,6 +149,7 @@
 (prefer-coding-system 'utf-8)
 
 ;; Setup selected file endings to open in certain modes.
+(add-to-list 'auto-mode-alist '("captain-definition\\'" . json-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.prdoc\\'" . yaml-mode))
 
 ;;; Backup settings.

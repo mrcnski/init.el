@@ -100,6 +100,14 @@
   ;;                        (rx ".bean" eos)))
   )
 
+;; Caddy
+
+(use-package caddyfile-mode
+  :ensure t
+  :mode (("Caddyfile\\'" . caddyfile-mode)
+         ("caddy\\.conf\\'" . caddyfile-mode))
+  )
+
 ;; CSS / SCSS
 
 (use-package css-mode

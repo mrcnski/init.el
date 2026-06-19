@@ -15,7 +15,9 @@
   )
 
 ;; .gitignore etc.
-(use-package git-modes)
+(use-package git-modes
+  :mode (("\\.dockerignore\\'" . gitignore-mode))
+  )
 
 ;; Browse historic versions of a file.
 (use-package git-timemachine
