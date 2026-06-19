@@ -473,6 +473,26 @@ Position cursor at the end of the prompt."
   (recentf-mode t)
   )
 
+;; Persist open buffers across Emacs sessions.  This restores the
+;; buffers that eyebrowse workspaces refer to (see eyebrowse in
+;; init-packages-general); without it, restored layouts collapse to the
+;; scratch buffer.  `desktop-dirname' is themed to var/ by no-littering.
+;;
+;; Note on crashes: `desktop-save-mode' saves on a clean exit *and* every
+;; `desktop-auto-save-timeout' seconds of idle (30 by default), so an
+;; unexpected quit only loses the last <=30s.  Eyebrowse hooks into the
+;; same save (see `desktop-save-hook' there) to get the same resilience.
+(use-package desktop
+  :ensure nil
+  :config
+  (setq desktop-save t                  ; save on exit without asking
+        desktop-load-locked-desktop t   ; don't prompt on a stale lock file
+        ;; Let eyebrowse own the window/frame layout; desktop only needs
+        ;; to bring the buffers back.
+        desktop-restore-frames nil)
+  (desktop-save-mode t)
+  )
+
 ;; Save minibuffer history across Emacs sessions.
 (use-package savehist
   :ensure nil
