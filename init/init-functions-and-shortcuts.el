@@ -578,9 +578,9 @@ into one."
 ;; Better beginning-of-line function.
 ;; From https://www.reddit.com/r/emacs/comments/15xeb1s/electric_mm/.
 
-(let ((c-like '("//+!?" "/?\\*+"))
-      (lisp '(";+"))
-      (org-header-regexp (rx bol (+ "*") (+ space)
+(let* ((c-like '("//+!?" "/?\\*+"))
+       (lisp '(";+"))
+       (org-header-regexp (rx bol (+ "*") (+ space)
                              ;; I know this is a filthy way of doing the keywords but I just can't
                              ;; be bothered to do it properly.
                              (? (or "TODO"
@@ -594,16 +594,20 @@ into one."
                                                   (seq "#" (or (any "A-Z") (+ digit))))
                                               "]"))
                                      (* space)))))
-      (org-list-item-regexp (rx (or "-" "+"
-                                    (seq (+ digit) (or "." ")"))
-                                    (seq (any "a-z" "A-Z") (or "." ")")))
-                                (+ space)
-                                (? (seq "[" (or " " "-" "X") "]" (* space)))
-                                (* (seq "["
-                                        (or (seq (* digit) "/" (* digit))
-                                            (seq (* digit) "%"))
-                                        "]")
-                                   (* space)))))
+       (org-list-item-regexp (rx (or "-" "+"
+                                     (seq (+ digit) (or "." ")"))
+                                     (seq (any "a-z" "A-Z") (or "." ")")))
+                                 (+ space)
+                                 (? (seq "[" (or " " "-" "X") "]" (* space)))
+                                 (* (seq "["
+                                         (or (seq (* digit) "/" (* digit))
+                                             (seq (* digit) "%"))
+                                         "]")
+                                    (* space))))
+       (js-like (list (concat "//+!?[[:space:]]+" org-list-item-regexp)
+                      (concat "/?\\*+[[:space:]]+" org-list-item-regexp)
+                      (car c-like)
+                      (cadr c-like))))
   (setq skip-prefixes-alist
         `(
           (text-mode . (,org-list-item-regexp))
@@ -618,10 +622,12 @@ into one."
           (rust-mode . ,(cons "//!" c-like))
           (zig-mode . ,c-like)
           (csharp-mode . ,c-like)
-          (sh-mode . ("#+"))
+          (markdown-mode . (,org-list-item-regexp "^#+"))
           (python-mode . ("#+"))
           (red-mode . ("comment"))
-          (markdown-mode . (,org-list-item-regexp "^#+"))
+          (sh-mode . ("#+"))
+          (js-ts-mode . ,js-like)
+          (typescript-ts-mode . ,js-like)
           )))
 
 (defun skip-prefixes ()
@@ -633,9 +639,10 @@ whitespace following it). If no regexps match, just skips over
   (interactive)
   (beginning-of-visual-line)
   (back-to-indentation)
-  (let ((eol (save-mark-and-excursion (move-end-of-line 1) (point))))
+  (let ((eol (save-mark-and-excursion (move-end-of-line 1) (point)))
+        (prefixes (cdr (assoc major-mode skip-prefixes-alist #'provided-mode-derived-p))))
     (unless (catch 'loop
-              (dolist (prefix (cdr (assoc major-mode skip-prefixes-alist #'provided-mode-derived-p)))
+              (dolist (prefix prefixes)
                 (when (looking-at-p prefix)
                   (search-forward-regexp prefix eol)
                   (search-forward-regexp "[[:space:]]*" eol)
