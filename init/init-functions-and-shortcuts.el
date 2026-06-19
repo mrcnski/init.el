@@ -179,7 +179,7 @@
   (let* ((beg (line-beginning-position))
          (end (min (point-max) (+ 1 (line-end-position))))
          (overlays (overlays-in beg end)))
-    (if (-any? #'(lambda (ov) (equal (overlay-get ov 'face) 'bookmark-face))
+    (if (-any? (lambda (ov) (equal (overlay-get ov 'face) 'bookmark-face))
                overlays)
         (highlight-off beg end)
       (highlight-on beg end))))
@@ -485,8 +485,9 @@ into one."
 
 (defvar indent-amount 4)
 ;; Set per-mode overrides.
-(add-hook 'text-mode-hook #'(lambda () (setq-local indent-amount 2)))
-(add-hook 'yaml-mode-hook #'(lambda () (setq-local indent-amount 2)))
+(add-hook 'scss-mode-hook (lambda () (setq-local indent-amount 2)))
+(add-hook 'text-mode-hook (lambda () (setq-local indent-amount 2)))
+(add-hook 'yaml-mode-hook (lambda () (setq-local indent-amount 2)))
 
 (defun indent-region-relative (beg end amount)
   "Indent from BEG to END by the specified AMOUNT."

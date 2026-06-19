@@ -294,14 +294,10 @@
          ("C-<" . python-indent-shift-left)
          ("C->" . python-indent-shift-right)
          )
+  :hook (python-mode . (lambda ()
+                         (setq flycheck-python-pylint-executable "/usr/local/bin/pylint")
+                         (setq flycheck-python-flake8-executable "/usr/local/bin/flake8")))
   )
-
-;; TODO: Move this into use-package.
-(add-hook 'python-mode-hook
-          (lambda ()
-            (setq flycheck-python-pylint-executable "/usr/local/bin/pylint")
-            (setq flycheck-python-flake8-executable "/usr/local/bin/flake8")
-            ))
 
 ;; Rust
 
@@ -340,11 +336,11 @@
                  (display-buffer-reuse-window
                   display-buffer-same-window)))
   (advice-add 'rustic-cargo-check :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+            (lambda (&rest _) (save-all)))
   (advice-add 'rustic-recompile :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+            (lambda (&rest _) (save-all)))
   (add-hook 'rustic-mode-hook
-            #'(lambda (&rest _) (setq-local compilation-read-command nil)))
+            (lambda () (setq-local compilation-read-command nil)))
 
   (setq rustic-cargo-test-exec-command "ltest")
   (add-to-list 'display-buffer-alist
@@ -352,9 +348,9 @@
                  (display-buffer-reuse-window
                   display-buffer-same-window)))
   (advice-add 'rustic-cargo-test-rerun :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+            (lambda (&rest _) (save-all)))
   (advice-add 'rustic-cargo-test :before
-            #'(lambda (&rest _) (call-interactively 'save-all)))
+            (lambda (&rest _) (save-all)))
   )
 
 ;; Manually set which rust mode I want to use.

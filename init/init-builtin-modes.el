@@ -284,28 +284,28 @@ Position cursor at the end of the prompt."
 
   ;; Set keys up in this hook. This doesn't work in :bind.
   (add-hook 'eshell-first-time-mode-hook
-            #'(lambda ()
-                (define-key eshell-mode-map (kbd "C-a") 'eshell-bol)
-                (define-key eshell-mode-map (kbd "M-m") 'beginning-of-line)
-                (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt-fixed)
-                (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt-fixed)
+            (lambda ()
+              (define-key eshell-mode-map (kbd "C-a") 'eshell-bol)
+              (define-key eshell-mode-map (kbd "M-m") 'beginning-of-line)
+              (define-key eshell-mode-map (kbd "M-{") 'eshell-previous-prompt-fixed)
+              (define-key eshell-mode-map (kbd "M-}") 'eshell-next-prompt-fixed)
 
-                ;; Better history command!
-                (define-key eshell-mode-map (kbd "M-r") 'consult-history)
-                (define-key eshell-hist-mode-map (kbd "M-r") nil)
+              ;; Better history command!
+              (define-key eshell-mode-map (kbd "M-r") 'consult-history)
+              (define-key eshell-hist-mode-map (kbd "M-r") nil)
 
-                ;; Allow M-s .
-                (define-key eshell-mode-map (kbd "M-s") nil)
-                (define-key eshell-hist-mode-map (kbd "M-s") nil)
-                ))
+              ;; Allow M-s .
+              (define-key eshell-mode-map (kbd "M-s") nil)
+              (define-key eshell-hist-mode-map (kbd "M-s") nil)
+              ))
 
   ;; Always moves point to the end of the current input, first.
   (advice-add 'consult-history :before
-              #'(lambda (&rest _) (call-interactively 'end-of-buffer)))
+              (lambda (&rest _) (end-of-buffer)))
   (advice-add 'eshell-previous-matching-input-from-input :before
-              #'(lambda (&rest _) (call-interactively 'end-of-buffer)))
+              (lambda (&rest _) (end-of-buffer)))
   (advice-add 'eshell-send-input :before
-              #'(lambda (&rest _) (call-interactively 'end-of-buffer)))
+              (lambda (&rest _) (end-of-buffer)))
 
   ;; Fix eshell overwriting history.
   ;; From https://emacs.stackexchange.com/a/18569/15023.
@@ -319,7 +319,7 @@ Position cursor at the end of the prompt."
           (eshell-write-history eshell-history-file-name t)))))
   (add-hook 'eshell-pre-command-hook #'eshell-append-history)
   ;; TODO: why is this needed?
-  (add-hook 'eshell-mode-hook #'(lambda () (setq eshell-exit-hook nil)))
+  (add-hook 'eshell-mode-hook (lambda () (setq eshell-exit-hook nil)))
 
   ;; Show the directory contents after changing directories.
   (add-hook 'eshell-directory-change-hook

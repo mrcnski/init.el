@@ -74,7 +74,7 @@
  use-short-answers t
 
  ;; Tab will always just try to indent.
- tab-always-indent 't
+ tab-always-indent t
  ;; Resize the minibuffer when needed.
  resize-mini-windows t
  ;; Enable recursive editing of minibuffer?
