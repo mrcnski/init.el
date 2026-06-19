@@ -222,6 +222,23 @@
   ;; Free up keybindings unnecessarily stolen by eyebrowse.
   (setq eyebrowse-keymap-prefix (kbd ""))
 
+  ;; Persist workspaces across restarts.  Must be set before
+  ;; `eyebrowse-mode' is enabled below, since the mode wires up its
+  ;; save/restore hooks at enable time.  Pairs with `desktop-save-mode'
+  ;; (see init-builtin-modes) so the referenced buffers come back too.
+  (setq eyebrowse-persist-window-configs t
+        eyebrowse-save-file (locate-user-emacs-file "var/eyebrowse-configs.el"))
+
+  ;; Load eyebrowse at the end of startup so workspaces are restored and
+  ;; the frame title reflects them automatically, without waiting for the
+  ;; first eyebrowse command (the `:bind' entries otherwise defer loading).
+  ;; Done via `emacs-startup-hook' rather than `:demand t' so it loads
+  ;; after the frame and mode line are ready, avoiding the mode-line
+  ;; display errors that eager loading caused.  This also runs after
+  ;; `desktop-read' (on `after-init-hook'), so the buffers the layouts
+  ;; refer to already exist.
+  (add-hook 'emacs-startup-hook (lambda () (require 'eyebrowse)))
+
   :config
 
   (eyebrowse-mode t)
@@ -258,6 +275,14 @@
   (frame-title-eyebrowse-update)
 
   (add-hook 'eyebrowse-indicator-change-hook 'frame-title-eyebrowse-update)
+
+  ;; The package already saves on `kill-emacs', but tie the save to
+  ;; `desktop-save-hook' too so workspaces are persisted on desktop's
+  ;; idle auto-save (every `desktop-auto-save-timeout' seconds).  That
+  ;; survives an unexpected quit and keeps the layout in sync with the
+  ;; buffer set desktop snapshots at the same moment.
+  (with-eval-after-load 'desktop
+    (add-hook 'desktop-save-hook 'eyebrowse--save-window-configs))
   )
 
 ;; Fix the capitalization commands.
