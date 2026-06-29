@@ -61,5 +61,10 @@
   )
  )
 
+(use-package promptu
+  :load-path "~/.emacs.d/packages/promptu"
+  :bind ("s-\"" . promptu)
+  )
+
 (provide 'init-packages-ai)
 ;;; init-packages-ai.el ends here
