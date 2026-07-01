@@ -68,6 +68,9 @@
 (use-package promptu
   :load-path "~/.emacs.d/packages/promptu"
   :bind ("s-\"" . promptu)
+  :config
+  (setq
+   promptu-history-file (no-littering-expand-var-file-name "promptu-history.el")
   )
 
 (provide 'init-packages-ai)
