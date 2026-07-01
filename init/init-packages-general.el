@@ -226,8 +226,10 @@
   ;; `eyebrowse-mode' is enabled below, since the mode wires up its
   ;; save/restore hooks at enable time.  Pairs with `desktop-save-mode'
   ;; (see init-builtin-modes) so the referenced buffers come back too.
-  (setq eyebrowse-persist-window-configs t
-        eyebrowse-save-file (locate-user-emacs-file "var/eyebrowse-configs.el"))
+  (setq
+   eyebrowse-persist-window-configs t
+   eyebrowse-save-file (no-littering-expand-var-file-name "eyebrowse-configs.el")
+   )
 
   ;; Load eyebrowse at the end of startup so workspaces are restored and
   ;; the frame title reflects them automatically, without waiting for the
@@ -250,7 +252,7 @@
    ;; single window with the scratch buffer in it)
    eyebrowse-new-workspace t
    eyebrowse-close-window-config-prompt t
-   eyebrowse-known-tags-file (locate-user-emacs-file "var/eyebrowse-tags.el")
+   eyebrowse-known-tags-file (no-littering-expand-var-file-name "eyebrowse-tags.el")
 
    eyebrowse-mode-line-separator " "
    eyebrowse-mode-line-left-delimiter ""
@@ -259,7 +261,7 @@
    eyebrowse-mode-line-current-right-delimiter "]"
    )
 
-  (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :bold t)
+  (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :weight 'bold)
 
   ;;; Show workspaces in title bar.
 
