@@ -103,6 +103,11 @@
 
  ;; Non-nil means suppress warning messages for symlinked files.
  find-file-suppress-same-file-warnings t
+ ;; Visit the symlink *target*, so a file opened via ~/.emacs.d and via its
+ ;; real dotfiles path resolves to one canonical buffer name.  Without this,
+ ;; uniquify hands the same file different names across sessions, which breaks
+ ;; buffer matching on restore.
+ find-file-visit-truename t
  ;; Send deleted files to trash.
  delete-by-moving-to-trash t
  ;; Open files in existing frames.
