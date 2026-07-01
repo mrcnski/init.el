@@ -397,23 +397,6 @@
          )
   )
 
-;; Frequency statistics of keys.
-(use-package keyfreq
-  :config
-  (keyfreq-mode 1)
-  (keyfreq-autosave-mode 1)
-  (setq keyfreq-excluded-commands
-        '(
-          mwheel-scroll
-          org-self-insert-command
-          self-insert-command
-          forward-char
-          backward-char
-          previous-line
-          next-line
-          ))
-  )
-
 (use-package keys
   :load-path "~/.emacs.d/packages/keys" ; Coming to MELPA soon I hope
   :config
@@ -587,6 +570,14 @@ on `whitespace-mode'."
     (whitespace-mode)
     )
   (add-hook 'python-mode-hook '100-whitespace-mode)
+  )
+
+;; Visualize and navigate the undo history as a tree. Drives Emacs'
+;; native undo (no parallel data structure), so it's safe and stateless.
+(use-package vundo
+  :bind ("C-x u" . vundo) ;; orig. undo (still on C-/)
+  :config
+  (setq vundo-glyph-alist vundo-unicode-symbols)
   )
 
 ;; Switch windows more easily.
