@@ -30,8 +30,10 @@
 
   :init
   (setopt
-   ;; Show fine differences for all displayed diff hunks.
-   magit-diff-refine-hunk `all
+   ;; Show fine (word-level) differences only for the hunk at point.
+   ;; `all' refines every visible hunk on each render, which is one of the
+   ;; biggest fontification costs on large diffs.
+   magit-diff-refine-hunk t
    ;; How to display new magit buffers?
    magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
    ;; Don't ask before saving repository buffers.
@@ -42,8 +44,9 @@
    magit-commit-show-diff nil
    ;; How many recent commits to show in certain log sections.
    magit-log-section-commit-count 16
-   ;; Might be a small performance benefit to native vs. homebrew git.
-   magit-git-executable "/usr/bin/git"
+   ;; Homebrew git is ~2x faster to start than /usr/bin/git.
+   ;; Magit spawns many git subprocesses per refresh, so this compounds.
+   magit-git-executable "/opt/homebrew/bin/git"
    )
 
   :config
