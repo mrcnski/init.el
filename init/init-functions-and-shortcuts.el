@@ -456,16 +456,16 @@ into one."
 (global-set-key (kbd "M-P") 'duplicate-line-above)
 
 (defun open-line-below (arg)
-  "Insert a newline at the end of the current line. ARG?"
+  "Insert ARG newlines at the end of the current line."
   (interactive "p")
   (save-mark-and-excursion
-    (call-interactively 'goto-line-below t (vector arg)))
+    (goto-line-below arg))
   )
 (defun open-line-above (arg)
-  "Insert a newline at the end of the current line. ARG?"
+  "Insert ARG newlines at the start of the current line."
   (interactive "p")
   (save-mark-and-excursion
-    (call-interactively 'goto-line-above t (vector arg)))
+    (goto-line-above arg))
   )
 (global-set-key (kbd "s-C-o") 'open-line-below)
 (global-set-key (kbd "s-C-M-o") 'open-line-above)
@@ -473,11 +473,19 @@ into one."
 (defun ensure-surrounding-blank-lines ()
   "Ensure the cursor is on a blank line with one surrounding blank line."
   (interactive)
-  (delete-all-space)
-  (newline 2)
-  (indent-according-to-mode)
-  (call-interactively 'goto-line-above t)
-  (call-interactively 'goto-line-above t)
+  (let ((beg (save-excursion (skip-chars-backward " \t\n") (point)))
+        (end (save-excursion (skip-chars-forward " \t\n") (point))))
+    ;; Report the edits as one atomic change. Otherwise the deletion
+    ;; transiently merges a following org headline into the previous line,
+    ;; and org-fold's fragility check queues a deferred reveal of its tree.
+    ;; Also makes the whole thing a single undo entry.
+    (combine-change-calls beg end
+      (delete-region beg end)
+      (insert "\n\n")
+      (save-excursion
+        (insert "\n\n")
+        (unless (eobp) (indent-according-to-mode)))
+      (indent-according-to-mode)))
   )
 (global-set-key (kbd "C-S-o") 'ensure-surrounding-blank-lines)
 
