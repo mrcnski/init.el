@@ -204,7 +204,11 @@
          ("s-D" . projectile-dired)
          )
   :config
-  (setq projectile-completion-system 'auto)
+  (setq projectile-completion-system 'auto
+        ;; Don't scan submodules with `git submodule foreach' (slow, one
+        ;; process spawn per submodule per invocation). fd already lists
+        ;; submodule files.
+        projectile-git-submodule-command nil)
   ;; Remove from menu bar.
   (define-key projectile-mode-map [menu-bar] nil)
 
