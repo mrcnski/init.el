@@ -248,6 +248,9 @@ lines exist after each headings's drawers."
 
   ;;; org packages
 
+  ;; For nicer exports to HTML.
+  (use-package htmlize)
+
   ;; Markdown export.
   (require 'ox-md)
 

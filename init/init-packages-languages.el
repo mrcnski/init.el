@@ -295,6 +295,25 @@
          ("C-c C-c" . markdown-do)
          )
   :config
+  ;; Set export command.
+  (setq markdown-command "pandoc -f gfm -t html5")
+  (setq markdown-xhtml-header-content
+        "<style>
+body { max-width: 60rem; margin: 2rem auto; padding: 0 1rem;
+       font-family: -apple-system, system-ui, sans-serif;
+       line-height: 1.6; color: #222; }
+h1, h2, h3 { line-height: 1.2; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #ccc; padding: .5rem .75rem;
+         text-align: left; vertical-align: top; }
+th { background: #f2f2f2; }
+tr:nth-child(even) td { background: #fafafa; }
+code { background: #f2f2f2; padding: .1rem .3rem; border-radius: 3px; }
+pre { background: #f6f8fa; padding: 1rem; overflow-x: auto; }
+blockquote { border-left: 3px solid #ccc; margin: 1rem 0;
+             padding-left: 1rem; color: #555; }
+</style>")
+
   ;; This mode overrides the return key! Stop!
   (define-key markdown-mode-map (kbd "<return>") nil)
   (define-key markdown-mode-map (kbd "RET") nil)
