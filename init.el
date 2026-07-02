@@ -6,7 +6,7 @@
 ;;
 ;; Requires:
 ;;
-;; - Emacs 28 or higher.
+;; - Emacs 29 or higher.
 ;;
 ;; Currently building Emacs with:
 ;;
@@ -25,7 +25,6 @@
 ;; TODO:
 ;;
 ;; - [ ] With Emacs 29+:
-;;   - [x] switch to built-in tree-sitter (once it's easier to setup...)
 ;;   - [ ] (requires tree-sitter) use new indent package (once stipples are available)
 ;;
 ;;; Code:
