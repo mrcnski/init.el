@@ -5,6 +5,7 @@
 ;;; Code:
 
 (require 'init-basics)
+(require 'desktop)  ; for the magit desktop integration below
 
 ;; Generate links to Github for current code location.
 (use-package git-link
@@ -48,6 +49,29 @@
    ;; Magit spawns many git subprocesses per refresh, so this compounds.
    magit-git-executable "/opt/homebrew/bin/git"
    )
+
+  ;; Desktop integration: recreate status buffers on desktop restore, so
+  ;; eyebrowse workspaces showing magit don't collapse to scratch
+  ;; (desktop only persists file-visiting buffers).  Status buffers
+  ;; only; each restore runs a full refresh.  Registered in :init since
+  ;; magit is deferred but desktop-read runs at startup.
+  (defun magit-save-desktop-buffer (_desktop-dirname)
+    "Return the repository directory to persist in the desktop file."
+    default-directory)
+
+  (defun magit-restore-desktop-buffer (_file-name _buffer-name repo)
+    "Recreate a magit status buffer for REPO on desktop restore."
+    (when (file-directory-p repo)
+      (require 'magit)
+      ;; Leave the window layout to eyebrowse.
+      (save-window-excursion
+        (magit-status-setup-buffer repo))))
+
+  (add-hook 'magit-status-mode-hook
+            (lambda ()
+              (setq-local desktop-save-buffer #'magit-save-desktop-buffer)))
+  (add-to-list 'desktop-buffer-mode-handlers
+               '(magit-status-mode . magit-restore-desktop-buffer))
 
   :config
   (magit-auto-revert-mode t)
