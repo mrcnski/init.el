@@ -71,6 +71,15 @@
   :config
   (setq
    promptu-history-file (no-littering-expand-var-file-name "promptu-history.el")
+   promptu-blocks (append
+                   promptu-default-blocks
+                   '(
+                     (:key "e" :desc "explain" :text "explain")
+                     (:key "l" :desc "leave a comment" :text "leave a concise review comment")
+                     (:key "g" :desc "go ahead" :text "go ahead")
+                     (:key "m" :desc "move on" :text "move on")
+                     ))
+   )
   )
 
 (provide 'init-packages-ai)
