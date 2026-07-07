@@ -513,6 +513,26 @@
   :bind ("C-c t" . terminal-here-launch)
   )
 
+;; Show transient menus in a centered child frame (posframe). Applies to all
+;; transients (Magit, my own promptu and context-clues). Pulls in `posframe'
+;; automatically.
+(use-package transient-posframe
+  :config
+  (setq
+   transient-posframe-poshandler #'posframe-poshandler-frame-center
+   ;; There is no height knob; the frame always hugs content vertically.
+   transient-minimal-frame-width 30
+   transient-posframe-border-width 1
+   transient-posframe-font nil
+   transient-posframe-parameters '((left-fringe . 6)
+                                   (right-fringe . 6)
+                                   (line-spacing . 3))
+   )
+  (set-face-attribute 'transient-posframe-border nil
+                      :background (face-attribute 'default :foreground))
+  (transient-posframe-mode)
+  )
+
 ;; Use a sensible mechanism for making buffer names unique.
 (use-package uniquify
   :ensure nil
