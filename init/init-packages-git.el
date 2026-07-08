@@ -7,6 +7,16 @@
 (require 'init-basics)
 (require 'desktop)  ; for the magit desktop integration below
 
+;; Jump to changed/tracked files and stashes via consult.
+(use-package consult-ls-git
+  :bind (
+         ;; lists just the changed files
+         ("s-:" . consult-ls-git-ls-status)
+         ;; shows all sources (narrow with s/z/f).
+         ("C-c g" . consult-ls-git)
+         )
+  )
+
 ;; Generate links to Github for current code location.
 (use-package git-link
   :defer t
