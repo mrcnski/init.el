@@ -176,7 +176,6 @@
 
    ;; Set shorter delay for displaying errors at point.
    flycheck-display-errors-delay (* 1 info-delay)
-   sentence-end-double-space nil ;; Unnecessary check.
    flycheck-checker-error-threshold 600
    flycheck-emacs-lisp-load-path 'inherit
    )
