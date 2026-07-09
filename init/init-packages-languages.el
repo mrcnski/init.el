@@ -309,9 +309,42 @@ th, td { border: 1px solid #ccc; padding: .5rem .75rem;
 th { background: #f2f2f2; }
 tr:nth-child(even) td { background: #fafafa; }
 code { background: #f2f2f2; padding: .1rem .3rem; border-radius: 3px; }
-pre { background: #f6f8fa; padding: 1rem; overflow-x: auto; }
+pre { background: #1a1a1a; color: #bdbdb3; padding: 1rem;
+      overflow-x: auto; border-radius: 6px; }
+pre code { background: none; padding: 0; color: inherit; }
+pre a { color: inherit; text-decoration: none; }
 blockquote { border-left: 3px solid #ccc; margin: 1rem 0;
              padding-left: 1rem; color: #555; }
+/* Nimbus syntax theme (https://github.com/mrcnski/nimbus-pygments),
+   mapped from Pygments to pandoc/skylighting token classes. */
+code span.al { color: #d65946; font-weight: bold; } /* Alert */
+code span.an { color: #baba36; } /* Annotation */
+code span.at { color: #baba36; } /* Attribute */
+code span.bn { color: #df9522; } /* BaseN */
+code span.bu { color: #598bc1; } /* BuiltIn */
+code span.cf { color: #598bc1; } /* ControlFlow */
+code span.ch { color: #6aaf50; } /* Char */
+code span.cn { color: #ab75c3; } /* Constant */
+code span.co { color: #757575; } /* Comment */
+code span.cv { color: #baba36; } /* CommentVar */
+code span.do { color: #757575; font-style: italic; } /* Documentation */
+code span.dt { color: #d65946; } /* DataType */
+code span.dv { color: #df9522; } /* DecVal */
+code span.er { color: #9d2512; } /* Error */
+code span.fl { color: #df9522; } /* Float */
+code span.fu { color: #1d9a79; } /* Function */
+code span.im { color: #baba36; } /* Import */
+code span.in { color: #baba36; } /* Information */
+code span.kw { color: #598bc1; } /* Keyword */
+code span.op { color: #bdbdb3; } /* Operator */
+code span.ot { color: #ab75c3; } /* Other */
+code span.pp { color: #baba36; } /* Preprocessor */
+code span.sc { color: #ab75c3; } /* SpecialChar */
+code span.ss { color: #d65946; } /* SpecialString (regex) */
+code span.st { color: #6aaf50; } /* String */
+code span.va { color: #598bc1; } /* Variable */
+code span.vs { color: #6aaf50; } /* VerbatimString */
+code span.wa { color: #baba36; font-style: italic; } /* Warning */
 </style>")
 
   ;; This mode overrides the return key! Stop!
