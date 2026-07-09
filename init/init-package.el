@@ -5,8 +5,10 @@
 ;;; Code:
 
 (require 'init-basics)
-
 (require 'package)
+;; Built-in since 29.1.
+(require 'use-package)
+
 (setq
  ;; Set the elpa directory.
  package-user-dir user-emacs-elpa-directory
@@ -20,21 +22,13 @@
 ;; Run auto-load functions specified by package authors.
 (package-initialize)
 
-;; Require use-package.
+;; On a fresh machine, fetch the package archives up front so the
+;; `:ensure' installs below start from current contents.
 (when (not (file-directory-p user-emacs-elpa-directory))
-  (package-refresh-contents)
-  ; TODO: Built-in in 29.1.
-  (package-install 'use-package)
-  )
-(require 'use-package)
+  (package-refresh-contents))
+
 ;; Always install missing packages.
 (setq use-package-always-ensure t)
-;; (setq package-check-signature nil)
-;; ;; Install elpa .gnupg folder.
-;; (use-package gnu-elpa-keyring-update
-;;   :config
-;;   (gnu-elpa-keyring-update)
-;;   )
 
 (provide 'init-package)
 ;;; init-package.el ends here

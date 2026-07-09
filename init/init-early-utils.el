@@ -47,7 +47,9 @@
 (when (memq window-system '(mac ns x))
   (use-package exec-path-from-shell
     :config
-    ;; Set the shell (default is /bin/zsh on MacOS).
+    ;; Use bash instead of the default zsh: starts faster, and reads .profile,
+    ;; which is where all env vars Emacs needs must live (vars only in
+    ;; .zshrc/.zprofile will NOT be picked up).
     (setq
      exec-path-from-shell-shell-name "/bin/bash"
      ;; Don't start interactively (should be faster). Env vars should be defined

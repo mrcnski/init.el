@@ -29,6 +29,8 @@
 ;;
 ;;; Code:
 
+(require 'server)
+
 ;; Show more error info?
 (setq debug-on-error nil)
 
@@ -63,7 +65,8 @@
   (load custom-file t))
 
 ;;; Finish up
-(server-start)
+(unless (server-running-p)
+  (server-start))
 (message "init.el finished loading successfully!")
 
 (provide 'init)

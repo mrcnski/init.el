@@ -73,7 +73,9 @@
         )
       (select-window
        (cdr (ring-ref avy-ring 0)))
-      (describe-symbol (intern symbol))
+      (if symbol
+          (describe-symbol (intern symbol))
+        (message "No symbol at avy target"))
       )
     t)
   (defun avy-action-embark (pt)

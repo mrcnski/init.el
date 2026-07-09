@@ -16,9 +16,10 @@
 
 ;;; Load Theme
 
-(defadvice load-theme (before clear-previous-themes activate)
+(defun load-theme--clear-previous (&rest _)
   "Clear existing theme settings instead of layering them."
   (mapc #'disable-theme custom-enabled-themes))
+(advice-add 'load-theme :before #'load-theme--clear-previous)
 
 ;; A good light theme for when I'm outside.
 (use-package leuven-theme
@@ -54,7 +55,6 @@
   (defun font-exists-p (font)
     "Check if FONT exists."
     (if (null (x-list-fonts font)) nil t))
-  (declare-function font-exists-p "init.el")
 
   (cond
    ((font-exists-p "Iosevka Comfy Fixed")

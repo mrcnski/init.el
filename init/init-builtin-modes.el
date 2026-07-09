@@ -10,17 +10,9 @@
   :ensure nil
   :bind (
          :map isearch-mode-map
-         ("C-g" . isearch-abort-fixed)
+         ;; One C-g always exits (stock C-g only trims failed input first).
+         ("C-g" . isearch-cancel)
          )
-  :init
-  (defun isearch-abort-fixed ()
-    "Fix broken C-g."
-    (interactive)
-    (isearch-abort)
-    (isearch-abort)
-    (isearch-abort)
-    )
-
   :config
 
   (setq
@@ -318,8 +310,6 @@ Position cursor at the end of the prompt."
         (let ((eshell-history-ring newest-cmd-ring))
           (eshell-write-history eshell-history-file-name t)))))
   (add-hook 'eshell-pre-command-hook #'eshell-append-history)
-  ;; TODO: why is this needed?
-  (add-hook 'eshell-mode-hook (lambda () (setq eshell-exit-hook nil)))
 
   ;; Show the directory contents after changing directories.
   (add-hook 'eshell-directory-change-hook
