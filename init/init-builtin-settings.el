@@ -42,6 +42,15 @@
  select-enable-clipboard t
  select-enable-primary t
  save-interprogram-paste-before-kill t
+ ;; Two spaces end a sentence, so filling normalizes to double-space. Sentence
+ ;; motion also accepts single spaces via the explicit `sentence-end' set below
+ ;; the setq.
+ sentence-end-double-space t
+ ;; Make sentence motion (M-a/M-e etc.) recognize single-space sentence ends
+ ;; while `sentence-end-double-space' above keeps filling on the double-space
+ ;; style: pin `sentence-end' to the regexp the `sentence-end' function would
+ ;; build with double-space disabled.
+ sentence-end (let ((sentence-end-double-space nil)) (sentence-end))
  ;; Enable complete documentation for apropos functions?
  apropos-do-all t
  kill-ring-max 1000

@@ -94,6 +94,68 @@
     (fill-paragraph nil)))
 (global-set-key (kbd "M-Q") 'unfill-paragraph)
 
+;; Make filling normalize sentence spacing (single space -> double).
+(progn
+  (defvar repunctuate-paragraph-abbreviations
+    '("e.g." "E.g." "i.e." "I.e." "cf." "vs." "Mr." "Mrs." "Ms." "Dr.")
+    "Abbreviations that do not end a sentence.
+`repunctuate-paragraph' keeps a single space after these.")
+
+  (defun repunctuate-region (start end)
+    "Fix up sentence spacing (single space -> double) between START and END.
+Runs `repunctuate-sentences' without querying, then restores a single
+space after the abbreviations in `repunctuate-paragraph-abbreviations'
+and after ellipses (\"...\").  The extra pass is needed because the
+no-query path of `repunctuate-sentences' ignores
+`repunctuate-sentences-filter' (that filter only hooks into the
+interactive query-replace flow).
+
+Known limitation: an abbreviation that really does end a sentence gets
+a single space."
+    (save-excursion
+      (let ((case-fold-search nil)
+            (end (copy-marker end)))
+        (repunctuate-sentences t start end)
+        (goto-char start)
+        (while (re-search-forward
+                (concat "\\(?:\\b"
+                        (regexp-opt repunctuate-paragraph-abbreviations)
+                        "\\|\\.\\.\\.\\)\\(  \\)")
+                end t)
+          (replace-match " " t t nil 1))
+        (set-marker end nil))))
+
+  (defun repunctuate-paragraph (&rest _)
+    "Call `repunctuate-region' on the active region or current paragraph.
+Only acts in `text-mode' buffers when `sentence-end-double-space' is
+non-nil."
+    (when (and sentence-end-double-space
+               (derived-mode-p 'text-mode))
+      (if (use-region-p)
+          (repunctuate-region (region-beginning) (region-end))
+        (save-excursion
+          (let* ((end (progn (forward-paragraph) (point)))
+                 (start (progn (backward-paragraph) (point))))
+            (repunctuate-region start end))))))
+  (advice-add 'fill-paragraph :before #'repunctuate-paragraph)
+
+  ;; Org remaps M-q to org-fill-paragraph (see org-keys.el), which
+  ;; bypasses the advice on fill-paragraph. Advise org-fill-element
+  ;; instead of org-fill-paragraph: the latter calls it once per element
+  ;; when a region is active, so this handles both the region and
+  ;; no-region cases.
+  (with-eval-after-load 'org
+    (defun repunctuate-org-element (&rest _)
+      "Repunctuate the org element at point if it is prose.
+Skips non-prose elements like tables, blocks, and headlines."
+      (when (and sentence-end-double-space (not buffer-read-only))
+        (let ((element (org-element-at-point)))
+          (when (memq (org-element-type element)
+                      '(paragraph item plain-list))
+            (repunctuate-region (org-element-property :begin element)
+                                (org-element-property :end element))))))
+    (advice-add 'org-fill-element :before #'repunctuate-org-element)))
+
 ;; Disable annoying popup on OSX.
 (global-set-key (kbd "s-t") 'make-frame)
 ;; I don't want to accidentally press this.
