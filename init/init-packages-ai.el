@@ -77,7 +77,6 @@
                      ))
    )
   )
-  )
 
 (provide 'init-packages-ai)
 ;;; init-packages-ai.el ends here
