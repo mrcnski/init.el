@@ -17,14 +17,20 @@
     "Install Tree-sitter grammars if they are absent."
     (interactive)
     (dolist (grammar
-             ;; Note the version numbers. These are the versions that
-             ;; are known to work with Combobulate *and* Emacs.
-             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-               (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+             '(
+               ;; Pinned to a commit since upstream has no version tags.
+               (astro . ("https://github.com/virchau13/tree-sitter-astro" "213f6e6973d9b456c6e50e86f19f66877e7ef0ee"))
+               (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.23.3"))
+               (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+               (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0"))
                (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
                (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
                (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+               ;; Split grammar: Emacs 31's built-in markdown-ts-mode
+               ;; needs both the block and inline parsers.
+               (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" "v0.5.3" "tree-sitter-markdown/src"))
+               (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" "v0.5.3" "tree-sitter-markdown-inline/src"))
+               (prisma . ("https://github.com/victorhqc/tree-sitter-prisma" "v1.5.0"))
                (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
                (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
                (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
@@ -36,7 +42,9 @@
       ;; installed. However, if you want to *update* a grammar then
       ;; this obviously prevents that from happening.
       (unless (treesit-language-available-p (car grammar))
-        (treesit-install-language-grammar (car grammar)))))
+        ;; Keep binaries out of the synced repo.
+        (treesit-install-language-grammar
+         (car grammar) (no-littering-expand-var-file-name "treesit/")))))
 
   ;; Optional. Combobulate works in both xxxx-ts-modes and
   ;; non-ts-modes.
@@ -47,12 +55,15 @@
   (dolist (mapping
            '((python-mode . python-ts-mode)
              (css-mode . css-ts-mode)
-             (typescript-mode . typescript-ts-mode)
-             (js2-mode . js-ts-mode)
-             (bash-mode . bash-ts-mode)
+             ;; .js maps to `javascript-mode' (alias of `js-mode');
+             ;; remap both — `major-mode-remap' doesn't chase aliases.
+             (javascript-mode . js-ts-mode)
+             (js-mode . js-ts-mode)
+             ;; Shell scripts use sh-mode (there is no bash-mode).
+             (sh-mode . bash-ts-mode)
              (conf-toml-mode . toml-ts-mode)
-             (go-mode . go-ts-mode)
-             (json-mode . json-ts-mode)
+             ;; Built-in auto-mode-alist sends .json to `js-json-mode';
+             ;; our own entry catches .json first, this catches the rest.
              (js-json-mode . json-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
   :config
@@ -118,15 +129,14 @@
    )
   )
 
-;; C#
-
-(use-package csharp-mode
-  :defer t)
-
 ;; Docker
 
-(use-package dockerfile-mode
-  :defer t)
+(use-package dockerfile-ts-mode
+  :ensure nil
+  ;; Same files the dockerfile-mode package matched.
+  :mode ("[/\\]\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/\\]*\\)?\\'"
+         "\\.dockerfile\\'")
+  )
 
 ;; Emmet
 
@@ -138,6 +148,7 @@
   :hook (
          (sgml-mode . emmet-mode)
          (css-mode . emmet-mode)
+         (css-ts-mode . emmet-mode)
          (web-mode . emmet-mode)
          )
   :config
@@ -148,24 +159,6 @@
 
 (use-package fish-mode
   :defer t)
-
-;; Go / Golang
-
-(use-package go-mode
-  :defer t
-  :bind (:map go-mode-map ("C-c n" . gofmt))
-  :config
-  (setq
-   gofmt-args '("-s")
-   gofmt-command "gofmt"
-
-   ;; gofmt-args nil
-   ;; gofmt-command "goimports"
-   )
-
-  (use-package godoctor)
-  (use-package go-errcheck)
-  )
 
 ;; Graphviz
 
@@ -199,8 +192,9 @@
 (use-package prettier
   :hook (
          (json-ts-mode . prettier-mode)
-         (typescript-mode . prettier-mode)
          (typescript-ts-mode . prettier-mode)
+         (css-ts-mode . prettier-mode)
+         (js-ts-mode . prettier-mode)
          (web-mode . prettier-mode)
          )
 
@@ -228,15 +222,12 @@
   )
 
 ;; Typescript
-(use-package typescript-mode
-  :mode "\\.tsx?$"
-  ;; :hook (typescript-mode . eglot-ensure)
-
-  :config
-  (setopt
-   typescript-indent-level 2
-   typescript-ts-mode-indent-offset 2
-   )
+(use-package typescript-ts-mode
+  :ensure nil
+  ;; .ts only — .tsx must go to tsx-ts-mode (JSX grammar), see treesit block.
+  :mode "\\.ts\\'"
+  :custom
+  (typescript-ts-mode-indent-offset 2)
   )
 (use-package tide
   :ensure t
@@ -257,31 +248,17 @@
 
 ;; JSON
 
-(use-package json-mode
-  :defer t
-  :config
-  (setq
-   json-reformat:indent-width 4
-   json-ts-mode-indent-offset 4
-   )
-  (add-hook 'json-mode-hook
-            (lambda ()
-              (make-local-variable 'js-indent-level)
-              (setq js-indent-level 2)))
+(use-package json-ts-mode
+  :ensure nil
+  :mode "\\.json\\'"
+  :custom
+  (json-ts-mode-indent-offset 4)
   )
 
 ;; just
 
 (use-package just-mode
   :defer t
-  )
-
-;; Lua
-
-(use-package lua-mode
-  :mode "\\.lua\\'"
-  :config
-  (setq lua-indent-level 4)
   )
 
 ;; Markdown
@@ -365,16 +342,18 @@ code span.wa { color: #baba36; font-style: italic; } /* Warning */
 
 ;; Python
 
-(use-package python-mode
+(use-package python
   :ensure nil
   :bind (
-         :map python-mode-map
+         :map python-ts-mode-map
          ("C-<" . python-indent-shift-left)
          ("C->" . python-indent-shift-right)
          )
-  :hook (python-mode . (lambda ()
-                         (setq flycheck-python-pylint-executable "/usr/local/bin/pylint")
-                         (setq flycheck-python-flake8-executable "/usr/local/bin/flake8")))
+  ;; TODO: pylint/flake8 not currently installed; fix paths when installing
+  ;; them (Apple Silicon brew uses /opt/homebrew/bin, not /usr/local/bin).
+  :hook (python-base-mode . (lambda ()
+                              (setq flycheck-python-pylint-executable "/usr/local/bin/pylint")
+                              (setq flycheck-python-flake8-executable "/usr/local/bin/flake8")))
   )
 
 ;; Rust
@@ -436,19 +415,13 @@ code span.wa { color: #baba36; font-style: italic; } /* Warning */
       (cl-remove "\\.rs\\'" auto-mode-alist :test 'equal :key 'car))
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
 
-;; TOML
-
-(use-package toml-mode
-  :mode "\\.toml\\'"
-  )
-
 ;; Web
 
 (use-package web-mode
+  ;; .js and .css deliberately not claimed — they go to js-ts-mode /
+  ;; css-ts-mode via `major-mode-remap-alist' (see treesit block).
   :mode (
-         ("\\.js?\\'" . web-mode)
          ("\\.html?\\'" . web-mode)
-         ("\\.css?\\'" . web-mode)
          )
 
   :config
@@ -466,10 +439,9 @@ code span.wa { color: #baba36; font-style: italic; } /* Warning */
 
 ;; YAML
 
-(use-package yaml-mode
-  :mode "\\.yml\\'"
-  :config
-  (define-key yaml-mode-map (kbd "DEL") nil)
+(use-package yaml-ts-mode
+  :ensure nil
+  :mode "\\.ya?ml\\'"
   )
 
 (provide 'init-packages-languages)

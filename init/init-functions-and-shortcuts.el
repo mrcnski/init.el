@@ -569,7 +569,6 @@ into one."
 ;; Set per-mode overrides.
 (add-hook 'scss-mode-hook (lambda () (setq-local indent-amount 2)))
 (add-hook 'text-mode-hook (lambda () (setq-local indent-amount 2)))
-(add-hook 'yaml-mode-hook (lambda () (setq-local indent-amount 2)))
 
 (defun indent-region-relative (beg end amount)
   "Indent from BEG to END by the specified AMOUNT."
@@ -681,7 +680,6 @@ into one."
   (setq skip-prefixes-alist
         `(
           (text-mode . (,org-list-item-regexp))
-          (yaml-mode . (,org-list-item-regexp))
           (org-mode . (,org-header-regexp ,org-list-item-regexp "#" "|"))
           (beancount-mode . (,org-header-regexp ,org-list-item-regexp "#" "|"))
           (lisp-mode . ,lisp)
@@ -691,7 +689,6 @@ into one."
           (eshell-mode . ("$+"))
           (rust-mode . ,(cons "//!" c-like))
           (zig-mode . ,c-like)
-          (csharp-mode . ,c-like)
           (markdown-mode . (,org-list-item-regexp "^#+"))
           (python-mode . ("#+"))
           (red-mode . ("comment"))

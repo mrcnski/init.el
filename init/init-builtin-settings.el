@@ -164,7 +164,6 @@
 
 ;; Setup selected file endings to open in certain modes.
 (add-to-list 'auto-mode-alist '("captain-definition\\'" . json-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.prdoc\\'" . yaml-mode))
 
 ;;; Backup settings.
 
@@ -212,8 +211,8 @@
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (add-hook 'conf-mode-hook 'display-line-numbers-mode)
 ;; NOTE: Don't add `text-mode-hook', to prevent line numbers in org-mode.
-;; Add `yaml-mode-hook' manually (it derives from `text-mode-hook').
-(add-hook 'yaml-mode-hook 'display-line-numbers-mode)
+;; Add `yaml-ts-mode-hook' manually (it derives from `text-mode').
+(add-hook 'yaml-ts-mode-hook 'display-line-numbers-mode)
 (add-hook 'markdown-mode-hook 'display-line-numbers-mode)
 
 (setq
