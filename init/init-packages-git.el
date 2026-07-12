@@ -83,6 +83,44 @@
   (add-to-list 'desktop-buffer-mode-handlers
                '(magit-status-mode . magit-restore-desktop-buffer))
 
+  ;;; Desktop integration
+
+  ;; Re-uniquify magit buffer names after a desktop restore.
+  ;;
+  ;; magit names buffers via `uniquify' (see `magit-uniquify-buffer-names'),
+  ;; so a status buffer for a worktree ends up as e.g.
+  ;; "magit: desmos-classroom-2<github.com/amplify-education>" once its sibling
+  ;; file/dired buffers in the same directory are present.  `desktop' saves and
+  ;; restores buffers under their uniquify *base* name ("magit: desmos-classroom-2")
+  ;; and renames each restored buffer back to that base -- but eyebrowse persists
+  ;; the *uniquified* names in its window configs.  After a restore the two
+  ;; disagree, so `window-state-put' can't find the buffers eyebrowse references
+  ;; and those windows collapse to *scratch*.  Which names happen to match is
+  ;; order-dependent, so only some workspaces come back.
+  ;;
+  ;; Re-run magit's own uniquification (mirroring `magit-toggle-buffer-lock')
+  ;; over every restored magit buffer on `desktop-after-read-hook'.  That runs at
+  ;; the end of `desktop-read' (on `after-init-hook') -- after every buffer,
+  ;; including the sibling file/dired buffers uniquify keys off, has been
+  ;; restored, and before eyebrowse restores window configs (on
+  ;; `emacs-startup-hook').  With the same buffer set present, the result matches
+  ;; the live names eyebrowse recorded.
+  (defun magit-reuniquify-desktop-buffer-names ()
+    "Re-apply magit's buffer-name uniquification after a desktop restore."
+    (when magit-uniquify-buffer-names
+      (dolist (buffer (buffer-list))
+        (with-current-buffer buffer
+          (when (derived-mode-p 'magit-mode)
+            (let* ((mode major-mode)
+                   (name (if magit-buffer-locked-p
+                             (funcall magit-generate-buffer-name-function
+                                      mode (magit-buffer-value))
+                           (funcall magit-generate-buffer-name-function mode))))
+              (rename-buffer (generate-new-buffer-name name))
+              (with-temp-buffer
+                (magit--maybe-uniquify-buffer-names buffer name mode))))))))
+  (add-hook 'desktop-after-read-hook #'magit-reuniquify-desktop-buffer-names)
+
   :config
   (magit-auto-revert-mode t)
   )
