@@ -10,6 +10,16 @@
 (require 'init-functions-and-shortcuts)
 (require 'init-visual-frame)
 
+;; Display number of matches when searching.
+;;
+;; NOTE: the built-in `isearch-lazy-count' covers the echo area, but a mode-line
+;; count without anzu needs a custom :eval segment that flickers and loses
+;; fontification.
+(use-package anzu
+  :config
+  (setq anzu-cons-mode-line-p t)
+  (global-anzu-mode))
+
 ;; Avy mode (jump to a char/word using a decision tree).
 (use-package avy
   :bind (
