@@ -5,6 +5,7 @@
 ;;; Code:
 
 (require 'init-basics)
+(require 'desktop)  ; for the eshell desktop integration below
 
 (use-package isearch
   :ensure nil
@@ -353,6 +354,34 @@ Position cursor at the end of the prompt."
     "Open a new eshell buffer."
     (interactive)
     (eshell t))
+
+  ;;; Desktop integration
+
+  ;; Recreate eshell buffers on desktop restore, so eyebrowse workspaces showing
+  ;; eshell don't collapse to scratch (desktop only persists file-visiting
+  ;; buffers). Unlike magit buffer names, eshell's carry no directory-derived
+  ;; uniquification -- just sequential <N> suffixes -- so a plain
+  ;; `rename-buffer' back to the saved name is enough to match what eyebrowse
+  ;; recorded, with no reuniquify pass needed afterwards.
+  (defun eshell-save-desktop-buffer (_desktop-dirname)
+    "Return the working directory to persist in the desktop file."
+    default-directory)
+
+  (defun eshell-restore-desktop-buffer (_file-name buffer-name dir)
+    "Recreate an eshell buffer named BUFFER-NAME in DIR on desktop restore."
+    (when (file-directory-p dir)
+      (let ((default-directory dir))
+        (save-window-excursion
+          (let ((buffer (eshell t)))
+            (with-current-buffer buffer
+              (rename-buffer buffer-name t))
+            buffer)))))
+
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (setq-local desktop-save-buffer #'eshell-save-desktop-buffer)))
+  (add-to-list 'desktop-buffer-mode-handlers
+               '(eshell-mode . eshell-restore-desktop-buffer))
 
   ;;; Set up a custom prompt.
 
