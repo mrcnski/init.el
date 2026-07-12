@@ -192,6 +192,11 @@
   )
 
 ;; Workspaces.
+;; TODO: Consider migrating to built-in `tab-bar-mode': native
+;; desktop-save-mode persistence (would replace the fork's persist
+;; feature), per-tab winner history via `tab-bar-history-mode', and
+;; upstream maintenance. Costs: redo frame-title integration and
+;; persistence migration. Revisit if the fork breaks on a new Emacs.
 (use-package eyebrowse
   ;; TODO: Needed?
   ;; To prevent mode-line display errors.
@@ -300,7 +305,11 @@
 
 ;; Show unused keys.
 (use-package free-keys
-  :defer t)
+  :defer t
+  :config
+  ;; Also list bindings with the super key.
+  (add-to-list 'free-keys-modifiers "s" t)
+  )
 
 ;; Alternative to volatile-highlights.
 (use-package goggles
@@ -508,6 +517,13 @@
 ;; Open current directory in an external terminal emulator.
 (use-package terminal-here
   :bind ("C-c t" . terminal-here-launch)
+  )
+
+(use-package transient
+  :config
+  ;; Quit any transient with q (the old magit-popup behavior). A transient
+  ;; that binds q itself keeps its command, moved to Q.
+  (transient-bind-q-to-quit)
   )
 
 ;; Show transient menus in a centered child frame (posframe). Applies to all
