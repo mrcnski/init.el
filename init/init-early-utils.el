@@ -71,11 +71,6 @@
         (message "Warning: env var %s is not set" var)))
     ))
 
-;; Enable restarting Emacs from within Emacs.
-;; NOTE: built in functionality as of Emacs 29.
-(use-package restart-emacs
-  :defer t)
-
 ;; Find bugs in Emacs configuration.
 (use-package bug-hunter
   :defer t)

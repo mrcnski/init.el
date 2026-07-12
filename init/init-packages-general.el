@@ -10,12 +10,6 @@
 (require 'init-functions-and-shortcuts)
 (require 'init-visual-frame)
 
-;; Display number of matches when searching.
-(use-package anzu
-  :config
-  (setq anzu-cons-mode-line-p t)
-  (global-anzu-mode))
-
 ;; Avy mode (jump to a char/word using a decision tree).
 (use-package avy
   :bind (
@@ -132,12 +126,13 @@
   )
 
 ;; Move buffers around.
-(use-package buffer-move
+(use-package windmove
+  :ensure nil
   :bind (
-         ("<s-up>"    . buf-move-up)
-         ("<s-down>"  . buf-move-down)
-         ("<s-left>"  . buf-move-left)
-         ("<s-right>" . buf-move-right)
+         ("<s-up>"    . windmove-swap-states-up)
+         ("<s-down>"  . windmove-swap-states-down)
+         ("<s-left>"  . windmove-swap-states-left)
+         ("<s-right>" . windmove-swap-states-right)
          )
   )
 
@@ -547,6 +542,7 @@
 
 ;; Display available keys.
 (use-package which-key
+  :ensure nil
   :config
   (which-key-mode)
   (setq
