@@ -10,9 +10,7 @@
 (defvar user-scratchpad-path (concat user-text-directory "scratchpad.txt"))
 (defvar user-org-directory (concat user-text-directory "org/"))
 
-(defvar user-ideas-org (concat user-org-directory "ideas.org"))
 (defvar user-notes-org (concat user-org-directory "notes.org"))
-(defvar user-todo-org (concat user-org-directory "todo.org"))
 (defvar user-work-org (concat user-org-directory "work.org"))
 
 (defvar user-emacs-config-directory "~/.local/emacs/")

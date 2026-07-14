@@ -148,11 +148,8 @@
      ;; The current buffer.
      (nil . (:maxlevel . 99))
      ;; My custom files.
-     (user-todo-org . (:maxlevel . 99))
      (user-notes-org . (:maxlevel . 99))
      (user-work-org . (:maxlevel . 99))
-     (user-ideas-org . (:maxlevel . 99))
-     (user-projects-org . (:maxlevel . 99))
      )
    ;; Jump to headings with completion.
    org-goto-interface 'outline-path-interface
@@ -167,20 +164,6 @@
   ;; org-capture template.
   (setq org-capture-templates
         '(
-          (
-           "o" "One-off task." entry
-           (file+headline "todo.org" "General")
-           "* %?\nSCHEDULED: %t"
-           :unnarrowed t
-           :empty-lines-before 1
-           )
-          (
-           "r" "Recurring task." entry
-           (file+olp "todo.org" "Recurring" "General")
-           "* |%^{Recurrence}| %?\nSCHEDULED: %t"
-           :unnarrowed t
-           :empty-lines-before 1
-           )
           (
            "w" "Work task." entry
            (file+headline "work.org" "Todo")
@@ -258,7 +241,6 @@ lines exist after each headings's drawers."
     :ensure nil
     :hook (org-agenda-mode . visual-line-mode)
     :bind (
-           ("C-c a" . org-agenda-personal)
            ("C-c w" . org-agenda-work)
 
            :map org-agenda-mode-map
@@ -271,14 +253,6 @@ lines exist after each headings's drawers."
 
     :init
 
-    (defun org-agenda-personal ()
-      (interactive)
-      ;; Set location of agenda files.
-      (setq org-agenda-files (list
-                              user-todo-org
-                              ))
-      (org-agenda-list)
-      )
     (defun org-agenda-work ()
       (interactive)
       ;; Set location of agenda files.
@@ -371,134 +345,6 @@ lines exist after each headings's drawers."
           org-recur-finish-archive t)
     )
 
-  ;; Display groups in org-agenda to make things a bit more organized.
-  (use-package org-super-agenda
-    :after org-agenda
-    :config
-    (org-super-agenda-mode)
-
-    (setq
-     org-super-agenda-header-separator ""
-     org-super-agenda-unmatched-name "Other"
-     org-super-agenda-groups
-     '(
-       ;; Each group has an implicit OR operator between its selectors.
-       (:name "Morning"
-              :category "morning"
-              :tag "morning"
-              )
-       (:name "Today"  ; Optionally specify section name
-              :time-grid t  ; Items that appear on the time grid.
-              :todo "TODAY"   ; Items that have this todo keyword.
-              )
-       (:name "Work"
-              :category "work"
-              :tag "work"
-              )
-       (:name "High Priority"
-              :priority "A"
-              :order 1
-              )
-       (:name "Deep Work"
-              :category "deep"
-              :tag "deep"
-              :order 2
-              )
-       (:name "Shopping List"
-              :category "shopping"
-              :tag "shopping"
-              :order 3
-              )
-       (:name "Cleaning"
-              :category "cleaning"
-              :tag "cleaning"
-              :order 4
-              )
-       (:name "Hygiene"
-              :category "hygiene"
-              :tag "hygiene"
-              :order 5
-              )
-       (:name "Health"
-              :category "health"
-              :tag "health"
-              :order 6
-              )
-       (:name "Financial"
-              :category "financial"
-              :tag "financial"
-              :order 7
-              )
-       (:name "Self-improvement"
-              :category "self"
-              :tag "self"
-              :order 8
-              )
-       (:name "Cooking"
-              :category "cooking"
-              :tag "cooking"
-              :order 9
-              )
-       (:name "Physical"
-              :category "physical"
-              :tag "physical"
-              :order 10
-              )
-
-       (:name "Move"
-              :category "move"
-              :tag "move"
-              :order 20
-              )
-
-       (:name "Travel"
-              :category "travel"
-              :tag "travel"
-              :order 30
-              )
-
-       ;; Here, the agenda will display items that didn't match any of these
-       ;; groups, with the default order position of 99.
-
-       (:name "Tech"
-              :category "tech"
-              :tag "tech"
-              :order 200
-              )
-       (:name "Blog"
-              :category "blog"
-              :tag "blog"
-              :order 210
-              )
-       (:name "To Read"
-              :category "read"
-              :tag "read"
-              :order 220
-              )
-       (:name "To Watch"
-              :category "watch"
-              :tag "watch"
-              :order 230
-              )
-       (:name "Waiting"
-              :todo "WAITING"
-              :order 240
-              )
-       (:name "Reminders"
-              :category "reminder"
-              :tag "reminder"
-              :order 250
-              )
-       (:name "Evening"
-              :category "evening"
-              :tag "evening"
-              :order 260
-              )
-       (:name "Low priority"
-              :priority "C"
-              :order 500
-              )
-       )))
   )
 
 (provide 'init-org)
