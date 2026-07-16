@@ -67,7 +67,7 @@
   :config
   (setq
    promptu-history-file (no-littering-expand-var-file-name "promptu-history.el")
-   ;; Shared with the promptu-bar menubar app.
+   ;; Shared with the promptu-app menubar app.
    promptu-blocks (promptu-blocks-from-json "~/.config/promptu/blocks.json")
    )
   )
