@@ -18,4 +18,7 @@
 	url = https://github.com/mrcnski/context-clues
 [submodule "packages/promptu"]
 	path = packages/promptu
-	url = https://github.com/mrcnski/promptu
+	url = https://github.com/mrcnski/promptu.el.git
+[submodule "packages/org-remark-transient"]
+	path = packages/org-remark-transient
+	url = https://github.com/mrcnski/org-remark-transient
