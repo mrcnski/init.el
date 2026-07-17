@@ -66,12 +66,12 @@
 ;;  )
 
 (use-package promptu
-  :load-path "~/.emacs.d/packages/promptu"
+  :load-path "~/.emacs.d/packages/promptu.el"
   :bind ("s-\"" . promptu)
   :config
   (setq
    promptu-history-file (no-littering-expand-var-file-name "promptu-history.el")
-   ;; Shared with the promptu-app menubar app.
+   ;; Shared with the promptu menubar app.
    promptu-blocks (promptu-blocks-from-json "~/.config/promptu/blocks.json")
    )
   )
