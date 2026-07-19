@@ -33,6 +33,9 @@
                (prisma . ("https://github.com/victorhqc/tree-sitter-prisma" "v1.5.0"))
                (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
                (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+               ;; Plain version tags lack the generated parser.c; only
+               ;; the *-with-generated-files tags are installable.
+               (swift . ("https://github.com/alex-pinkus/tree-sitter-swift" "0.7.3-with-generated-files"))
                (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
                (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
                (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
@@ -397,6 +400,14 @@ code span.wa { color: #baba36; font-style: italic; } /* Warning */
 (setq auto-mode-alist
       (cl-remove "\\.rs\\'" auto-mode-alist :test 'equal :key 'car))
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
+
+;; Swift
+
+(use-package swift-ts-mode
+  ;; The package only registers auto-mode-alist at load time (not
+  ;; autoloaded), so claim .swift here to trigger the deferred load.
+  :mode "\\.swift\\'"
+  )
 
 ;; Web
 
