@@ -91,10 +91,13 @@
 ;; It is the opposite of fill-paragraph.
 ;; https://www.emacswiki.org/emacs/UnfillParagraph
 (defun unfill-paragraph ()
-  "Take a multi-line paragraph and make it into a single line of text."
+  "Take a multi-line paragraph and make it into a single line of text.
+If the region is active, unfill all paragraphs in the region instead."
   (interactive)
   (let ((fill-column (point-max)))
-    (fill-paragraph nil)))
+    (if (use-region-p)
+        (fill-region (region-beginning) (region-end))
+      (fill-paragraph nil))))
 (global-set-key (kbd "M-Q") 'unfill-paragraph)
 
 ;; Make filling normalize sentence spacing (single space -> double).
