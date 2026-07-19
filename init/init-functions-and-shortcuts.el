@@ -21,6 +21,9 @@
 ;; Enable OSX full screen shortcut.
 (global-set-key (kbd "C-s-f") 'toggle-frame-maximized)
 
+(global-set-key (kbd "M-E") 'forward-paragraph)
+(global-set-key (kbd "M-A") 'backward-paragraph)
+
 (defun backward-symbol ()
   "The backwards version of `forward-symbol'."
   (interactive)
@@ -97,7 +100,7 @@
 ;; Make filling normalize sentence spacing (single space -> double).
 (progn
   (defvar repunctuate-paragraph-abbreviations
-    '("e.g." "E.g." "i.e." "I.e." "cf." "vs." "Mr." "Mrs." "Ms." "Dr.")
+    '("e.g." "E.g." "i.e." "I.e." "cf." "vs." "Mr." "Mrs." "Ms." "Dr." "esp.")
     "Abbreviations that do not end a sentence.
 `repunctuate-paragraph' keeps a single space after these.")
 
