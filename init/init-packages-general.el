@@ -421,7 +421,7 @@
 
   ;; Customize some settings
   (setq
-   keys-keys '()
+   keys-keys '("s-R")
    keys-display-amount 2 ; How many keys to show at once
    keys-indicator-separator " | " ; Customize the indicator!
    keys-random t ; By default, keys are shown in a random order
@@ -489,6 +489,79 @@
   (define-key mc/keymap (kbd "C-'") nil)
   (define-key mc/mark-more-like-this-extended-keymap (kbd "C-'") nil)
   (define-key mc/mark-more-like-this-extended-keymap (kbd "<return>") nil)
+  )
+
+;; Persistent highlights, e.g. to mark parts of a file as read while reviewing.
+(use-package org-remark
+  :defer t
+  ;; The "read" pen command doesn't exist until :config runs; the :bind stub
+  ;; still works because loading the package defines it.
+  :bind ("s-R" . org-remark-mark-read)
+  :init
+  ;; Keep all highlights in one central file instead of a marginalia.org next
+  ;; to each visited file.
+  (setq org-remark-notes-file-name
+        (concat user-emacs-var-directory "org-remark/marginalia.org"))
+
+  ;; Don't use org-remark's left side window for the notes buffer; nil makes
+  ;; `pop-to-buffer' fall through to `display-buffer-base-action'
+  ;; (below-selected, see init-builtin-settings).
+  (setq org-remark-notes-display-buffer-action nil)
+
+  ;; Don't announce "No highlights or annotations found" for every visited
+  ;; file (spams *Messages* for each buffer restored at startup).
+  (setq org-remark-report-no-highlights nil)
+
+  ;; Lightweight; full org-remark (and org) loads on first use or when
+  ;; visiting a file with existing highlights.
+  (org-remark-global-tracking-mode)
+
+  ;; Upstream registers the line pen's autoload without the interactive flag
+  ;; (see org-remark-issues/03), so a direct M-x org-remark-mark-line before
+  ;; anything loads the module fails with "commandp" -- the require in
+  ;; :config only helps once org-remark itself has loaded. Override the
+  ;; broken stub with a proper interactive autoload; the real definition
+  ;; replaces it when the module loads.
+  (autoload 'org-remark-mark-line "org-remark-line" nil t)
+
+  :config
+  (make-directory (file-name-directory org-remark-notes-file-name) t)
+
+  ;; Dim "read" text; undo with org-remark-transient-remove-dwim.
+  (org-remark-create "read" '(:inherit shadow) '(CATEGORY "read"))
+
+  ;; After highlights load (file visit and every revert, e.g. after an
+  ;; external tool edited the file), warn about marks whose text no longer
+  ;; matches what was originally marked -- relocation is best-effort, and a
+  ;; surviving "read" mark on rewritten text must not pass as reviewed.
+  (defun org-remark-audit-highlights (overlays _notes-buf)
+    "Warn when loaded OVERLAYS no longer match the text they marked."
+    (let (bad)
+      (dolist (ov overlays)
+        (when-let* (((overlay-buffer ov))
+                    (saved (overlay-get ov '*org-remark-original-text))
+                    ;; Zero-length line highlights carry no text to compare.
+                    ((< (overlay-start ov) (overlay-end ov))))
+          (unless (org-remark-string=
+                   saved (buffer-substring-no-properties (overlay-start ov)
+                                                         (overlay-end ov)))
+            (push (line-number-at-pos (overlay-start ov)) bad))))
+      (when bad
+        (message "org-remark: %d mark(s) in %s no longer match their saved text (line%s %s) — re-review"
+                 (length bad) (buffer-name)
+                 (if (cdr bad) "s" "")
+                 (mapconcat #'number-to-string (sort bad #'<) ", ")))))
+
+  ;; Depth 90: run after the default relocation function in this hook.
+  (add-hook 'org-remark-highlights-after-load-functions
+            #'org-remark-audit-highlights 90)
+  )
+
+;; Transient menu for org-remark: pens (like the "read" pen above) are
+;; auto-discovered, plus annotate and remove-dwim convenience commands.
+(use-package org-remark-transient
+  :load-path "~/.emacs.d/packages/org-remark-transient"
+  :bind ("s-T" . org-remark-transient)
   )
 
 ;; Highlight color strings with the corresponding color.
