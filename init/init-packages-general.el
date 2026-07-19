@@ -516,6 +516,7 @@
   ;; visiting a file with existing highlights.
   (org-remark-global-tracking-mode)
 
+  ;; TODO: necessary after my PR lands?
   ;; Upstream registers the line pen's autoload without the interactive flag
   ;; (see org-remark-issues/03), so a direct M-x org-remark-mark-line before
   ;; anything loads the module fails with "commandp" -- the require in

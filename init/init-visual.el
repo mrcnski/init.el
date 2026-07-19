@@ -81,7 +81,18 @@
                       :weight 'light)
 
   (use-package mixed-pitch
-    :hook (org-mode . mixed-pitch-mode)
+    :hook
+    ((org-mode markdown-mode) . mixed-pitch-mode)
+    (text-mode . mixed-pitch-maybe-plain-text)
+    :init
+    (defun mixed-pitch-maybe-plain-text ()
+      "Enable `mixed-pitch-mode' in .txt buffers.
+Hooking `text-mode' directly would also catch derived modes that
+should stay monospace (e.g. `yaml-ts-mode', commit messages), so
+match the file extension instead."
+      (when (and buffer-file-name
+                 (string-match-p "\\.txt\\'" buffer-file-name))
+        (mixed-pitch-mode 1)))
     :config
     (setq mixed-pitch-variable-pitch-cursor nil)
     )
