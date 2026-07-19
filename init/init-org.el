@@ -18,6 +18,9 @@
          ;; Jump to last refile or capture.
          ("C-c j" . org-refile-goto-last-stored)
 
+         ;; Jump to today's row in weight.org.
+         ("C-c m" . org-weight-goto-today)
+
          :map org-mode-map
 
          ;; ("<s-return>" . org-meta-return-end)
@@ -66,6 +69,59 @@
     ;; Update checkboxes after saving.
     (add-hook 'before-save-hook 'org-update-cookies-after-save nil 'make-it-local)
     )
+
+  (defun org-find-or-create-olp (&rest headings)
+    "Move point to the last of HEADINGS, creating any that are missing.
+A created heading is placed before its existing siblings, since my dated
+org files are ordered newest-first. Leaves the point at the beginning of
+the final heading."
+    (goto-char (point-min))
+    (let ((level 1)
+          (end (point-max)))
+      (while headings
+        (let ((heading (pop headings)))
+          (if (re-search-forward
+               (format "^\\*\\{%d\\} %s[ \t]*$" level (regexp-quote heading))
+               end t)
+              (goto-char (match-beginning 0))
+            ;; Missing: insert before the first sibling at this level, or at
+            ;; the end of the parent's subtree if there are none.
+            (if (re-search-forward (format "^\\*\\{%d\\} " level) end t)
+                (goto-char (match-beginning 0))
+              (goto-char end)
+              (unless (bolp) (insert "\n")))
+            (let ((start (point)))
+              (insert (make-string level ?*) " " heading "\n\n")
+              (goto-char start))))
+        (when headings
+          (setq end (save-excursion (org-end-of-subtree t t) (point))
+                level (1+ level))
+          (forward-line 1)))))
+
+  (defun org-capture-journal-month ()
+    "Capture target: current month heading (e.g. \"Jul\"), created if missing."
+    (org-find-or-create-olp (format-time-string "%b")))
+
+  (defun org-capture-year-month ()
+    "Capture target: current year/month path, created if missing."
+    (org-find-or-create-olp (format-time-string "%Y") (format-time-string "%b")))
+
+  (defun org-capture-time-rounded ()
+    "Current time as \"HH:MM\", rounded to the nearest 5 minutes."
+    (format-time-string "%H:%M" (* 300 (round (time-convert nil 'integer) 300))))
+
+  (defun org-weight-goto-today ()
+    "Open weight.org and move point to today's Weight cell.
+The monthly tables have a prefilled row per day, so this jumps to
+today's row rather than capturing a new one."
+    (interactive)
+    (find-file (expand-file-name "weight.org" org-directory))
+    (goto-char (point-min))
+    (if (re-search-forward (format-time-string "^| %m/%d/%Y ") nil t)
+        (progn
+          (org-fold-show-context)
+          (org-table-goto-column 2))
+      (user-error "No row for today in weight.org (new month table needed?)")))
 
   :config
 
@@ -172,7 +228,34 @@
            :empty-lines-before 1
            :prepend 1
            )
+          (
+           "j" "Journal entry." entry
+           (file+function "therapy/journal.org" org-capture-journal-month)
+           "* %<%a %-d> - %?\n\n%(org-capture-time-rounded)"
+           :unnarrowed t
+           :empty-lines-before 1
+           :prepend t
+           )
+          (
+           "d" "Dream." entry
+           (file+function "therapy/dreams.org" org-capture-year-month)
+           "* %<%a %-d> - %?"
+           :unnarrowed t
+           :empty-lines-before 1
+           :prepend t
+           )
           ))
+
+  ;; How to show capture buffers in relation to the selected window?
+  (add-to-list 'display-buffer-alist
+               '("\\`CAPTURE-"
+                 (display-buffer-reuse-window display-buffer-below-selected)
+                 (window-height . 0.5)))
+  ;; Same for the template-selection menu.
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Org Select\\*\\'"
+                 (display-buffer-below-selected)
+                 (window-height . 0.2)))
 
   ;; Shortcuts/Keybindings
 
