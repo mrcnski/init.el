@@ -254,8 +254,8 @@
          ("C-c C-c" . markdown-do)
          )
   :config
-  ;; Set export command.
-  (setq markdown-command "pandoc -f gfm -t html5")
+  ;; The export command (`markdown-command') is set by the nested
+  ;; markdown-file-links block at the end of this :config.
   (setq markdown-xhtml-header-content
         "<style>
 body { max-width: 60rem; margin: 2rem auto; padding: 0 1rem;
@@ -309,6 +309,23 @@ code span.wa { color: #baba36; font-style: italic; } /* Warning */
   ;; This mode overrides the return key! Stop!
   (define-key markdown-mode-map (kbd "<return>") nil)
   (define-key markdown-mode-map (kbd "RET") nil)
+
+  ;; Render file paths in the HTML preview as links that open in Emacs.
+  (use-package markdown-file-links
+    :ensure nil ; local package, not in an archive yet
+    :load-path "~/.emacs.d/packages/markdown-file-links"
+    :config
+    (setq markdown-command
+          (concat "pandoc -f gfm -t html5 "
+                  (markdown-file-links-pandoc-filter-arg)))
+    ;; Pick ambiguous links with consult-projectile.
+    (setq markdown-file-links-picker-function
+          (lambda (file)
+            (require 'consult-projectile)
+            (minibuffer-with-setup-hook
+                (lambda () (insert file))
+              (consult-projectile-find-file))))
+    (markdown-file-links-setup))
   )
 
 (use-package markdown-toc
