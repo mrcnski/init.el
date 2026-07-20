@@ -6,8 +6,38 @@
 
 (require 'init-visual-cursor)
 (require 'init-visual-frame)
+
 ;; Make mark visible.
-(require 'init-visual-mmv)
+(use-package visible-mark
+  :init
+  ;; Define before the package loads so its gray-background default loses.
+  (defface visible-mark-active
+    '((t (:underline t)))
+    "Face for the active mark.")
+  :config
+  ;; Faces for inactive marks (default nil would make them invisible).
+  (defface visible-mark-inactive
+    '((t (:underline t)))
+    "Face for inactive marks, matching the old mmv underline look.")
+  (setq visible-mark-faces '(visible-mark-inactive))
+
+  ;; A mark at end of line/buffer is drawn as an injected one-space
+  ;; before-string, and overlay strings don't inherit other overlays' faces --
+  ;; on the current line that punches a hole in the hl-line highlight. Merge
+  ;; hl-line into the space's face when it sits on point's line.
+  (define-advice visible-mark--move-overlay
+      (:after (overlay _mark face) hl-line-compat)
+    (when (and global-hl-line-mode
+               (overlay-start overlay)
+               (overlay-get overlay 'before-string)
+               (= (line-beginning-position)
+                  (save-excursion (goto-char (overlay-start overlay))
+                                  (line-beginning-position))))
+      (overlay-put overlay 'before-string
+                   (propertize " " 'face (list face 'hl-line)))))
+
+  (global-visible-mark-mode 1)
+  )
 
 ;; Enable popup tooltips, use emacs tooltip implementation.
 (tooltip-mode nil)
