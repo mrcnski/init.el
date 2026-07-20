@@ -110,11 +110,11 @@ If the region is active, unfill all paragraphs in the region instead."
   (defun repunctuate-region (start end)
     "Fix up sentence spacing (single space -> double) between START and END.
 Runs `repunctuate-sentences' without querying, then restores a single
-space after the abbreviations in `repunctuate-paragraph-abbreviations'
-and after ellipses (\"...\").  The extra pass is needed because the
-no-query path of `repunctuate-sentences' ignores
-`repunctuate-sentences-filter' (that filter only hooks into the
-interactive query-replace flow).
+space after the abbreviations in `repunctuate-paragraph-abbreviations',
+after ellipses (\"...\"), and after numbered list markers (\"1.\" at
+the start of a line).  The extra pass is needed because the no-query
+path of `repunctuate-sentences' ignores `repunctuate-sentences-filter'
+(that filter only hooks into the interactive query-replace flow).
 
 Known limitation: an abbreviation that really does end a sentence gets
 a single space."
@@ -126,7 +126,7 @@ a single space."
         (while (re-search-forward
                 (concat "\\(?:\\b"
                         (regexp-opt repunctuate-paragraph-abbreviations)
-                        "\\|\\.\\.\\.\\)\\(  \\)")
+                        "\\|\\.\\.\\.\\|^[[:blank:]]*[0-9]+\\.\\)\\(  \\)")
                 end t)
           (replace-match " " t t nil 1))
         (set-marker end nil))))

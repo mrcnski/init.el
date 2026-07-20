@@ -54,18 +54,31 @@ Buffer uses MODE (default `text-mode')."
                  "Fill tools, e.g. this one, help."))
   (should (equal (repunctuate-test--run "Ask Mr. Smith about it.")
                  "Ask Mr. Smith about it."))
-  (should (equal (repunctuate-test--run "Spaces, tabs, etc. are whitespace.")
-                 "Spaces, tabs, etc. are whitespace.")))
+  (should (equal (repunctuate-test--run "Compare A vs. B before deciding.")
+                 "Compare A vs. B before deciding.")))
 
 (ert-deftest repunctuate-ellipsis-kept-single ()
   (should (equal (repunctuate-test--run "He waited... and waited. The end.")
                  "He waited... and waited.  The end.")))
 
+(ert-deftest repunctuate-numbered-list-marker-kept-single ()
+  (should (equal (repunctuate-test--run "1. Point one. More words.")
+                 "1. Point one.  More words."))
+  ;; Multiple items in one paragraph, including indented ones.
+  (should (equal (repunctuate-test--run "1. One two. Three.\n  10. Four five. Six.")
+                 "1. One two.  Three.\n  10. Four five.  Six.")))
+
+(ert-deftest repunctuate-number-at-sentence-end-still-doubled ()
+  ;; Only line-start list markers are exempt; a number that ends a
+  ;; sentence mid-line still gets a double space.
+  (should (equal (repunctuate-test--run "Born in 1990. Moved away later.")
+                 "Born in 1990.  Moved away later.")))
+
 (ert-deftest repunctuate-abbreviation-at-sentence-end-limitation ()
   ;; Known limitation: an abbreviation that truly ends a sentence still
   ;; gets a single space.
-  (should (equal (repunctuate-test--run "I like fruit, nuts, etc. They like meat.")
-                 "I like fruit, nuts, etc. They like meat.")))
+  (should (equal (repunctuate-test--run "She is a Dr. They trust her.")
+                 "She is a Dr. They trust her.")))
 
 (ert-deftest repunctuate-only-current-paragraph ()
   (should (equal (repunctuate-test--run "First para. Changed.\n\nSecond para. Unchanged.")
@@ -108,6 +121,15 @@ Buffer uses MODE (default `text-mode')."
     (goto-char (point-min))
     (org-fill-paragraph)
     (should (equal (buffer-string) "- One two.  Three four."))))
+
+(ert-deftest repunctuate-org-numbered-list-item ()
+  (require 'org)
+  (with-temp-buffer
+    (org-mode)
+    (insert "1. One two. Three four.")
+    (goto-char (point-min))
+    (org-fill-paragraph)
+    (should (equal (buffer-string) "1. One two.  Three four."))))
 
 (ert-deftest repunctuate-org-skips-src-block ()
   (require 'org)
