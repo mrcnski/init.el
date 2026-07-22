@@ -7,9 +7,9 @@
 [submodule "packages/catppuccin-theme"]
 	path = packages/catppuccin-theme
 	url = https://github.com/catppuccin/emacs
-[submodule "packages/keys"]
-	path = packages/keys
-	url = https://github.com/mrcnski/keys
+[submodule "packages/keycoach"]
+	path = packages/keycoach
+	url = https://github.com/mrcnski/keycoach
 [submodule "packages/compnav-eshell"]
 	path = packages/compnav-eshell
 	url = https://github.com/mrcnski/compnav-eshell

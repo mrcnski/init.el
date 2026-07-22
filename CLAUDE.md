@@ -44,7 +44,7 @@ Key module facts not obvious from filenames:
 
 ## Vendored packages (`packages/`)
 
-Git submodules for self-authored or forked packages (nimbus-theme, eyebrowse, keys, compnav-eshell, context-clues, promptu.el, catppuccin-theme), loaded via `use-package :load-path`. Convention: feature work and bug fixes belong in the fork/package repo itself; the `init/*.el` files only contain toggles, keybindings, and glue. Don't grow package logic inside `init/`.
+Git submodules for self-authored or forked packages (nimbus-theme, eyebrowse, keycoach, compnav-eshell, context-clues, promptu.el, catppuccin-theme), loaded via `use-package :load-path`. Convention: feature work and bug fixes belong in the fork/package repo itself; the `init/*.el` files only contain toggles, keybindings, and glue. Don't grow package logic inside `init/`.
 
 ## Conventions
 
