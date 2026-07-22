@@ -415,45 +415,41 @@
          )
   )
 
-(use-package keys
-  :load-path "~/.emacs.d/packages/keys" ; Coming to MELPA soon I hope
+(use-package keycoach
+  :load-path "~/.emacs.d/packages/keycoach" ; Coming to MELPA soon I hope
   :config
 
   ;; Customize some settings
   (setq
-   keys-keys '("s-R")
-   keys-display-amount 2 ; How many keys to show at once
-   keys-indicator-separator " | " ; Customize the indicator!
-   keys-random t ; By default, keys are shown in a random order
+   keycoach-keys '("s-R")
+   keycoach-display-amount 2 ; How many keys to show at once
+   keycoach-indicator-separator " | " ; Customize the indicator!
+   keycoach-random t ; By default, keys are shown in a random order
 
-                ; Calling associated commands manually is an error!
-   keys-force t ; So if you bind `git-link` to C-c g, you get an error when
-                ; invoking `M-x git-link` with this configuration set.
+                    ; Calling associated commands manually is an error!
+   keycoach-error t ; So if you bind `git-link` to C-c g, you get an error when
+                    ; invoking `M-x git-link` with this configuration set.
+
+   ;; Leave `keycoach-indicator-target' nil: the title is rendered by hand in
+   ;; `init-visual-frame', which already lists `keycoach-indicator-string'
+   ;; alongside the eyebrowse indicator.  Just pad it the same way.
+   keycoach-indicator-format (concat frame-title-separator "%s")
    )
 
-  ;; Update the indicator every time it should change.
-  ;; You can also just do `(:eval (when global-keys-mode (keys-indicator)))`,
-  ;;   but this avoids constantly re-calculating the indicator.
-  ;; The same idea applies for the mode-line, header, etc.
-  ;; (defvar frame-title-keys)
-  ;; (defvar frame-title-separator "  —  ")
-  ;; (setq frame-title-format '("Emacs" frame-title-keys))
-  (add-hook
-   'keys-post-change-hook
-   (lambda ()
-       (let ((indicator (keys-indicator)))
-         (setq frame-title-keys
-               (when (and global-keys-mode (not (string-empty-p indicator)))
-                 (format "%s%s" frame-title-separator indicator))))))
+  ;; Refresh the title as soon as the keys change, the way eyebrowse does,
+  ;; rather than waiting up to a second for the idle timer.
+  (add-hook 'keycoach-post-change-hook 'frame-title-update)
 
-  ;; Ready to turn on keys-mode!
-  (global-keys-mode)
+  ;; Ready to turn on keycoach!
+  (global-keycoach-mode)
 
   ;; Integrate with midnight-mode.
+  ;;
+  ;; TODO: can this be a nested use-package block?
   (require 'midnight)
   (midnight-delay-set 'midnight-delay "1:00am")
   (remove-hook 'midnight-hook 'clean-buffer-list)
-  (add-hook 'midnight-hook 'keys-reset)
+  (add-hook 'midnight-hook 'keycoach-reset)
   )
 
 ;; A package for choosing a color by updating text sample.
