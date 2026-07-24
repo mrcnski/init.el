@@ -40,6 +40,7 @@
 (require 'init-package) ;; Can use Melpa packages after this.
 (require 'init-early-utils) ;; Things important to have early.
 (require 'init-functions-and-shortcuts)
+(require 'init-functions-for-comments)
 (require 'init-vertico-et-al) ;; Also good to have early.
 (require 'init-builtin-settings)
 (require 'init-builtin-modes)
