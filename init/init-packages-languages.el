@@ -79,7 +79,9 @@
 
   (define-key astro-ts-mode-map (kbd "M-o") nil)
 
-  (setq astro-ts-mode-indent-offset 4)
+  (setq
+   astro-ts-mode-indent-offset 2
+   )
   )
 
 ;; Beancount
@@ -118,7 +120,7 @@
   :ensure nil
   :config
   (setopt
-   css-indent-offset 2
+   css-indent-offset 4
    )
   )
 
@@ -442,7 +444,7 @@ code span.wa { color: #baba36; font-style: italic; } /* Warning */
   (setq
    web-mode-markup-indent-offset 2
    web-mode-css-indent-offset 4
-   web-mode-code-indent-offset 2
+   web-mode-code-indent-offset 4
 
    web-mode-enable-current-element-highlight t
    )
