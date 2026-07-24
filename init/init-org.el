@@ -174,6 +174,61 @@
            )
           ))
 
+  ;; How to show capture buffers in relation to the selected window?
+  (add-to-list 'display-buffer-alist
+               '("\\`CAPTURE-"
+                 (display-buffer-same-window display-buffer-below-selected)
+                 (window-height . 0.5)))
+  ;; Same for the template-selection menu.
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Org Select\\*\\'"
+                 (display-buffer-below-selected)
+                 (window-height . 0.2)))
+
+  ;; Warn about unfinalized capture buffers.
+  ;;
+  ;; A capture buffer is an indirect buffer sharing text with the target
+  ;; file's buffer, so typing shows up in that buffer immediately -- but the
+  ;; target is only written to disk (and refiled / post-processed) on
+  ;; `C-c C-c'.
+  (defun org-capture-buffers-open ()
+    "Return the list of live, unfinalized org-capture buffers."
+    (seq-filter (lambda (b) (buffer-local-value 'org-capture-mode b))
+                (buffer-list)))
+  (defun org-capture-confirm-kill-emacs ()
+    "Confirm before quitting Emacs while capture buffers are open.
+Added to `kill-emacs-query-functions'; returning nil aborts the exit."
+    (or (null (org-capture-buffers-open))
+        (yes-or-no-p "Unfinalized org-capture buffer(s) open -- quit anyway? ")))
+  (add-hook 'kill-emacs-query-functions #'org-capture-confirm-kill-emacs)
+
+  ;; Passive indicator: `frame-title-capture-string' (a bare element of
+  ;; `frame-title-format', declared in init-visual-frame) shows the open-capture
+  ;; state in the frame title.  Maintained event-driven here -- like keycoach's
+  ;; indicator -- rather than via an `:eval', so the title is not recomputed on
+  ;; every idle tick.
+  (defun org-capture-update-frame-indicator (&rest _)
+    "Recompute `frame-title-capture-string' from open capture buffers."
+    (let ((n (length (org-capture-buffers-open))))
+      (setq frame-title-capture-string
+            (cond ((zerop n) "")
+                  ((= n 1) (concat frame-title-separator "⏺ CAPTURE"))
+                  (t (concat frame-title-separator
+                             (format "⏺ CAPTURE ×%d" n))))))
+    (when (fboundp 'frame-title-update) (frame-title-update)))
+
+  ;; Opening a capture activates `org-capture-mode' -> refresh immediately.
+  (add-hook 'org-capture-mode-hook #'org-capture-update-frame-indicator)
+
+  (defun org-capture-frame-indicator-on-kill ()
+    "Refresh the frame indicator when a capture buffer is killed.
+For `kill-buffer-hook'.  Covers `C-c C-c', `C-c C-k' and a manual
+`C-x k'.  Deferred so the dying buffer has left `buffer-list' before the
+count is recomputed (in `kill-buffer-hook' it is still current)."
+    (when (bound-and-true-p org-capture-mode)
+      (run-with-timer 0 nil #'org-capture-update-frame-indicator)))
+  (add-hook 'kill-buffer-hook #'org-capture-frame-indicator-on-kill)
+
   ;; Shortcuts/Keybindings
 
   ;; REMOVED: Not using it for now.
