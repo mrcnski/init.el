@@ -12,8 +12,13 @@
 ;; until it loads (a void symbol in a mode line construct is simply skipped).
 (defvar frame-title-eyebrowse)
 (defvar frame-title-separator "  —  ")
+;; Maintained event-driven by init-org's org-capture hooks; empty unless a
+;; capture buffer is open.  A bare string element (not `:eval') so the title is
+;; recomputed only when the string actually changes, matching keycoach.
+(defvar frame-title-capture-string "")
 (setq frame-title-format
-      '("Emacs" frame-title-eyebrowse keycoach-indicator-string))
+      '("Emacs" frame-title-eyebrowse keycoach-indicator-string
+        frame-title-capture-string))
 (defun frame-title-update ()
   "Update the frame title."
   (set-frame-parameter nil 'title (format-mode-line frame-title-format)))
