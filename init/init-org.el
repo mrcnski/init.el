@@ -192,8 +192,12 @@
   ;; target is only written to disk (and refiled / post-processed) on
   ;; `C-c C-c'.
   (defun org-capture-buffers-open ()
-    "Return the list of live, unfinalized org-capture buffers."
-    (seq-filter (lambda (b) (buffer-local-value 'org-capture-mode b))
+    "Return the list of live, unfinalized org-capture buffers.
+`org-capture-mode' is defined in org-capture.el, which is autoloaded
+separately from org.el, so use `bound-and-true-p'."
+    (seq-filter (lambda (b)
+                  (with-current-buffer b
+                    (bound-and-true-p org-capture-mode)))
                 (buffer-list)))
   (defun org-capture-confirm-kill-emacs ()
     "Confirm before quitting Emacs while capture buffers are open.
