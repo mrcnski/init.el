@@ -280,6 +280,7 @@ body { max-width: 60rem; margin: 2rem auto; padding: 0 1rem;
        font-family: -apple-system, system-ui, sans-serif;
        line-height: 1.6; color: #222; }
 h1, h2, h3 { line-height: 1.2; }
+img { max-width: 80%; display: block; margin: auto; }
 table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
 th, td { border: 1px solid #ccc; padding: .5rem .75rem;
          text-align: left; vertical-align: top; }
