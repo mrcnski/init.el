@@ -532,6 +532,49 @@ Position cursor at the end of the prompt."
          )
   :config (winner-mode t))
 
+;; Highlight overlong lines (see the per-mode column settings below).
+(use-package whitespace
+  :ensure nil
+  ;; :hook (prog-mode . whitespace-mode)
+
+  :init
+
+  (setq whitespace-style
+        '(face
+          lines-tail
+          )
+        )
+
+  ;; Highlight the parts of lines that exceed certain column numbers, depending
+  ;; on mode.
+  (defun c-whitespace-mode ()
+    "Set whitespace column and fill column for c-like modes and turn
+on `whitespace-mode'."
+    (setq whitespace-line-column 80
+          fill-column 80)
+    (whitespace-mode)
+    )
+  (add-hook 'c-mode-common-hook 'c-whitespace-mode)
+  (add-hook 'nim-mode-hook 'c-whitespace-mode)
+
+  (defun rust-whitespace-mode ()
+    "Set whitespace column and fill column for Rust and turn on `whitespace-mode'."
+    (setq whitespace-line-column 120
+          fill-column 100)
+    (whitespace-mode)
+    )
+  (add-hook 'rust-mode-hook 'rust-whitespace-mode)
+  (add-hook 'rustic-mode-hook 'rust-whitespace-mode)
+
+  (defun 100-whitespace-mode ()
+    "Set whitespace column and fill column at 100 and turn on `whitespace-mode'."
+    (setq whitespace-line-column 100
+          fill-column 100)
+    (whitespace-mode)
+    )
+  (add-hook 'python-mode-hook '100-whitespace-mode)
+  )
+
 ;; REMOVED: Performance hit and I wasn't using it much.
 ;; (use-package which-func
 ;;   :ensure nil
