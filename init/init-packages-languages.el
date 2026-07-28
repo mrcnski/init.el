@@ -202,6 +202,12 @@
   ;; Should Prettier format the buffer when saving?
   (setq prettier-prettify-on-save-flag t)
 
+  ;; Don't start and warm the Prettier server when the mode turns on (the
+  ;; default is `full').  This is one Node process per node executable, but
+  ;; every buffer restored by `desktop-save-mode' would warm it with its own
+  ;; project's Prettier at startup.  Pay that cost on first save instead.
+  (setq prettier-pre-warm 'none)
+
   ;; Turn on the minor mode in all major modes supported by your version of
   ;; Prettier.
   ;; (global-prettier-mode)
@@ -242,6 +248,12 @@
          ;; REMOVED: Use prettier instead.
          ;; (before-save . tide-format-before-save)
          )
+  :custom
+  ;; Don't spawn a tsserver the moment `tide-mode' turns on.  tide keeps one
+  ;; tsserver per project root, and `desktop-save-mode' restores every TS buffer
+  ;; at startup.  Start a server per project on demand with `M-x
+  ;; tide-restart-server'; until then tide commands error with that hint.
+  (tide-tsserver-start-method 'manual)
   :config
   (setopt tide-jump-to-definition-reuse-window nil)
   )
