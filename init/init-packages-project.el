@@ -214,6 +214,23 @@
   ;; Integrate projectile with consult.
   (use-package consult-projectile
     :bind ("s-;" . consult-projectile)
+    :config
+    (defun consult-projectile-open-from-tmux (query dir &optional line)
+      "Open a project file matching QUERY under DIR via `consult-projectile'.
+Called from the tmux file picker when the scrollback text it captured is
+a bare filename with no path to resolve directly, so the project's own
+file index is used to fuzzy-match it instead.  Jumps to LINE afterwards
+when given."
+      (let ((default-directory (file-name-as-directory dir)))
+        (when (consult--multi consult-projectile-sources
+                               :prompt "Switch to: "
+                               :initial query
+                               :history 'consult-projectile--project-history
+                               :sort nil)
+          (when line
+            (with-current-buffer (window-buffer (selected-window))
+              (goto-char (point-min))
+              (forward-line (1- line)))))))
     )
   )
 
