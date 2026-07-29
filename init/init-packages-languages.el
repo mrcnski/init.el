@@ -271,11 +271,24 @@ blocking round-trip to the Prettier server."
          ;; (before-save . tide-format-before-save)
          )
   :custom
-  ;; Don't spawn a tsserver the moment `tide-mode' turns on.  tide keeps one
-  ;; tsserver per project root, and `desktop-save-mode' restores every TS buffer
-  ;; at startup.  Start a server per project on demand with `M-x
-  ;; tide-restart-server'; until then tide commands error with that hint.
+  ;; Don't spawn a tsserver the moment `tide-mode' turns on, since
+  ;; `desktop-save-mode' restores every TS buffer at startup.  We lazily and
+  ;; automatically start when needed; see below.
   (tide-tsserver-start-method 'manual)
+
+  :config
+  ;; tide starts a server for the *current buffer's* project only, and a
+  ;; monorepo is several projects, and a tree with no tsconfig.json at all is
+  ;; one project per directory.  What's wanted is lazy: start a project's server
+  ;; the first time that project needs one.
+  ;;
+  ;; `tide-send-command' is the choke point every tide feature goes through.
+  (defun my-tide-start-server-on-demand (&rest _)
+    "Start this buffer's tsserver if its project hasn't got one yet."
+    (unless (tide-current-server)
+      (tide-start-server)))
+
+  (advice-add 'tide-send-command :before #'my-tide-start-server-on-demand)
   )
 
 ;; JSON
