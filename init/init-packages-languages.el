@@ -18,8 +18,8 @@
     (interactive)
     (dolist (grammar
              '(
-               ;; Pinned to a commit since upstream has no version tags.
-               (astro . ("https://github.com/virchau13/tree-sitter-astro" "213f6e6973d9b456c6e50e86f19f66877e7ef0ee"))
+               ;; Upstream has no version tags.
+               (astro . ("https://github.com/virchau13/tree-sitter-astro" "master"))
                (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.23.3"))
                (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
                (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0"))
@@ -207,6 +207,42 @@
   ;; every buffer restored by `desktop-save-mode' would warm it with its own
   ;; project's Prettier at startup.  Pay that cost on first save instead.
   (setq prettier-pre-warm 'none)
+
+  ;; Enabling `prettier-mode' syncs the project's Prettier config into
+  ;; buffer-local settings, and that path starts the server itself and blocks on
+  ;; a round-trip per buffer -- a problem at startup.
+  ;;
+  ;; Defer the sync: it derives indent style/width and fill column from the
+  ;; project's Prettier options, sets the coding system from `endOfLine', and
+  ;; applies `prettier-sync-settings'.
+  (setq prettier-mode-sync-config-flag nil)
+
+  (defun my-prettier-sync-config-now (buffer)
+    "Sync Prettier config into BUFFER if it still wants it.
+`prettier--maybe-sync-config' checks `prettier-mode-sync-config-flag'
+itself, hence the let-binding."
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (when (and prettier-mode (fboundp 'prettier--maybe-sync-config))
+          (let ((prettier-mode-sync-config-flag t))
+            (prettier--maybe-sync-config))))))
+
+  (defun my-prettier-sync-config-on-first-change ()
+    "Sync this buffer's Prettier config, once, when it is first edited.
+Runs off an idle timer rather than inline: `first-change-hook' fires
+from inside `prepare-to-modify-buffer', which is no place for a
+blocking round-trip to the Prettier server."
+    (remove-hook 'first-change-hook
+                 #'my-prettier-sync-config-on-first-change
+                 'local)
+    (run-with-idle-timer 0 nil #'my-prettier-sync-config-now (current-buffer)))
+
+  (add-hook 'prettier-mode-hook
+            (lambda ()
+              (when prettier-mode
+                (add-hook 'first-change-hook
+                          #'my-prettier-sync-config-on-first-change
+                          nil 'local))))
 
   ;; Turn on the minor mode in all major modes supported by your version of
   ;; Prettier.
