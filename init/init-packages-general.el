@@ -189,6 +189,21 @@
 (use-package evil-nerd-commenter
   :bind ("M-;" . evilnc-comment-or-uncomment-lines))
 
+;; Respect Markdown inline code spans in `er/expand-region'.
+(declare-function markdown-inline-code-at-point "markdown-mode")
+(defun er/mark-markdown-inline-code ()
+  "Mark the contents of the Markdown inline code span around point."
+  (interactive)
+  (when (markdown-inline-code-at-point)
+    (set-mark (match-end 2))
+    (goto-char (match-beginning 2))))
+(defun er/mark-markdown-outside-inline-code ()
+  "Mark the Markdown inline code span around point, including the backticks."
+  (interactive)
+  (when (markdown-inline-code-at-point)
+    (set-mark (match-end 3))
+    (goto-char (match-beginning 1))))
+
 ;; Expand-region.
 (use-package expand-region
   :bind ("C-;" . er/expand-region)
@@ -199,6 +214,15 @@
    shift-select-mode nil
    expand-region-fast-keys-enabled nil
    )
+
+  (defun er/add-markdown-mode-expansions ()
+    "Add the Markdown expansions to `er/try-expand-list'."
+    (set (make-local-variable 'er/try-expand-list)
+         (append er/try-expand-list
+                 '(er/mark-markdown-inline-code
+                   er/mark-markdown-outside-inline-code))))
+
+  (er/enable-mode-expansions 'markdown-mode #'er/add-markdown-mode-expansions)
   )
 
 ;; Workspaces.
