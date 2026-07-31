@@ -11,14 +11,18 @@
 (use-package visible-mark
   :init
   ;; Define before the package loads so its gray-background default loses.
+  ;;
+  ;; Emacs re-evaluates this whenever the background mode changes, which is what
+  ;; switching themes does.  Themes may override: nimbus underlines in white.
   (defface visible-mark-active
-    '((t (:underline t)))
+    '((((background dark)) (:underline "white"))
+      (t (:underline "black")))
     "Face for the active mark.")
   :config
   ;; Faces for inactive marks (default nil would make them invisible).
   (defface visible-mark-inactive
-    '((t (:underline t)))
-    "Face for inactive marks, matching the old mmv underline look.")
+    '((t (:inherit visible-mark-active)))
+    "Face for inactive marks, matching the active mark.")
   (setq visible-mark-faces '(visible-mark-inactive))
 
   ;; A mark at end of line/buffer is drawn as an injected one-space
