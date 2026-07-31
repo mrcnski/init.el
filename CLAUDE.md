@@ -11,7 +11,7 @@ Personal Emacs configuration (~4300 lines of elisp) for a single user on macOS. 
 ERT tests live in `test/` (currently only for select custom functions). Run a test file with:
 
 ```sh
-emacs -Q --batch -l test/repunctuate-paragraph-tests.el -f ert-run-tests-batch-and-exit
+emacs -Q --batch -l test/sentence-spacing-tests.el -f ert-run-tests-batch-and-exit
 ```
 
 Test files stub `use-package` as a no-op macro so an `init/*.el` file can be loaded under `emacs -Q` without package.el — copy that pattern when testing functions from other init modules.
