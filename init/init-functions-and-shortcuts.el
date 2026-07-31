@@ -50,7 +50,7 @@
     )
   )
 (defun transpose-symbols (arg)
-  "The symbol version of `transpose-words'. ARG!"
+  "The symbol version of `transpose-words'.  ARG!"
   (interactive "*p")
   (transpose-subr 'forward-symbol arg)
   )
@@ -61,7 +61,7 @@
 (global-set-key (kbd "M-T") 'transpose-symbols)
 
 (defun isearch-backward-symbol-at-point (&optional arg)
-  "The backwards version of `isearch-forward-symbol-at-point'. ARG!"
+  "The backwards version of `isearch-forward-symbol-at-point'.  ARG!"
   (interactive "P")
   (isearch-mode nil nil nil nil 'isearch-symbol-regexp)
   (let ((bounds (find-tag-default-bounds))
@@ -161,6 +161,26 @@ Skips non-prose elements like tables, blocks, and headlines."
             (repunctuate-region (org-element-property :begin element)
                                 (org-element-property :end element))))))
     (advice-add 'org-fill-element :before #'repunctuate-org-element)))
+
+;; Let filling break the line after a single-spaced sentence end.
+;;
+;; If `sentence-end-double-space' is t, `fill-nobreak-p' vetos a break right
+;; after a period followed by exactly one space. Binding the variable around
+;; `fill-nobreak-p' alone -- rather than around the fill command -- leaves the
+;; variable's other job intact: `canonically-space-region' still keeps existing
+;; double spaces at 2 instead of squeezing them to 1 while filling.
+(progn
+  (defun fill-ignore-single-space-nobreak (orig &rest args)
+    "Call ORIG with ARGS with `sentence-end-double-space' bound to nil.
+Advises `fill-nobreak-p' so it stops refusing to break the line after a
+period followed by a single space.  None of its other checks consult the
+variable, so nothing else changes."
+    (let ((sentence-end-double-space nil))
+      (apply orig args)))
+  ;; Every fill entry point -- `fill-paragraph', `c-fill-paragraph',
+  ;; `c-ts-common--fill-paragraph', `auto-fill-mode' -- picks its break points
+  ;; through `fill-nobreak-p', so advising it covers all of them.
+  (advice-add 'fill-nobreak-p :around #'fill-ignore-single-space-nobreak))
 
 ;; Disable annoying popup on OSX.
 (global-set-key (kbd "s-t") 'make-frame)
@@ -482,7 +502,7 @@ into one."
 (global-set-key (kbd "C-j") 'join-next-line)
 
 (defun goto-line-below (arg)
-  "Open and goto a new line below while keeping proper indentation. ARG!"
+  "Open and goto a new line below while keeping proper indentation.  ARG!"
   (interactive "p")
   (end-of-line)
   (open-line arg)
@@ -490,7 +510,7 @@ into one."
   (indent-according-to-mode)
   )
 (defun goto-line-above (arg)
-  "Open and goto a new line above while keeping proper indentation. ARG!"
+  "Open and goto a new line above while keeping proper indentation.  ARG!"
   (interactive "p")
   (beginning-of-line)
   (open-line arg)
