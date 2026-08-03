@@ -10,19 +10,13 @@
 ;;; Code:
 
 (require 'ert)
+(add-to-list 'load-path
+             (file-name-directory (or load-file-name default-directory)))
+(require 'init-test-helper)
 
-;; Stub use-package so the init module loads under -Q (no package.el
-;; setup in batch).  Loading the file also installs the `:around' advice
-;; on `fill-paragraph' that these tests exercise.
-(defmacro use-package (&rest _)
-  "Stub for batch testing."
-  nil)
-
-(load (expand-file-name
-       "init/init-functions-for-comments.el"
-       (locate-dominating-file
-        (or load-file-name default-directory) "init.el"))
-      nil t)
+;; Loading the module also installs the `:around' advice on
+;; `fill-paragraph' that these tests exercise.
+(init-test-load-module "init-functions-for-comments")
 
 ;; Loading cc-mode fires the `with-eval-after-load' that advises
 ;; `c-fill-paragraph', so the CC Mode tests below exercise it.

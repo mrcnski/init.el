@@ -20,18 +20,11 @@
 
 (require 'ert)
 (require 'cc-mode)
+(add-to-list 'load-path
+             (file-name-directory (or load-file-name default-directory)))
+(require 'init-test-helper)
 
-;; Stub use-package so init-functions-and-shortcuts.el loads under -Q
-;; (no package.el setup in batch).
-(defmacro use-package (&rest _)
-  "Stub for batch testing."
-  nil)
-
-(load (expand-file-name
-       "init/init-functions-and-shortcuts.el"
-       (locate-dominating-file
-        (or load-file-name default-directory) "init.el"))
-      nil t)
+(init-test-load-module "init-functions-and-shortcuts")
 
 (defun sentence-spacing-test--run (input &optional mode)
   "Run `repunctuate-paragraph' on INPUT with point at start, return result.
