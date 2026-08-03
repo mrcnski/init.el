@@ -671,29 +671,6 @@ into one."
 
 ;; Other
 
-;; Align region by string.
-;; TODO: Enable history in read-string to allow for default values
-;;       (i.e. last input).
-(defun align-to-string (beg end)
-  "Align region from BEG to END along input string."
-  (interactive "r")
-  (let ((char (read-string "string: ")))
-    (align-regexp beg end (concat "\\(\\s-*\\)" char))))
-
-;; Show ASCII table.
-;; Obtained from http://www.chrislott.org/geek/emacs/dotemacs.html.
-(defun ascii-table ()
-  "Print the ascii table. Based on a defun by Alex Schroeder <asc@bsiag.com>."
-  (interactive)
-  (switch-to-buffer "*ASCII*")
-  (erase-buffer)
-  (insert (format "ASCII characters up to number %d.\n" 254))
-  (let ((i 0))
-    (while (< i 254)
-      (setq i (+ i 1))
-      (insert (format "%4d %c\n" i i))))
-  (goto-char (point-min)))
-
 ;; Helps with "too many files" error.
 ;; From https://www.blogbyben.com/2022/05/gotcha-emacs-on-mac-os-too-many-files.html.
 (defun file-notify-rm-all-watches ()
