@@ -14,29 +14,13 @@
 ;;; Code:
 
 (require 'ert)
-
-;; Stub use-package so init-packages-general.el loads under -Q (no package.el
-;; setup in batch).
-(defmacro use-package (&rest _)
-  "Stub for batch testing."
-  nil)
-
-(defvar er-md-tests--root
-  (locate-dominating-file (or load-file-name default-directory) "init.el")
-  "Repository root, used to locate the init files under test.")
-
-(add-to-list 'load-path (expand-file-name "init" er-md-tests--root))
+(add-to-list 'load-path
+             (file-name-directory (or load-file-name default-directory)))
+(require 'init-test-helper)
 
 ;; The functions guard on `markdown-inline-code-at-point-p', and markdown-mode
-;; isn't on the load-path under -Q.  init-basics defines where elpa lives.
-(require 'init-basics)
-
-(let ((dir (car (last (file-expand-wildcards
-                       (expand-file-name "markdown-mode-*"
-                                         user-emacs-elpa-directory))))))
-  (unless dir
-    (error "No markdown-mode installed under %s" user-emacs-elpa-directory))
-  (add-to-list 'load-path dir))
+;; isn't on the load-path under -Q.
+(init-test-add-elpa-package "markdown-mode")
 (require 'markdown-mode)
 
 (require 'init-packages-general)
