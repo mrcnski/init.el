@@ -23,6 +23,9 @@
 
    ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
    vertico-cycle nil
+
+   ;; Use strict recency.
+   vertico-sort-history-duplicate 0
    )
 
   ;; Use `consult-completion-in-region' if Vertico is enabled.
