@@ -123,6 +123,13 @@
 
   :config
   (magit-auto-revert-mode t)
+
+  ;; Status refreshes spawn git subprocesses and, on this machine, every
+  ;; subprocess spawn pays a security tax. The pushRemote sections only render
+  ;; when a branch's pushRemote differs from its upstream, so they cost two `git
+  ;; rev-list' spawns per refresh for no output.
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
   )
 
 ;; Quick and easy organization of repos and jumping to them.
