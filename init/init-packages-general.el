@@ -226,11 +226,8 @@
   )
 
 ;; Workspaces.
-;; TODO: Consider migrating to built-in `tab-bar-mode': native
-;; desktop-save-mode persistence (would replace the fork's persist
-;; feature), per-tab winner history via `tab-bar-history-mode', and
-;; upstream maintenance. Costs: redo frame-title integration and
-;; persistence migration. Revisit if the fork breaks on a new Emacs.
+;;
+;; TODO: per-tab winner history
 (use-package eyebrowse
   ;; TODO: Needed?
   ;; To prevent mode-line display errors.
@@ -249,8 +246,19 @@
          ("s-7" . eyebrowse-switch-to-window-config-7)
          ("s-8" . eyebrowse-switch-to-window-config-8)
          ("s-9" . eyebrowse-switch-to-window-config-9)
+         ("s-C-0" . eyebrowse-switch-to-window-config-10)
+         ("s-C-1" . eyebrowse-switch-to-window-config-11)
+         ("s-C-2" . eyebrowse-switch-to-window-config-12)
+         ("s-C-3" . eyebrowse-switch-to-window-config-13)
+         ("s-C-4" . eyebrowse-switch-to-window-config-14)
+         ("s-C-5" . eyebrowse-switch-to-window-config-15)
+         ("s-C-6" . eyebrowse-switch-to-window-config-16)
+         ("s-C-7" . eyebrowse-switch-to-window-config-17)
+         ("s-C-8" . eyebrowse-switch-to-window-config-18)
+         ("s-C-9" . eyebrowse-switch-to-window-config-19)
          ("s-=" . eyebrowse-close-window-config)
          ("s--" . eyebrowse-rename-window-config)
+         ("s-+" . eyebrowse-clone-window-config)
          )
 
   :init
@@ -258,23 +266,20 @@
   ;; Free up keybindings unnecessarily stolen by eyebrowse.
   (setq eyebrowse-keymap-prefix (kbd ""))
 
-  ;; Persist workspaces across restarts.  Must be set before
-  ;; `eyebrowse-mode' is enabled below, since the mode wires up its
-  ;; save/restore hooks at enable time.  Pairs with `desktop-save-mode'
-  ;; (see init-builtin-modes) so the referenced buffers come back too.
+  ;; Persist workspaces across restarts.  Must be set before `eyebrowse-mode' is
+  ;; enabled, since the mode wires up its save/restore hooks at enable time.
+  ;; Pairs with `desktop-save-mode' so the referenced buffers come back too.
   (setq
    eyebrowse-persist-window-configs t
    eyebrowse-save-file (no-littering-expand-var-file-name "eyebrowse-configs.el")
    )
 
-  ;; Load eyebrowse at the end of startup so workspaces are restored and
-  ;; the frame title reflects them automatically, without waiting for the
-  ;; first eyebrowse command (the `:bind' entries otherwise defer loading).
-  ;; Done via `emacs-startup-hook' rather than `:demand t' so it loads
-  ;; after the frame and mode line are ready, avoiding the mode-line
-  ;; display errors that eager loading caused.  This also runs after
-  ;; `desktop-read' (on `after-init-hook'), so the buffers the layouts
-  ;; refer to already exist.
+  ;; Load eyebrowse at the end of startup so workspaces are restored and the
+  ;; frame title reflects them automatically, without waiting for the first
+  ;; eyebrowse command.  Done via `emacs-startup-hook' rather than `:demand t'
+  ;; so it loads after the frame and mode line are ready.  This also runs after
+  ;; `desktop-read' (on `after-init-hook'), so the buffers the layouts refer to
+  ;; already exist.
   (add-hook 'emacs-startup-hook (lambda () (require 'eyebrowse)))
 
   :config
@@ -315,10 +320,8 @@
   (add-hook 'eyebrowse-indicator-change-hook 'frame-title-eyebrowse-update)
 
   ;; The package already saves on `kill-emacs', but tie the save to
-  ;; `desktop-save-hook' too so workspaces are persisted on desktop's
-  ;; idle auto-save (every `desktop-auto-save-timeout' seconds).  That
-  ;; survives an unexpected quit and keeps the layout in sync with the
-  ;; buffer set desktop snapshots at the same moment.
+  ;; `desktop-save-hook' too so workspaces are persisted on desktop's idle
+  ;; auto-save.  That survives an unexpected quit.
   (with-eval-after-load 'desktop
     (add-hook 'desktop-save-hook 'eyebrowse--save-window-configs))
   )
