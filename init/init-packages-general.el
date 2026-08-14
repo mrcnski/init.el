@@ -784,10 +784,11 @@ remote projects.  Returns nil for non-project buffers."
 (use-package uniquify
   :ensure nil
   :config
-  (setq uniquify-buffer-name-style 'forward
-        uniquify-min-dir-content 2
-        uniquify-strip-common-suffix nil
-        )
+  (setq
+   uniquify-buffer-name-style 'forward
+   uniquify-min-dir-content 2
+   uniquify-strip-common-suffix nil
+   )
   )
 
 ;; Display available keys.
