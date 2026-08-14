@@ -345,6 +345,133 @@
   (add-to-list 'free-keys-modifiers "s" t)
   )
 
+;; Terminal emulator powered by libghostty.
+;;
+;; Mirrors the previous eshell setup.
+(use-package ghostel
+  :ensure nil
+  :load-path "~/.emacs.d/packages/ghostel/lisp"
+  ;; `ghostel' itself is called before any :bind autoload fires (ghostel-new).
+  :commands (ghostel)
+  :bind (
+         ("s-e" . ghostel-new)
+         ;; Creates the project terminal if none, switches if one, picks if
+         ;; several; C-u forces a new one.
+         ("s-E" . ghostel-project-dwim)
+         )
+
+  :init
+
+  ;; The fork's source tree ships no prebuilt native module. Keep the module in
+  ;; a stable directory outside any package tree so package operations can't
+  ;; delete it while Emacs has it loaded.
+  (setq ghostel-module-directory
+        (expand-file-name "ghostel-module/" user-emacs-var-directory))
+
+  ;; Open a new ghostel buffer, like `eshell-new'.
+  (defun ghostel-new ()
+    "Open a new ghostel buffer."
+    (interactive)
+    (ghostel t))
+
+  :config
+
+  ;; Automatically save all buffers when ghostel gains focus (usually a Claude
+  ;; instance).
+  (defvar save-buffers-on-ghostel-focus-window nil
+    "The window that was selected when the last command finished.")
+  (defun save-buffers-on-ghostel-focus ()
+    "Save the buffer of the window that was just left."
+    (when (not (eq (selected-window) save-buffers-on-ghostel-focus-window))
+      (setq save-buffers-on-ghostel-focus-window (selected-window))
+      (when (string-match-p "\\`\\*ghostel.*\\*" (buffer-name))
+        ;; An error here would silently remove this from `post-command-hook'.
+        (with-demoted-errors "save-buffers-on-ghostel-focus: %S"
+          ;; Don't echo "Wrote ..." for a save the user didn't ask for.
+          (let ((save-silently t))
+            (save-all)
+            )))))
+  (add-hook 'post-command-hook #'save-buffers-on-ghostel-focus)
+
+  ;; Scope only terminals created via ghostel-project, or any terminals for the
+  ;; project's directory root?
+  (setopt ghostel-project-buffer-scope 'both)
+
+  ;; ghostel-desktop.el owns saving and restoring.  The package is loaded
+  ;; straight off :load-path with no autoloads file, so the autoload cookies on
+  ;; the desktop integration never take effect -- require it outright.
+  (require 'ghostel-desktop)
+
+  ;; Save all buffers before running a command, as in eshell-pre-command.
+  ;; Fires from the shell integration's preexec hook (on by default for zsh).
+  (add-hook 'ghostel-command-start-functions (lambda (_buffer) (save-all)))
+
+  ;; Add consult-outline support, as in eshell.
+  (add-hook 'ghostel-mode-hook
+            (lambda () (setq outline-regexp ghostel-prompt-regexp)))
+
+  ;; Name buffers magit-style: "*ghostel: PROJECT*".
+  (defun ghostel-buffer-name-by-identity (_title)
+    "Return \"*ghostel: PROJECT*\" derived from the buffer identity.
+TITLE is ignored (the mode line displays it instead).  PROJECT is the
+basename of the identity's project root, with \"@HOST\" appended for
+remote projects.  Returns nil for non-project buffers."
+    (when-let* ((root (alist-get 'project-root ghostel-identity)))
+      (let ((project (file-name-nondirectory (directory-file-name root)))
+            (host (file-remote-p root 'host)))
+        (concat "*ghostel: " project (and host (concat "@" host)) "*"))))
+  (setopt ghostel-buffer-name-function #'ghostel-buffer-name-by-identity)
+
+  ;; My custom mode line ignores `mode-line-buffer-identification', so don't let
+  ;; ghostel recompute it.
+  (setopt ghostel-buffer-identification-format nil)
+
+  ;; TODO: still needed?
+  ;; Clear the title when a command finishes, reverting the name to the plain
+  ;; identity at the prompt.  Done here rather than with an empty-title escape
+  ;; in a zsh precmd hook because libghostty does not surface empty titles; this
+  ;; also covers programs that exit leaving their title set, like Claude Code.
+  (add-hook 'ghostel-command-finish-functions
+            (lambda (buffer _status)
+              (with-current-buffer buffer
+                (ghostel--set-title nil))))
+
+  ;; Claude Code session summaries don't fit the default 30 columns.
+  (setopt ghostel-annotation-title-width 40)
+
+  ;; Marginalia serves its own annotations for the whole `buffer' category,
+  ;; which hides the pickers' title annotations. Prepend the title to its
+  ;; annotator.
+  (with-eval-after-load 'marginalia
+    (defun ghostel-marginalia-annotate-buffer (cand)
+      "`marginalia-annotate-buffer', prefixed with the ghostel terminal title."
+      (concat (when-let* ((annotation (ghostel-annotate-buffer cand)))
+                (propertize annotation 'face 'marginalia-value))
+              (marginalia-annotate-buffer cand)))
+    (dolist (category '(buffer project-buffer))
+      (unless (memq #'ghostel-marginalia-annotate-buffer
+                    (alist-get category marginalia-annotators))
+        (push #'ghostel-marginalia-annotate-buffer
+              (alist-get category marginalia-annotators)))))
+
+  ;; `setopt' triggers the semi-char keymap rebuild.
+  (setopt
+   ghostel-keymap-exceptions (append ghostel-keymap-exceptions
+                                     '("M-s" "M-o" "C-v" "M-v" "M--" "M-="))
+   )
+
+  ;; Mirror the eshell keybindings.
+  ;;
+  ;; NOTE: keep these after the setopt above. The keymap rebuild it triggers
+  ;; would wipe them.
+  (define-key ghostel-semi-char-mode-map (kbd "M-m") #'beginning-of-line)
+  (define-key ghostel-semi-char-mode-map (kbd "M-{") #'ghostel-previous-prompt)
+  (define-key ghostel-semi-char-mode-map (kbd "M-}") #'ghostel-next-prompt)
+  (define-key ghostel-readonly-mode-map (kbd "M-m") #'beginning-of-line)
+  (define-key ghostel-readonly-mode-map (kbd "M-{") #'ghostel-previous-prompt)
+  (define-key ghostel-readonly-mode-map (kbd "M-}") #'ghostel-next-prompt)
+  )
+
 ;; Alternative to volatile-highlights.
 (use-package goggles
   :hook ((prog-mode text-mode) . goggles-mode)

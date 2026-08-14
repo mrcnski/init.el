@@ -199,7 +199,6 @@
   ;; NOTE: project-eshell breaks when there are multiple similarly-named
   ;; projects open...
   :bind (
-         ("s-E" . projectile-run-eshell)
          ("s-D" . projectile-dired)
          )
   :config

@@ -25,3 +25,6 @@
 [submodule "packages/markdown-file-links"]
 	path = packages/markdown-file-links
 	url = https://github.com/mrcnski/markdown-file-links
+[submodule "packages/ghostel"]
+	path = packages/ghostel
+	url = https://github.com/mrcnski/ghostel

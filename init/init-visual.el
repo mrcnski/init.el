@@ -18,6 +18,7 @@
     '((((background dark)) (:underline "white"))
       (t (:underline "black")))
     "Face for the active mark.")
+
   :config
   ;; Faces for inactive marks (default nil would make them invisible).
   (defface visible-mark-inactive
@@ -39,6 +40,8 @@
                                   (line-beginning-position))))
       (overlay-put overlay 'before-string
                    (propertize " " 'face (list face 'hl-line)))))
+
+  (add-hook 'ghostel-mode-hook (lambda () (visible-mark-mode -1)))
 
   (global-visible-mark-mode 1)
   )
