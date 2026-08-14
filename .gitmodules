@@ -28,3 +28,6 @@
 [submodule "packages/ghostel"]
 	path = packages/ghostel
 	url = https://github.com/mrcnski/ghostel
+[submodule "packages/surveyor.el"]
+	path = packages/surveyor.el
+	url = https://github.com/mrcnski/surveyor.el
