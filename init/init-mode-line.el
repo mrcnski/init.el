@@ -20,21 +20,6 @@
 (add-hook 'dired-after-readin-hook 'mode-line-count-lines)
 (add-hook 'after-change-major-mode-hook 'mode-line-count-lines)
 
-;; Active window detection.
-;; From https://emacs.stackexchange.com/a/26345.
-(defvar mode-line-selected-window nil)
-
-(defun mode-line-record-selected-window ()
-  "Record the current window as selected."
-  (setq mode-line-selected-window (selected-window)))
-(add-hook 'post-command-hook 'mode-line-record-selected-window)
-
-;; REMOVED: What was this for?
-;; (defun mode-line-update-all ()
-;;   "Update all mode lines."
-;;   (force-mode-line-update t))
-;; (add-hook 'buffer-list-update-hook 'mode-line-update-all)
-
 ;; For right-aligning.
 ;; From https://stackoverflow.com/a/22971471.
 (defun mode-line-fill (reserve)
@@ -116,7 +101,7 @@ the full text in a tooltip."
                           'help-echo (format "%s" major-mode)
                           ))
       " "
-      ;; Limited set of useful minor modes.
+      ;; Limited set of useful minor mode indicators.
       `(:eval (when (and (boundp 'iedit-mode) iedit-mode) "=iedit= "))
       `(:eval (when (and (boundp 'olivetti-mode) olivetti-mode) "=olivetti= "))
 

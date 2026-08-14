@@ -795,7 +795,6 @@ remote projects.  Returns nil for non-project buffers."
    uniquify-buffer-name-style 'post-forward-angle-brackets
    uniquify-min-dir-content 2
    uniquify-strip-common-suffix nil
-   uniquify-strip-common-suffix nil
    )
   )
 
