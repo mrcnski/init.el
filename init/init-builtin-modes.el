@@ -243,11 +243,14 @@
 
   ;; Recreate eshell buffers on desktop restore, so eyebrowse workspaces showing
   ;; eshell don't collapse to scratch (desktop only persists file-visiting
-  ;; buffers). Unlike magit buffer names, eshell's carry no directory-derived
-  ;; uniquification -- just sequential <N> suffixes -- so a plain
-  ;; `rename-buffer' back to the saved name is enough to match what eyebrowse
-  ;; recorded, with no reuniquify pass needed afterwards.  Registered in :init
-  ;; since eshell is deferred but desktop-read runs at startup.
+  ;; buffers).
+  ;;
+  ;; eshell buffer names carry no directory-derived uniquification -- just
+  ;; sequential <N> suffixes -- so a plain `rename-buffer' back to the saved
+  ;; name is enough to match what eyebrowse recorded.
+  ;;
+  ;; Registered in :init since eshell is deferred but desktop-read runs at
+  ;; startup.
   (defun eshell-save-desktop-buffer (_desktop-dirname)
     "Return the working directory to persist in the desktop file."
     default-directory)
@@ -328,13 +331,27 @@ Position cursor at the end of the prompt."
   (advice-add 'eshell-send-input :before
               (lambda (&rest _) (end-of-buffer)))
 
-  ;; Fix eshell overwriting history.
-  ;; From https://emacs.stackexchange.com/a/18569/15023.
+  ;; Have eshell share zsh's history file, with the per-command append as the
+  ;; only writer:
+  ;;
+  ;; - `eshell-save-history-on-exit' nil stops the bulk write on Emacs shutdown.
+  ;; - em-hist (Emacs 30) also saves history on `eshell-exit-hook'
+  ;;   unconditionally, overwriting the file with that one buffer's ring.  Every
+  ;;   command is already appended as it runs (below), so drop the exit write.
   (setq eshell-save-history-on-exit nil)
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (remove-hook 'eshell-exit-hook #'eshell--save-history t)))
   (defun eshell-append-history ()
-    "Call `eshell-write-history' with the `append' parameter set to `t'."
+    "Append the newest history-ring entry to `eshell-history-file-name'."
     (when eshell-history-ring
-      (let ((newest-cmd-ring (make-ring 1)))
+      (let ((newest-cmd-ring (make-ring 1))
+            ;; zsh "metafies" non-ASCII in its history file (0x83-escaped
+            ;; bytes), which eshell reads back as raw bytes. Asking
+            ;; `write-region' to encode those again pops up a coding-system
+            ;; prompt.  Pinning the append's coding system never prompts: text
+            ;; encodes as UTF-8 and raw bytes pass through verbatim.
+            (coding-system-for-write 'utf-8))
         (ring-insert newest-cmd-ring (car (ring-elements eshell-history-ring)))
         (let ((eshell-history-ring newest-cmd-ring))
           (eshell-write-history eshell-history-file-name t)))))
@@ -492,23 +509,29 @@ Position cursor at the end of the prompt."
   (recentf-mode t)
   )
 
-;; Persist open buffers across Emacs sessions.  This restores the
-;; buffers that eyebrowse workspaces refer to (see eyebrowse in
-;; init-packages-general); without it, restored layouts collapse to the
-;; scratch buffer.  `desktop-dirname' is themed to var/ by no-littering.
+;; Persist open buffers across Emacs sessions.  This restores the buffers that
+;; eyebrowse workspaces refer to. Without it, restored layouts collapse to the
+;; scratch buffer.
 ;;
-;; Note on crashes: `desktop-save-mode' saves on a clean exit *and* every
-;; `desktop-auto-save-timeout' seconds of idle (30 by default), so an
-;; unexpected quit only loses the last <=30s.  Eyebrowse hooks into the
-;; same save (see `desktop-save-hook' there) to get the same resilience.
+;; Note on crashes: `desktop-save-mode' saves on a clean exit *and* after every
+;; window-configuration change, once Emacs has then been idle
+;; `desktop-auto-save-timeout' seconds.  Eyebrowse hooks into the same save to
+;; get the same resilience.
 (use-package desktop
   :ensure nil
   :config
-  (setq desktop-save t                  ; save on exit without asking
-        desktop-load-locked-desktop t   ; don't prompt on a stale lock file
-        ;; Let eyebrowse own the window/frame layout; desktop only needs
-        ;; to bring the buffers back.
-        desktop-restore-frames nil)
+  (setq
+   ;; Save on exit without asking.
+   desktop-save t
+   ;; Don't prompt on a stale lock file.
+   desktop-load-locked-desktop t
+   ;; Write soon after every window/buffer change instead of the 30s default.
+   ;; Cheap and no-ops when nothing changed.
+   desktop-auto-save-timeout 5
+   ;; Let eyebrowse own the window/frame layout. Desktop only needs to bring the
+   ;; buffers back.
+   desktop-restore-frames nil
+   )
   (desktop-save-mode t)
   )
 
