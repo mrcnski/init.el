@@ -40,7 +40,29 @@
          ("s-g" . magit-status))
 
   :init
+
+  ;; Clean buffer-naming scheme: "magit: NAME".
+  (declare-function magit-generate-buffer-name-default-function "magit-mode")
+  (defun magit-generate-short-buffer-name (mode &optional value)
+    "Return \"magit: NAME\" (repo basename).
+`magit-uniquify-buffer-names' controls two things in magit:
+
+- whether generated names use the repo's directory name (\"magit:
+dotfiles\") instead of its full path (\"*magit: ~/Sync/Home/dotfiles*\")
+
+- whether new buffers are registered with uniquify.
+
+We want the short names without the registration, so bind the variable
+non-nil while the stock generator formats the name. The
+registration step in `magit-generate-new-buffer' runs after this binding
+has exited and sees the real value."
+    (let ((magit-uniquify-buffer-names t))
+      (magit-generate-buffer-name-default-function mode value)))
+
   (setopt
+   ;; Short names via the generator above; see its commentary.
+   magit-uniquify-buffer-names nil
+   magit-generate-buffer-name-function #'magit-generate-short-buffer-name
    ;; Show fine (word-level) differences only for the hunk at point.
    ;; `all' refines every visible hunk on each render, which is one of the
    ;; biggest fontification costs on large diffs.
@@ -61,65 +83,33 @@
    )
 
   ;; Desktop integration: recreate status buffers on desktop restore, so
-  ;; eyebrowse workspaces showing magit don't collapse to scratch
-  ;; (desktop only persists file-visiting buffers).  Status buffers
-  ;; only; each restore runs a full refresh.  Registered in :init since
-  ;; magit is deferred but desktop-read runs at startup.
+  ;; eyebrowse workspaces showing magit don't collapse to scratch.
+  ;;
+  ;; The restored buffer keeps the exact saved name, so eyebrowse's window
+  ;; configs always find it, including the "<2>" suffix for same-named repos.
+  ;;
+  ;; Registered in :init since magit is deferred but desktop-read runs at
+  ;; startup.
   (defun magit-save-desktop-buffer (_desktop-dirname)
     "Return the repository directory to persist in the desktop file."
     default-directory)
 
-  (defun magit-restore-desktop-buffer (_file-name _buffer-name repo)
-    "Recreate a magit status buffer for REPO on desktop restore."
+  (defun magit-restore-desktop-buffer (_file-name buffer-name repo)
+    "Recreate a magit status buffer named BUFFER-NAME for REPO."
     (when (file-directory-p repo)
       (require 'magit)
       ;; Leave the window layout to eyebrowse.
       (save-window-excursion
-        (magit-status-setup-buffer repo))))
+        (let ((buffer (magit-status-setup-buffer repo)))
+          (with-current-buffer buffer
+            (rename-buffer buffer-name t))
+          buffer))))
 
   (add-hook 'magit-status-mode-hook
             (lambda ()
               (setq-local desktop-save-buffer #'magit-save-desktop-buffer)))
   (add-to-list 'desktop-buffer-mode-handlers
                '(magit-status-mode . magit-restore-desktop-buffer))
-
-  ;;; Desktop integration
-
-  ;; Re-uniquify magit buffer names after a desktop restore.
-  ;;
-  ;; magit names buffers via `uniquify' (see `magit-uniquify-buffer-names'),
-  ;; so a status buffer for a worktree ends up as e.g.
-  ;; "magit: desmos-classroom-2<github.com/amplify-education>" once its sibling
-  ;; file/dired buffers in the same directory are present.  `desktop' saves and
-  ;; restores buffers under their uniquify *base* name ("magit: desmos-classroom-2")
-  ;; and renames each restored buffer back to that base -- but eyebrowse persists
-  ;; the *uniquified* names in its window configs.  After a restore the two
-  ;; disagree, so `window-state-put' can't find the buffers eyebrowse references
-  ;; and those windows collapse to *scratch*.  Which names happen to match is
-  ;; order-dependent, so only some workspaces come back.
-  ;;
-  ;; Re-run magit's own uniquification (mirroring `magit-toggle-buffer-lock')
-  ;; over every restored magit buffer on `desktop-after-read-hook'.  That runs at
-  ;; the end of `desktop-read' (on `after-init-hook') -- after every buffer,
-  ;; including the sibling file/dired buffers uniquify keys off, has been
-  ;; restored, and before eyebrowse restores window configs (on
-  ;; `emacs-startup-hook').  With the same buffer set present, the result matches
-  ;; the live names eyebrowse recorded.
-  (defun magit-reuniquify-desktop-buffer-names ()
-    "Re-apply magit's buffer-name uniquification after a desktop restore."
-    (when magit-uniquify-buffer-names
-      (dolist (buffer (buffer-list))
-        (with-current-buffer buffer
-          (when (derived-mode-p 'magit-mode)
-            (let* ((mode major-mode)
-                   (name (if magit-buffer-locked-p
-                             (funcall magit-generate-buffer-name-function
-                                      mode (magit-buffer-value))
-                           (funcall magit-generate-buffer-name-function mode))))
-              (rename-buffer (generate-new-buffer-name name))
-              (with-temp-buffer
-                (magit--maybe-uniquify-buffer-names buffer name mode))))))))
-  (add-hook 'desktop-after-read-hook #'magit-reuniquify-desktop-buffer-names)
 
   :config
   (magit-auto-revert-mode t)
@@ -130,6 +120,15 @@
   ;; rev-list' spawns per refresh for no output.
   (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
   (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
+
+  ;; Reveal the position magit jumps to in a folded org buffer.
+  (declare-function org-reveal "org-fold")
+  (defun magit-diff-visit-reveal-org-context ()
+    "Unfold around point after magit jumps into an org buffer."
+    (when (derived-mode-p 'org-mode)
+      (org-reveal)
+      ))
+  (add-hook 'magit-diff-visit-file-hook #'magit-diff-visit-reveal-org-context)
   )
 
 ;; Quick and easy organization of repos and jumping to them.
