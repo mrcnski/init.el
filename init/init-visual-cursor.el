@@ -10,6 +10,8 @@
 ;; - The cursor turns into a bar while actively typing, reverting to a box after
 ;;   `my-cursor-editing-delay' seconds of idle time.
 ;;
+;; Both of these can be turned off independently.
+;;
 ;; Both hooks here run after every command or every self-insert, so they are
 ;; written to bail out as early as they can.  In particular `set-cursor-color'
 ;; is costly and sets a *frame* parameter, so its result is cached per frame.
@@ -18,8 +20,12 @@
 
 ;;; Basic settings.
 
-;; Turn on blinking/flashing cursor? (-1 to disable)
-(blink-cursor-mode 1)
+(defvar my-cursor-blink nil
+  "Whether the cursor blinks.
+Read at load time only; to toggle in a running session use
+\\[blink-cursor-mode].")
+
+(blink-cursor-mode (if my-cursor-blink 1 -1))
 (setq
  blink-cursor-delay 0.5
  ;; 0 to blink forever.
@@ -53,6 +59,10 @@ to stand out from the theme, not to match it.")
   "Idle timer that reverts the cursor shape once typing stops.")
 (defvar my-cursor-editing-delay 5
   "Seconds of idle time before the typing cursor reverts to a box.")
+(defvar my-cursor-bar-while-typing t
+  "Whether the cursor turns into a bar while typing.
+Set to nil to keep the box cursor at all times.  Checked on every
+self-insert, so it takes effect as soon as it is set.")
 
 (defun my-cursor-set-not-editing ()
   "Revert to a box cursor, cancelling any pending idle timer."
@@ -63,7 +73,7 @@ to stand out from the theme, not to match it.")
 
 (defun my-cursor-set-editing ()
   "Use a bar cursor while typing, reverting to a box after an idle delay."
-  (when (display-graphic-p)
+  (when (and my-cursor-bar-while-typing (display-graphic-p))
     ;; Claim the buffer so `my-cursor-according-to-mode', which runs right
     ;; after us, doesn't immediately undo this on the first character typed.
     (setq my-cursor-last-buffer (current-buffer))
