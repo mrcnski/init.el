@@ -72,5 +72,16 @@
    )
   )
 
+(use-package surveyor
+  :load-path "~/.emacs.d/packages/surveyor.el" ; Local repo; not yet a submodule.
+  ;; Needed for load-path packages.
+  :commands (surveyor surveyor-defun surveyor-file)
+  :config
+  (setq gptel-model 'claude-opus-4-8
+        gptel-backend (gptel-make-anthropic "Claude"
+                        :stream t
+                        :key #'gptel-api-key-from-auth-source))
+  )
+
 (provide 'init-packages-ai)
 ;;; init-packages-ai.el ends here
