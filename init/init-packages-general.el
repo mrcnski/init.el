@@ -792,7 +792,7 @@ remote projects.  Returns nil for non-project buffers."
   :ensure nil
   :config
   (setq
-   uniquify-buffer-name-style 'post-forward-angle-brackets
+   uniquify-buffer-name-style 'forward
    uniquify-min-dir-content 2
    uniquify-strip-common-suffix nil
    )
