@@ -48,84 +48,114 @@
    'display `((space :align-to (- (+ right right-fringe right-margin) ,reserve)))
    ))
 
+(defun mode-line-render-truncated (format)
+  "Render mode-line construct FORMAT, truncated to the window width.
+On overflow show a truncation indicator.  Hovering the indicator shows
+the full text in a tooltip."
+  (let* ((full (format-mode-line format))
+         (width (window-total-width))
+         (indicator " ..."))
+    ;; The returned string is reinterpreted as a mode-line construct, so
+    ;; literal % has to be escaped.
+    (if (<= (string-width full) width)
+        (replace-regexp-in-string "%" "%%" full t t)
+      (concat
+       (replace-regexp-in-string
+        "%" "%%"
+        (truncate-string-to-width
+         full (max 0 (- width (string-width indicator))))
+        t t)
+       (propertize indicator 'help-echo (substring-no-properties full))))))
+
 ;; Set the mode-line.
 (setq-default
  mode-line-format
  '((:eval
-    (list
-     ;; Winum string.
-     " ["
-     '(:eval (winum-get-number-string))
-     "] "
-     ;; Modified indicator.
-     'mode-line-modified
-     " "
-     ;; Buffer name.
-     '(:eval (propertize "%b"
-                         'face '(:weight bold)
-                         'help-echo (buffer-file-name)))
-     " |"
-     ;; The current line/column.
-     '(:eval (when line-number-mode " %l"))
-     '(:eval (when column-number-mode ":%C"))
-     " "
-     ;; The total number of lines. Only recount after certain events, like
-     ;; saving.
-     '(:eval
-       (when (and line-number-mode
-                  mode-line-buffer-line-count
-                  buffer-file-name)
-         (let ((modified (if (buffer-modified-p) "*" "")))
-           (format "[%s%s]" mode-line-buffer-line-count modified)
-           )))
-     ;; The buffer/filesize.
-     '(:eval "[%I] ")
-     ;; Major mode.
-     '(:eval (propertize (format-mode-line mode-name)
-                         'face '(:weight bold)
-                         'help-echo (format "%s" major-mode)
-                         ))
-     " "
-     ;; Limited set of useful minor modes.
-     `(:eval (when (and (boundp 'iedit-mode) iedit-mode) "=iedit= "))
-     `(:eval (when (and (boundp 'olivetti-mode) olivetti-mode) "=olivetti= "))
+    (mode-line-render-truncated
+     (list
+      ;; Winum string.
+      " ["
+      '(:eval (winum-get-number-string))
+      "] "
+      ;; Modified indicator.
+      'mode-line-modified
+      " "
+      ;; Buffer name.
+      '(:eval (propertize "%b"
+                          'face '(:weight bold)
+                          'help-echo (buffer-file-name)))
+      ;; Ghostel: the terminal title (running command or Claude Code's
+      ;; session summary) — shown here instead of renaming the buffer.
+      '(:eval (when (and (boundp 'ghostel--title)
+                         (derived-mode-p 'ghostel-mode)
+                         ghostel--title
+                         (not (string= ghostel--title "")))
+                (propertize
+                 (format " (%s)" (truncate-string-to-width ghostel--title
+                                                           30 nil nil t))
+                 'help-echo ghostel--title)))
+      " |"
+      ;; The current line/column.
+      '(:eval (when line-number-mode " %l"))
+      '(:eval (when column-number-mode ":%C"))
+      " "
+      ;; The total number of lines. Only recount after certain events, like
+      ;; saving.
+      '(:eval
+        (when (and line-number-mode
+                   mode-line-buffer-line-count
+                   buffer-file-name)
+          (let ((modified (if (buffer-modified-p) "*" "")))
+            (format "[%s%s]" mode-line-buffer-line-count modified)
+            )))
+      ;; The buffer/filesize.
+      '(:eval "[%I] ")
+      ;; Major mode.
+      '(:eval (propertize (format-mode-line mode-name)
+                          'face '(:weight bold)
+                          'help-echo (format "%s" major-mode)
+                          ))
+      " "
+      ;; Limited set of useful minor modes.
+      `(:eval (when (and (boundp 'iedit-mode) iedit-mode) "=iedit= "))
+      `(:eval (when (and (boundp 'olivetti-mode) olivetti-mode) "=olivetti= "))
 
-     ;; Read-only.
-     '(:eval (when buffer-read-only
-               (propertize "RO "
-                           'face 'font-lock-preprocessor-face
-                           'help-echo "Buffer is read-only")))
-     ;; Number of characters in the region.
-     '(:eval
-       (when mark-active
-         (let ((region-count (abs (- (point) (mark)))))
-           (when (> region-count 0)
-             (format "{%s} " (number-to-string region-count)))
-           )))
-     ;; Latest eshell command status.
-     '(:eval
-       (when (string-equal major-mode 'eshell-mode)
-         (let ((status
-                (if eshell-current-command
-                    "..."
-                  eshell-last-command-status
-                  )))
-           (format "[status: %s] " status)
-           )))
-     ;; which-function-mode
-     '(:eval
-       (when (and (boundp 'which-func-mode) which-func-mode)
-         (let ((f (which-function)))
-           (when f
-             (concat "[" f "] ")
-             ))))
+      ;; Read-only.
+      '(:eval (when buffer-read-only
+                (propertize "RO "
+                            'face 'font-lock-preprocessor-face
+                            'help-echo "Buffer is read-only")))
+      ;; Number of characters in the region.
+      '(:eval
+        (when mark-active
+          (let ((region-count (abs (- (point) (mark)))))
+            (when (> region-count 0)
+              (format "{%s} " (number-to-string region-count)))
+            )))
+      ;; Latest eshell command status.
+      '(:eval
+        (when (string-equal major-mode 'eshell-mode)
+          (let ((status
+                 (if eshell-current-command
+                     "..."
+                   eshell-last-command-status
+                   )))
+            (format "[status: %s] " status)
+            )))
+      ;; which-function-mode
+      '(:eval
+        (when (and (boundp 'which-func-mode) which-func-mode)
+          (let ((f (which-function)))
+            (when f
+              (concat "[" f "] ")
+              ))))
 
-     ;; Recursive editing level.
-     "%[%] "
+      ;; Recursive editing level.
+      "%[%] "
 
-     ;; " "
-     ;; '(:eval (propertize (format-time-string "%H:%M")))
-     ))))
+      ;; " "
+      ;; '(:eval (propertize (format-time-string "%H:%M")))
+      )))))
 
 (provide 'init-mode-line)
 ;;; init-mode-line.el ends here
