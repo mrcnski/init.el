@@ -102,7 +102,7 @@ the final heading."
     "Capture target: current month heading (e.g. \"Jul\"), created if missing."
     (org-find-or-create-olp (format-time-string "%b")))
 
-  (defun org-capture-year-month ()
+  (defun org-capture-journal-year-month ()
     "Capture target: current year/month path, created if missing."
     (org-find-or-create-olp (format-time-string "%Y") (format-time-string "%b")))
 
@@ -238,7 +238,7 @@ today's row rather than capturing a new one."
            )
           (
            "d" "Dream." entry
-           (file+function "therapy/dreams.org" org-capture-year-month)
+           (file+function "therapy/dreams.org" org-capture-journal-month)
            "* %<%a %-d> - %?"
            :unnarrowed t
            :empty-lines-before 1
