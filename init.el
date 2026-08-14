@@ -11,7 +11,7 @@
 ;; Currently building Emacs with:
 ;;
 ;; $ brew tap d12frosted/emacs-plus
-;; $ brew install emacs-plus --with-poll --with-native-comp
+;; $ brew install emacs-plus@30
 ;;
 ;; Making changes / testing:
 ;;

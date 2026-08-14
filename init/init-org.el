@@ -47,6 +47,10 @@
 
   :init
 
+  ;; Don't hide brackets around links. Set in :init, before org-mode buffers
+  ;; fontify.
+  (setq org-link-descriptive nil)
+
   (defun org-align-tags-all ()
     (interactive)
     (org-align-tags t))

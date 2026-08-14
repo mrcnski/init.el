@@ -231,9 +231,6 @@ variable, so nothing else changes."
          ("s-]" . hs-show-all)
          ("s-\\" . hs-toggle-hiding)
          )
-  :config
-  ;; Remove from menu bar.
-  (define-key hs-minor-mode-map [menu-bar] nil)
   )
 
 ;; Zapping.
