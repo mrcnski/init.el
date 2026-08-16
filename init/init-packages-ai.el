@@ -83,5 +83,14 @@
                         :key #'gptel-api-key-from-auth-source))
   )
 
+(use-package dream-search
+  :load-path "~/.emacs.d/packages/dream-search"
+  ;; Needed for load-path packages.
+  :commands (dream-search-similar dream-search-theme dream-search-reindex)
+  :config
+  (setq dream-search-file "~/Sync/Text/org/therapy/dreams.org"
+        dream-search-dir "~/Sync/Text/org/therapy/dreams/")
+  )
+
 (provide 'init-packages-ai)
 ;;; init-packages-ai.el ends here

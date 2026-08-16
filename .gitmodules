@@ -31,3 +31,6 @@
 [submodule "packages/surveyor.el"]
 	path = packages/surveyor.el
 	url = https://github.com/mrcnski/surveyor.el
+[submodule "packages/dream-search"]
+	path = packages/dream-search
+	url = https://github.com/mrcnski/dream-search
