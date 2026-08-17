@@ -78,6 +78,7 @@ the full text in a tooltip."
                 (propertize
                  (format " (%s)" (truncate-string-to-width ghostel--title
                                                            30 nil nil t))
+                 'face 'font-lock-keyword-face
                  'help-echo ghostel--title)))
       " |"
       ;; The current line/column.
