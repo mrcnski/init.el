@@ -72,7 +72,6 @@
 
 ;; The best light theme ever?
 (use-package catppuccin-theme
-  :load-path "~/.emacs.d/packages/catppuccin-theme"
   :config
   (setq catppuccin-flavor 'latte) ;; or 'latte, 'macchiato, or 'mocha
   (catppuccin-reload))
