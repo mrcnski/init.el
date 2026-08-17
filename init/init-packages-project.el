@@ -98,6 +98,20 @@
   ;; Show diffs in margin, the fringe display was broken.
   (diff-hl-margin-mode)
 
+  ;; Show the margin indicators as colored glyphs on the default background.
+  (defun diff-hl-subtle-margin-faces (&rest _)
+    "Give the diff-hl margin faces a foreground-only style."
+    (dolist (pair '((diff-hl-margin-insert . diff-hl-insert)
+                    (diff-hl-margin-delete . diff-hl-delete)
+                    (diff-hl-margin-change . diff-hl-change)))
+      (let ((color (or (face-background (cdr pair) nil nil)
+                       (face-foreground (cdr pair) nil nil))))
+        (when color
+          (set-face-attribute (car pair) nil :inherit nil :foreground color)))))
+  (diff-hl-subtle-margin-faces)
+  ;; Re-derive the faces whenever a theme is enabled.
+  (add-hook 'enable-theme-functions #'diff-hl-subtle-margin-faces)
+
   ;; Show diffs while buffer is being edited.
   (diff-hl-flydiff-mode)
 
