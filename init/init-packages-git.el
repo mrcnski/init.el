@@ -59,22 +59,32 @@ has exited and sees the real value."
     (let ((magit-uniquify-buffer-names t))
       (magit-generate-buffer-name-default-function mode value)))
 
+  ;; Magit's stock same-window variants exempt diffs but send them to an
+  ;; arbitrary other window. Show diffs in a window below instead.
+  (defun magit-display-buffer-diff-below (buffer)
+    "Display diff BUFFERs below the selected window, all others in it."
+    (if (with-current-buffer buffer (derived-mode-p 'magit-diff-mode))
+        (let ((window (display-buffer
+                       buffer '(display-buffer-below-selected))))
+          (balance-windows)
+          window)
+      (display-buffer buffer '(display-buffer-same-window))))
+
   (setopt
    ;; Short names via the generator above; see its commentary.
    magit-uniquify-buffer-names nil
    magit-generate-buffer-name-function #'magit-generate-short-buffer-name
-   ;; Show fine (word-level) differences only for the hunk at point.
-   ;; `all' refines every visible hunk on each render, which is one of the
-   ;; biggest fontification costs on large diffs.
-   magit-diff-refine-hunk t
-   ;; How to display new magit buffers?
-   magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
+   ;; Word-level diff highlighting comes from delta (see `magit-delta'
+   ;; below). magit's own hunk refinement would repaint over it.
+   magit-diff-refine-hunk nil
+   ;; Diffs below the selected window, everything else in it; see above.
+   magit-display-buffer-function #'magit-display-buffer-diff-below
    ;; Don't ask before saving repository buffers.
    magit-save-repository-buffers 'dontask
    ;; Stop magit from messing up my window configuration when quitting buffers.
    magit-bury-buffer-function 'quit-window
    ;; Show diffs in the commit flow?
-   magit-commit-show-diff nil
+   magit-commit-show-diff t
    ;; How many recent commits to show in certain log sections.
    magit-log-section-commit-count 16
    ;; Homebrew git is ~2x faster to start than /usr/bin/git.
@@ -129,6 +139,43 @@ has exited and sees the real value."
       (org-reveal)
       ))
   (add-hook 'magit-diff-visit-file-hook #'magit-diff-visit-reveal-org-context)
+
+  ;; Fast syntax-highlighted diffs via the external `delta' tool, written in Rust
+  ;; (brew install git-delta).
+  (use-package magit-delta
+    :hook (magit-mode . magit-delta-mode)
+    :config
+    ;; Delta's bundled syntax themes ignore the Emacs theme. Instead, use
+    ;; delta's 16-color "ansi" syntax theme and point the palette of xterm-color
+    ;; at the active theme's `ansi-color-*' faces.
+    (defun magit-delta-sync-with-theme (&rest _)
+      "Sync delta's arguments and xterm-color's palette with the active theme."
+      (interactive)
+      (setq magit-delta-delta-args
+            (list "--max-line-distance" "0.6"
+                  "--true-color" "always"
+                  ;; Picks the added/removed line backgrounds.
+                  (if (eq (frame-parameter nil 'background-mode) 'dark)
+                      "--dark" "--light")
+                  "--syntax-theme" "ansi"
+                  "--color-only"))
+      (dotimes (i 8)
+        (let ((name (nth i '("black" "red" "green" "yellow"
+                             "blue" "magenta" "cyan" "white"))))
+          (when-let* ((color (face-foreground
+                              (intern (concat "ansi-color-" name)) nil t)))
+            (aset xterm-color-names i color))
+          (when-let* ((color (face-foreground
+                              (intern (concat "ansi-color-bright-" name)) nil t)))
+            (aset xterm-color-names-bright i color))))
+      ;; xterm-color caches one face per escape sequence; drop them so
+      ;; already-seen sequences pick up the new palette.
+      (xterm-color-clear-cache))
+    (magit-delta-sync-with-theme)
+    (defun magit-delta-sync-with-theme--advice (&rest _)
+      "Non-interactive shim over `magit-delta-sync-with-theme'."
+      (magit-delta-sync-with-theme))
+    (advice-add 'load-theme :after #'magit-delta-sync-with-theme--advice))
   )
 
 ;; Quick and easy organization of repos and jumping to them.
