@@ -595,7 +595,8 @@ remote projects.  Returns nil for non-project buffers."
   (add-hook 'keycoach-post-change-hook 'frame-title-update)
 
   ;; Ready to turn on keycoach!
-  (global-keycoach-mode)
+  ;; REMOVED: the title bar was too crowded.
+  ;; (global-keycoach-mode)
 
   ;; Integrate with midnight-mode.
   ;;
