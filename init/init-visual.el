@@ -53,6 +53,11 @@
 
 ;;; Load Theme
 
+;; Don't ask for confirmation on every `load-theme' (annoying when making
+;; frequent local changes).  My themes come from MELPA or my own repos, and
+;; don't run arbitrary code.
+(setq custom-safe-themes t)
+
 (defun load-theme--clear-previous (&rest _)
   "Clear existing theme settings instead of layering them."
   (mapc #'disable-theme custom-enabled-themes))
@@ -95,7 +100,7 @@
   (cond
    ((font-exists-p "Aporetic Sans Mono")
     (set-face-attribute
-     'default nil :font "Aporetic Sans Mono:weight=Regular" :height 110)
+     'default nil :font "Aporetic Sans Mono:weight=Regular" :height 100)
     (setq-default line-spacing 0)
     )
    ((font-exists-p "Iosevka")
