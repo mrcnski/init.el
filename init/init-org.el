@@ -45,11 +45,11 @@
   :init
 
   (defun org-align-tags-all ()
-    (interactive)
+    (interactive "*")
     (org-align-tags t))
 
   (defun org-update-cookies-after-save ()
-    (interactive)
+    (interactive "*")
     (let ((current-prefix-arg '(4)))
       (org-update-statistics-cookies "ALL")))
 
@@ -258,7 +258,7 @@ count is recomputed (in `kill-buffer-hook' it is still current)."
     "Ensure that blank lines exist between headings and between headings and
 their contents. With prefix, operate on whole buffer. Ensures that blank
 lines exist after each headings's drawers."
-    (interactive "P")
+    (interactive "*P")
     (org-map-entries
      (lambda ()
        (org-with-wide-buffer

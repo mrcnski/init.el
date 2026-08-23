@@ -31,7 +31,7 @@
   )
 (defun kill-symbol ()
   "The symbol version of `kill-word'."
-  (interactive)
+  (interactive "*")
   (save-mark-and-excursion
     (push-mark)
     (activate-mark)
@@ -41,7 +41,7 @@
   )
 (defun backward-kill-symbol ()
   "The backwards, symbol version of `kill-word'."
-  (interactive)
+  (interactive "*")
   (save-mark-and-excursion
     (push-mark)
     (activate-mark)
@@ -84,7 +84,7 @@
 ;; Enable OSX CMD+backspace.
 (defun kill-line-backwards ()
   "Kill the line backwards."
-  (interactive)
+  (interactive "*")
   (kill-line 0))
 (global-set-key (kbd "s-<backspace>") 'kill-line-backwards)
 
@@ -93,7 +93,7 @@
 (defun unfill-paragraph ()
   "Take a multi-line paragraph and make it into a single line of text.
 If the region is active, unfill all paragraphs in the region instead."
-  (interactive)
+  (interactive "*")
   (let ((fill-column (point-max)))
     (if (use-region-p)
         (fill-region (region-beginning) (region-end))
@@ -281,7 +281,7 @@ variable, so nothing else changes."
 
 (defun indent-buffer ()
   "Indent the whole buffer."
-  (interactive)
+  (interactive "*")
   (cond
    ((derived-mode-p 'typescript-ts-mode)
     (prettier-prettify)
@@ -444,7 +444,7 @@ the region."
 Will delete the resulting empty line and restore cursor position.
 If called on a region, will annihilate every line included in the
 region."
-  (interactive)
+  (interactive "*")
   (cond ((region-active-p)
          (annihilate-lines-region (region-beginning) (region-end)))
         (t
@@ -495,7 +495,7 @@ region."
   "Join the next line onto the current line, preserving the cursor position.
 This command can be used to rapidly consolidate multiple lines
 into one."
-  (interactive)
+  (interactive "*")
   (let ((col (current-column)))
     (join-line -1)
     (move-to-column col)))
@@ -503,7 +503,7 @@ into one."
 
 (defun goto-line-below (arg)
   "Open and goto a new line below while keeping proper indentation.  ARG!"
-  (interactive "p")
+  (interactive "*p")
   (end-of-line)
   (open-line arg)
   (forward-line arg)
@@ -511,7 +511,7 @@ into one."
   )
 (defun goto-line-above (arg)
   "Open and goto a new line above while keeping proper indentation.  ARG!"
-  (interactive "p")
+  (interactive "*p")
   (beginning-of-line)
   (open-line arg)
   (indent-according-to-mode)
@@ -521,7 +521,7 @@ into one."
 
 (defun duplicate-line-below ()
   "Duplicate the current line below while keeping point location."
-  (interactive)
+  (interactive "*")
   (let ((point-at-beginning (eq (point) (line-beginning-position)))
         ;; If last command was a kill, copy-region-as-kill would append.
         (last-command nil)
@@ -538,7 +538,7 @@ into one."
     ))
 (defun duplicate-line-above ()
   "Duplicate the current line above while keeping point location."
-  (interactive)
+  (interactive "*")
   (let (
         ;; If last command was a kill, copy-region-as-kill would append.
         (last-command nil)
@@ -557,13 +557,13 @@ into one."
 
 (defun open-line-below (arg)
   "Insert ARG newlines at the end of the current line."
-  (interactive "p")
+  (interactive "*p")
   (save-mark-and-excursion
     (goto-line-below arg))
   )
 (defun open-line-above (arg)
   "Insert ARG newlines at the start of the current line."
-  (interactive "p")
+  (interactive "*p")
   (save-mark-and-excursion
     (goto-line-above arg))
   )
@@ -572,7 +572,7 @@ into one."
 
 (defun ensure-surrounding-blank-lines ()
   "Ensure the cursor is on a blank line with one surrounding blank line."
-  (interactive)
+  (interactive "*")
   (let ((beg (save-excursion (skip-chars-backward " \t\n") (point)))
         (end (save-excursion (skip-chars-forward " \t\n") (point))))
     ;; Report the edits as one atomic change. Otherwise the deletion
@@ -611,7 +611,7 @@ into one."
 
 (defun indent-left ()
   "Indent left by the amount used in the mode, or the default amount."
-  (interactive)
+  (interactive "*")
   (cond ((region-active-p)
          (indent-region-relative (region-beginning) (region-end) (- indent-amount))
          )
@@ -621,7 +621,7 @@ into one."
   )
 (defun indent-right ()
   "Indent right by the amount used in the mode, or the default amount."
-  (interactive)
+  (interactive "*")
   (cond ((region-active-p)
          (indent-region-relative (region-beginning) (region-end) indent-amount)
          )
@@ -676,7 +676,7 @@ into one."
 (defvar iter-print-increment 0)
 (defun iter-print ()
   "Insert incrementing print statements."
-  (interactive)
+  (interactive "*")
   (insert (format "\nprintln!(\"%d\");" iter-print-increment))
   (setq iter-print-increment (1+ iter-print-increment))
   )
