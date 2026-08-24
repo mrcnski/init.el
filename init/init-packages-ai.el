@@ -8,11 +8,14 @@
   :ensure t
   :ensure-system-package
   (
-   (claude . "brew install claude-code")
-   (claude-agent-acp . "npm install -g @zed-industries/claude-agent-acp")
+   (claude . "npm install -g @anthropic-ai/claude-code")
+   (claude-agent-acp . "npm install -g @agentclientprotocol/claude-agent-acp")
+   (opencode . "brew install opencode")
    )
   :bind (
          ("C-q" . agent-shell)
+         ;; OpenCode. Pick the model with `C-c C-v' in the shell.
+         ("C-c q" . agent-shell-opencode-start-agent)
 
          :map agent-shell-mode-map
          ("M-p" . agent-shell-previous-item)
@@ -21,6 +24,7 @@
   :config
   (setq
    agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)
+   agent-shell-header-style 'text
    )
   )
 
