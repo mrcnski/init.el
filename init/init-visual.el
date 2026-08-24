@@ -63,6 +63,18 @@
   (mapc #'disable-theme custom-enabled-themes))
 (advice-add 'load-theme :before #'load-theme--clear-previous)
 
+(defun reload-theme ()
+  "Re-read the current theme's file from disk and re-apply it."
+  (interactive)
+  (if-let* ((theme (car custom-enabled-themes)))
+      (progn
+        (save-some-buffers t (lambda ()
+                               (string-match-p "-theme\\.el\\'"
+                                               (or buffer-file-name ""))))
+        (load-theme theme t)
+        (message "Reloaded theme: %s" theme))
+    (user-error "No theme is currently enabled")))
+
 ;; A good light theme for when I'm outside.
 (use-package leuven-theme
   :config
