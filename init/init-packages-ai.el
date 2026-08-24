@@ -8,8 +8,8 @@
   :ensure t
   :ensure-system-package
   (
-   (claude . "brew install claude-code")
-   (claude-agent-acp . "npm install -g @zed-industries/claude-agent-acp")
+   (claude . "npm install -g @anthropic-ai/claude-code")
+   (claude-agent-acp . "npm install -g @agentclientprotocol/claude-agent-acp")
    )
   :bind (
          ("C-q" . agent-shell)
@@ -21,6 +21,7 @@
   :config
   (setq
    agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)
+   agent-shell-header-style 'text
    )
   )
 
