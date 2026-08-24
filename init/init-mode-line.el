@@ -130,11 +130,11 @@ the full text in a tooltip."
             )))
       ;; which-function-mode
       '(:eval
-        (when (and (boundp 'which-func-mode) which-func-mode)
-          (let ((f (which-function)))
-            (when f
-              (concat "[" f "] ")
-              ))))
+        ;; Hide the segment when point is not in a defun, where stock alone
+        ;; would show `which-func-unknown' ("n/a").
+        (when (and (bound-and-true-p which-func-mode)
+                   (gethash (selected-window) which-func-table))
+          (list "" which-func-format " ")))
 
       ;; Recursive editing level.
       "%[%] "
