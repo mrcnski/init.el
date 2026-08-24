@@ -132,7 +132,8 @@ the full text in a tooltip."
       '(:eval
         ;; Hide the segment when point is not in a defun, where stock alone
         ;; would show `which-func-unknown' ("n/a").
-        (when (and (bound-and-true-p which-func-mode)
+        (when (and (bound-and-true-p which-function-mode)
+                   which-func-mode
                    (gethash (selected-window) which-func-table))
           (list "" which-func-format " ")))
 
