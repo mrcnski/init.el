@@ -121,7 +121,7 @@ today's row rather than capturing a new one."
     (interactive)
     (find-file (expand-file-name "weight.org" org-directory))
     (goto-char (point-min))
-    (if (re-search-forward (format-time-string "^| %m/%d/%Y ") nil t)
+    (if (re-search-forward (format-time-string "^| \\(?:%a \\)?%m/%d/%Y ") nil t)
         (progn
           (org-fold-show-context)
           (org-table-goto-column 2))
