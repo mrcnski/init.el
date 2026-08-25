@@ -606,6 +606,121 @@ remote projects.  Returns nil for non-project buffers."
   (add-hook 'midnight-hook 'keycoach-reset)
   )
 
+;; Step the hex color at point through hue/saturation/value or red/green/blue.
+(use-package kurecolor
+  :bind ("C-c u" . kurecolor-transient)
+  :init
+  (require 'transient)
+  (defvar kurecolor-transient--saved-steps nil
+    "Step values to restore when the kurecolor transient exits.")
+  (transient-define-prefix kurecolor-transient ()
+    "Adjust the hex color at point; keys repeat until exit."
+    :transient-suffix 'transient--do-stay
+    ["Adjust hex color at point"
+     ["Hue"
+      ("h" "decrease" kurecolor-decrease-hue-by-step)
+      ("H" "increase" kurecolor-increase-hue-by-step)]
+     ["Saturation"
+      ("s" "decrease" kurecolor-decrease-saturation-by-step)
+      ("S" "increase" kurecolor-increase-saturation-by-step)]
+     ["Value"
+      ("v" "decrease" kurecolor-decrease-brightness-by-step)
+      ("V" "increase" kurecolor-increase-brightness-by-step)]
+     ["Red"
+      ("r" "decrease" kurecolor-decrease-red-by-step)
+      ("R" "increase" kurecolor-increase-red-by-step)]
+     ["Green"
+      ("g" "decrease" kurecolor-decrease-green-by-step)
+      ("G" "increase" kurecolor-increase-green-by-step)]
+     ["Blue"
+      ("b" "decrease" kurecolor-decrease-blue-by-step)
+      ("B" "increase" kurecolor-increase-blue-by-step)]]
+    [("=" kurecolor-transient-set-step
+      :description (lambda ()
+                     (format "step size (%s)"
+                             kurecolor-color-adjust-brightness-step)))]
+    (interactive)
+    ;; The transient references commands defined in :config below.
+    (require 'kurecolor)
+    ;; Snapshot the step sizes; `=' changes them only until exit.
+    (setq kurecolor-transient--saved-steps
+          (list kurecolor-color-adjust-hue-step
+                kurecolor-color-adjust-saturation-step
+                kurecolor-color-adjust-brightness-step))
+    (add-hook 'transient-exit-hook #'kurecolor-transient--restore-steps)
+    ;; Preview the colors being stepped through.
+    ;; (rainbow-mode 1)
+    (transient-setup 'kurecolor-transient))
+
+  :config
+  ;; Adjust the step size from the transient, restored on exit.  Hue is
+  ;; degrees while the rest are percentages, but one knob for all three
+  ;; is close enough in practice.
+  (defun kurecolor-transient-set-step (step)
+    "Set all kurecolor step sizes to STEP until the transient exits."
+    (interactive (list (read-number "Step size: "
+                                    kurecolor-color-adjust-brightness-step)))
+    (setq kurecolor-color-adjust-hue-step step
+          kurecolor-color-adjust-saturation-step step
+          kurecolor-color-adjust-brightness-step step))
+
+  (defun kurecolor-transient--restore-steps ()
+    "Restore the step sizes saved when the kurecolor transient opened."
+    (when kurecolor-transient--saved-steps
+      (cl-destructuring-bind (hue sat brightness)
+          kurecolor-transient--saved-steps
+        (setq kurecolor-color-adjust-hue-step hue
+              kurecolor-color-adjust-saturation-step sat
+              kurecolor-color-adjust-brightness-step brightness))
+      (setq kurecolor-transient--saved-steps nil))
+    (remove-hook 'transient-exit-hook #'kurecolor-transient--restore-steps))
+
+  ;; Kurecolor only steps in HSV; add RGB steps on top of its helpers.
+  (defun kurecolor-adjust-rgb-channel (hex channel amount)
+    "Return HEX with CHANNEL (0=red 1=green 2=blue) adjusted by AMOUNT."
+    (let ((rgb (kurecolor-hex-to-rgb hex)))
+      (setf (nth channel rgb)
+            (kurecolor-clamp (+ (nth channel rgb) amount) 0.0 1.0))
+      (kurecolor-rgb-to-hex rgb)))
+
+  (dolist (spec '((kurecolor-increase-red-by-step   0 +1 "Increase red")
+                  (kurecolor-decrease-red-by-step   0 -1 "Decrease red")
+                  (kurecolor-increase-green-by-step 1 +1 "Increase green")
+                  (kurecolor-decrease-green-by-step 1 -1 "Decrease green")
+                  (kurecolor-increase-blue-by-step  2 +1 "Increase blue")
+                  (kurecolor-decrease-blue-by-step  2 -1 "Decrease blue")))
+    (cl-destructuring-bind (name channel dir doc) spec
+      (defalias name
+        (lambda (x)
+          (interactive "p")
+          (kurecolor-replace-current
+           (lambda (hex)
+             (kurecolor-adjust-rgb-channel
+              hex channel
+              ;; Reuse the brightness step size (%) for channel steps.
+              (/ (* dir x kurecolor-color-adjust-brightness-step) 100.0)))))
+        (concat doc " on hex color at point by step."))))
+
+  (defun kurecolor-reload-theme-after-step (&rest _)
+    "Reload the current theme after adjusting a color in a theme file."
+    (when (and buffer-file-name
+               (string-match-p "-theme\\.el\\'" buffer-file-name))
+      (reload-theme)))
+  (dolist (cmd '(kurecolor-increase-hue-by-step
+                 kurecolor-decrease-hue-by-step
+                 kurecolor-increase-saturation-by-step
+                 kurecolor-decrease-saturation-by-step
+                 kurecolor-increase-brightness-by-step
+                 kurecolor-decrease-brightness-by-step
+                 kurecolor-increase-red-by-step
+                 kurecolor-decrease-red-by-step
+                 kurecolor-increase-green-by-step
+                 kurecolor-decrease-green-by-step
+                 kurecolor-increase-blue-by-step
+                 kurecolor-decrease-blue-by-step))
+    (advice-add cmd :after #'kurecolor-reload-theme-after-step))
+  )
+
 ;; A package for choosing a color by updating text sample.
 ;; See https://www.emacswiki.org/emacs/MakeColor.
 (use-package make-color
