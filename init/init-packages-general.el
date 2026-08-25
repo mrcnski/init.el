@@ -400,6 +400,32 @@
   ;; project's directory root?
   (setopt ghostel-project-buffer-scope 'both)
 
+  ;; Uses the consult-ghostel extension below.
+  (defun ghostel-project-dwim (&optional arg)
+    "Create, switch to, or consult-pick this project's ghostel terminal.
+With prefix ARG, force a new terminal via `ghostel-project'."
+    (interactive "P")
+    (let ((bufs (and (not arg) (project-current nil)
+                     (ghostel-project-buffer-list))))
+      (cond ((or arg (null bufs)) (ghostel-project arg))
+            ((null (cdr bufs))
+             (pop-to-buffer (car bufs)
+                            (append display-buffer--same-window-action
+                                    '((category . comint)))))
+            (t (consult-ghostel-project)))))
+
+  ;; Consult pickers for ghostel terminals, from the fork's bundled extension.
+  ;; Should load as soon as consult is in.  :after defers everything below
+  ;; it, :commands stubs included -- hence the explicit after-load require.
+  (use-package consult-ghostel
+    :ensure nil
+    :load-path "~/.emacs.d/packages/ghostel/extensions/consult-ghostel"
+    ;; :load-path never activates the extension's autoload cookies.
+    :commands (consult-ghostel consult-ghostel-project consult-ghostel-history)
+    :init
+    (with-eval-after-load 'consult (require 'consult-ghostel))
+    )
+
   ;; ghostel-desktop.el owns saving and restoring.  The package is loaded
   ;; straight off :load-path with no autoloads file, so the autoload cookies on
   ;; the desktop integration never take effect -- require it outright.
@@ -429,33 +455,8 @@ remote projects.  Returns nil for non-project buffers."
   ;; ghostel recompute it.
   (setopt ghostel-buffer-identification-format nil)
 
-  ;; TODO: still needed?
-  ;; Clear the title when a command finishes, reverting the name to the plain
-  ;; identity at the prompt.  Done here rather than with an empty-title escape
-  ;; in a zsh precmd hook because libghostty does not surface empty titles; this
-  ;; also covers programs that exit leaving their title set, like Claude Code.
-  (add-hook 'ghostel-command-finish-functions
-            (lambda (buffer _status)
-              (with-current-buffer buffer
-                (ghostel--set-title nil))))
-
   ;; Claude Code session summaries don't fit the default 30 columns.
   (setopt ghostel-annotation-title-width 40)
-
-  ;; Marginalia serves its own annotations for the whole `buffer' category,
-  ;; which hides the pickers' title annotations. Prepend the title to its
-  ;; annotator.
-  (with-eval-after-load 'marginalia
-    (defun ghostel-marginalia-annotate-buffer (cand)
-      "`marginalia-annotate-buffer', prefixed with the ghostel terminal title."
-      (concat (when-let* ((annotation (ghostel-annotate-buffer cand)))
-                (propertize annotation 'face 'marginalia-value))
-              (marginalia-annotate-buffer cand)))
-    (dolist (category '(buffer project-buffer))
-      (unless (memq #'ghostel-marginalia-annotate-buffer
-                    (alist-get category marginalia-annotators))
-        (push #'ghostel-marginalia-annotate-buffer
-              (alist-get category marginalia-annotators)))))
 
   ;; `setopt' triggers the semi-char keymap rebuild.
   (setopt
@@ -473,6 +474,8 @@ remote projects.  Returns nil for non-project buffers."
   (define-key ghostel-readonly-mode-map (kbd "M-m") #'beginning-of-line)
   (define-key ghostel-readonly-mode-map (kbd "M-{") #'ghostel-previous-prompt)
   (define-key ghostel-readonly-mode-map (kbd "M-}") #'ghostel-next-prompt)
+
+  (define-key ghostel-semi-char-mode-map (kbd "M-r") #'consult-ghostel-history)
   )
 
 ;; Alternative to volatile-highlights.
