@@ -595,10 +595,13 @@ on `whitespace-mode'."
   (add-hook 'python-mode-hook '100-whitespace-mode)
   )
 
-;; REMOVED: Performance hit and I wasn't using it much.
-;; (use-package which-func
-;;   :ensure nil
-;;   )
+;; Show the current defun in the mode line (rendered in `init-mode-line').
+(use-package which-func
+  :ensure nil
+  :config
+  ;; Make which-func lazy in modes where it causes performance issues.
+  (setq which-func-non-auto-modes '(typescript-ts-mode tsx-ts-mode org-mode))
+  )
 
 (provide 'init-builtin-modes)
 ;;; init-builtin-modes.el ends here
