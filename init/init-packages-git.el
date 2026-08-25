@@ -133,9 +133,10 @@ has exited and sees the real value."
       ))
   (add-hook 'magit-diff-visit-file-hook #'magit-diff-visit-reveal-org-context)
 
-  ;; Fast syntax-highlighted diffs via the external `delta' tool, written in Rust
-  ;; (brew install git-delta).
+  ;; Fast syntax-highlighted diffs via the external `delta' tool, written in Rust.
   (use-package magit-delta
+    ;; The binary is `delta', but the formula is `git-delta'.
+    :ensure-system-package ((delta . "brew install git-delta"))
     :hook (magit-mode . magit-delta-mode)
     :config
     ;; Delta's bundled syntax themes ignore the Emacs theme. Instead, use

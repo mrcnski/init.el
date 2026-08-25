@@ -14,7 +14,10 @@
  package-user-dir user-emacs-elpa-directory
  ;; Prefer the newest version of a package.
  load-prefer-newer t
+ ;; TODO(Emacs 31): enable package-autosuggest-mode (with associated mode-line
+ ;;                 change).
  )
+
 ;; Add package sources.
 (unless (assoc-default "melpa" package-archives)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
