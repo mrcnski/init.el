@@ -6,23 +6,69 @@
 
 (use-package agent-shell
   :ensure t
+  ;; Loaded eagerly rather than on first `C-q': `agent-shell-desktop' below
+  ;; requires agent-shell at load time, and has to enable its mode before
+  ;; `desktop-read' runs on `after-init-hook'.
+  :demand t
   :ensure-system-package
   (
    (claude . "npm install -g @anthropic-ai/claude-code")
    (claude-agent-acp . "npm install -g @agentclientprotocol/claude-agent-acp")
    )
+  :preface
+  (defun my-agent-shell-dnd-send-files (event)
+    "Send files dropped with EVENT into an `agent-shell' buffer as context."
+    (interactive "e")
+    (let* ((arg (nth 2 event))
+           (buffer (window-buffer (posn-window (nth 1 event))))
+           (files (when (eq (car-safe arg) 'file)
+                    (seq-filter #'file-exists-p (cddr arg)))))
+      (if (and files
+               (provided-mode-derived-p (buffer-local-value 'major-mode buffer)
+                                        'agent-shell-mode))
+          (with-current-buffer buffer
+            (agent-shell-insert
+             :text (agent-shell--get-files-context :files files)))
+        ;; Drops not handled here (text, or files that no longer exist) fall
+        ;; through to `ns-drag-n-drop'.
+        (ns-drag-n-drop event))))
   :bind (
          ("C-q" . agent-shell)
 
          :map agent-shell-mode-map
          ("M-p" . agent-shell-previous-item)
          ("M-n" . agent-shell-next-item)
+         ("<drag-n-drop>" . my-agent-shell-dnd-send-files)
          )
   :config
   (setq
    agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)
    agent-shell-header-style 'text
+   ;; Fix a bug. See https://github.com/xenodium/agent-shell/issues/793.
+   agent-shell-chat-mode-enabled nil
    )
+
+  ;; Persist agent-shell sessions across restarts, alongside
+  ;; `desktop-save-mode'.  Not on MELPA; `:vc' installs from git and also
+  ;; suppresses `use-package-always-ensure'.
+  ;;
+  ;; Reaches into agent-shell internals, and carries a local fix.
+  (use-package agent-shell-desktop
+    :vc (:url "https://github.com/timfel/agent-shell-desktop.el")
+    :demand t
+    :preface
+    ;; Drop this once upstream takes the fix. See
+    ;; https://github.com/timfel/agent-shell-desktop.el/issues/1.
+    (defun my-agent-shell-desktop--config (config-id)
+      "Return the agent config whose `:identifier' is CONFIG-ID."
+      (seq-find (lambda (candidate)
+                  (eq (map-elt candidate :identifier) config-id))
+                (agent-shell--resolved-agent-configs)))
+    :config
+    (advice-add 'agent-shell-desktop--config
+                :override #'my-agent-shell-desktop--config)
+    (agent-shell-desktop-mode 1)
+    )
   )
 
 ;; REMOVED: Doesn't work.
