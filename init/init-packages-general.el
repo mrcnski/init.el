@@ -883,9 +883,12 @@ remote projects.  Returns nil for non-project buffers."
 
 (use-package transient
   :config
-  ;; Quit any transient with q (the old magit-popup behavior). A transient
-  ;; that binds q itself keeps its command, moved to Q.
+  ;; Quit any transient with q. A transient that binds q itself keeps its
+  ;; command, moved to Q.
   (transient-bind-q-to-quit)
+
+  ;; Quit with escape too.
+  (keymap-set transient-map "<escape>" #'transient-quit-one)
   )
 
 ;; Show transient menus in a centered child frame (posframe). Applies to all
