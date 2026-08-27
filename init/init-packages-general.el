@@ -236,6 +236,8 @@
   :bind (
          ("s-," . eyebrowse-prev-window-config)
          ("s-." . eyebrowse-next-window-config)
+         ("s-<" . eyebrowse-drag-window-config-left)
+         ("s->" . eyebrowse-drag-window-config-right)
          ("s-0" . eyebrowse-switch-to-window-config-0)
          ("s-1" . eyebrowse-switch-to-window-config-1)
          ("s-2" . eyebrowse-switch-to-window-config-2)
