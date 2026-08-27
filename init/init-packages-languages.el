@@ -409,13 +409,12 @@ code span.wa { color: #baba36; font-style: italic; } /* Warning */
     (setq markdown-command
           (concat "pandoc -f gfm+implicit_figures -t html5 "
                   (markdown-file-links-pandoc-filter-arg)))
-    ;; Pick ambiguous links with consult-projectile.
+    ;; Pick ambiguous links with projectile.
     (setq markdown-file-links-picker-function
           (lambda (file)
-            (require 'consult-projectile)
             (minibuffer-with-setup-hook
                 (lambda () (insert file))
-              (consult-projectile-find-file))))
+              (projectile-find-file))))
     (markdown-file-links-setup))
   )
 
