@@ -338,7 +338,7 @@ th, td { border: 1px solid #ccc; padding: .5rem .75rem;
          text-align: left; vertical-align: top; }
 th { background: #f2f2f2; }
 tr:nth-child(even) td { background: #fafafa; }
-code { background: #f2f2f2; padding: .1rem .3rem; border-radius: 3px; }
+code { background: #eeeeff; padding: .1rem .3rem; border-radius: 3px; }
 pre { background: #1a1a1a; color: #bdbdb3; padding: 1rem;
       overflow-x: auto; border-radius: 6px; }
 pre code { background: none; padding: 0; color: inherit; }
