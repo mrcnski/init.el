@@ -135,7 +135,7 @@
 
   (use-package mixed-pitch
     :hook
-    ((org-mode markdown-mode) . mixed-pitch-mode)
+    ((org-mode markdown-mode agent-shell-mode) . mixed-pitch-mode)
     (text-mode . mixed-pitch-maybe-plain-text)
     :init
     (defun mixed-pitch-maybe-plain-text ()
@@ -148,6 +148,15 @@ match the file extension instead."
         (mixed-pitch-mode 1)))
     :config
     (setq mixed-pitch-variable-pitch-cursor nil)
+
+    ;; Add agent-shell support.
+    (dolist (face '(agent-shell-markdown-inline-code
+                    agent-shell-markdown-source-block
+                    agent-shell-markdown-source-block-language
+                    agent-shell-markdown-table-header
+                    agent-shell-markdown-table-border
+                    agent-shell-markdown-table-zebra))
+      (add-to-list 'mixed-pitch-fixed-pitch-faces face))
     )
   )
 

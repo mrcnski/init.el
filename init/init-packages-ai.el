@@ -33,7 +33,7 @@
         ;; through to `ns-drag-n-drop'.
         (ns-drag-n-drop event))))
   :bind (
-         ("C-q" . agent-shell)
+         ("s-A" . agent-shell)
 
          :map agent-shell-mode-map
          ("M-p" . agent-shell-previous-item)
@@ -46,6 +46,9 @@
    agent-shell-header-style 'text
    ;; Fix a bug. See https://github.com/xenodium/agent-shell/issues/793.
    agent-shell-chat-mode-enabled nil
+   ;; Don't auto-send point-derived context (current line, error at point)
+   ;; when opening a shell. Keep only the explicit sources.
+   agent-shell-context-sources '(files region)
    )
 
   ;; Persist agent-shell sessions across restarts, alongside
