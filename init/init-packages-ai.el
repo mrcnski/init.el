@@ -34,9 +34,9 @@
         ;; through to `ns-drag-n-drop'.
         (ns-drag-n-drop event))))
   :bind (
-         ("C-q" . agent-shell)
+         ("s-A" . agent-shell)
          ;; OpenCode. Pick the model with `C-c C-v' in the shell.
-         ("C-c q" . agent-shell-opencode-start-agent)
+         ("s-O" . agent-shell-opencode-start-agent)
 
          :map agent-shell-mode-map
          ("M-p" . agent-shell-previous-item)
@@ -49,6 +49,9 @@
    agent-shell-header-style 'text
    ;; Fix a bug. See https://github.com/xenodium/agent-shell/issues/793.
    agent-shell-chat-mode-enabled nil
+   ;; Don't auto-send point-derived context (current line, error at point)
+   ;; when opening a shell. Keep only the explicit sources.
+   agent-shell-context-sources '(files region)
    )
 
   ;; Persist agent-shell sessions across restarts, alongside
