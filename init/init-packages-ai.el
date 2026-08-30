@@ -15,7 +15,9 @@
    (claude . "npm install -g @anthropic-ai/claude-code")
    (claude-agent-acp . "npm install -g @agentclientprotocol/claude-agent-acp")
    )
+
   :preface
+
   (defun my-agent-shell-dnd-send-files (event)
     "Send files dropped with EVENT into an `agent-shell' buffer as context."
     (interactive "e")
@@ -32,6 +34,33 @@
         ;; Drops not handled here (text, or files that no longer exist) fall
         ;; through to `ns-drag-n-drop'.
         (ns-drag-n-drop event))))
+
+  ;; See https://github.com/xenodium/shell-maker/pull/44.
+  (defun my-shell-maker-search-history ()
+    "Search input history (M-r), most recent input first.
+Like `shell-maker-search-history', but hands `completing-read' a
+table whose metadata preserves the input ring's newest-first
+order, which vertico would otherwise re-sort by length and
+alphabetically."
+    (interactive)
+    (unless (eq major-mode (shell-maker-major-mode shell-maker--config))
+      (user-error "Not in a shell"))
+    (let* ((items (delete-dups
+                   (seq-filter
+                    (lambda (item)
+                      (not (string-empty-p item)))
+                    (ring-elements comint-input-ring))))
+           (candidate (completing-read
+                       "History: "
+                       (lambda (string pred action)
+                         (if (eq action 'metadata)
+                             '(metadata (display-sort-function . identity)
+                                        (cycle-sort-function . identity))
+                           (complete-with-action action items string pred)))
+                       nil t)))
+      (delete-region (comint-line-beginning-position) (point-max))
+      (insert candidate)))
+
   :bind (
          ("s-A" . agent-shell)
 
@@ -40,7 +69,9 @@
          ("M-n" . agent-shell-next-item)
          ("<drag-n-drop>" . my-agent-shell-dnd-send-files)
          )
+
   :config
+
   (setq
    agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)
    agent-shell-header-style 'text
@@ -50,6 +81,9 @@
    ;; when opening a shell. Keep only the explicit sources.
    agent-shell-context-sources '(files region)
    )
+
+  (advice-add 'shell-maker-search-history
+              :override #'my-shell-maker-search-history)
 
   ;; Persist agent-shell sessions across restarts, alongside
   ;; `desktop-save-mode'.  Not on MELPA; `:vc' installs from git and also
