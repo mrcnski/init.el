@@ -381,23 +381,6 @@
 
   :config
 
-  ;; Automatically save all buffers when ghostel gains focus (usually a Claude
-  ;; instance).
-  (defvar save-buffers-on-ghostel-focus-window nil
-    "The window that was selected when the last command finished.")
-  (defun save-buffers-on-ghostel-focus ()
-    "Save the buffer of the window that was just left."
-    (when (not (eq (selected-window) save-buffers-on-ghostel-focus-window))
-      (setq save-buffers-on-ghostel-focus-window (selected-window))
-      (when (string-match-p "\\`\\*ghostel.*\\*" (buffer-name))
-        ;; An error here would silently remove this from `post-command-hook'.
-        (with-demoted-errors "save-buffers-on-ghostel-focus: %S"
-          ;; Don't echo "Wrote ..." for a save the user didn't ask for.
-          (let ((save-silently t))
-            (save-all)
-            )))))
-  (add-hook 'post-command-hook #'save-buffers-on-ghostel-focus)
-
   ;; Scope only terminals created via ghostel-project, or any terminals for the
   ;; project's directory root?
   (setopt ghostel-project-buffer-scope 'both)
