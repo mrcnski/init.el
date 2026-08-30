@@ -6,7 +6,7 @@
 
 (use-package agent-shell
   :ensure t
-  ;; Loaded eagerly rather than on first `C-q': `agent-shell-desktop' below
+  ;; Loaded eagerly rather than on first command: `agent-shell-desktop' below
   ;; requires agent-shell at load time, and has to enable its mode before
   ;; `desktop-read' runs on `after-init-hook'.
   :demand t
@@ -68,6 +68,7 @@ alphabetically."
          ("s-O" . agent-shell-opencode-start-agent)
 
          :map agent-shell-mode-map
+         ("M-<return>" . newline)
          ("M-p" . agent-shell-previous-item)
          ("M-n" . agent-shell-next-item)
          ("<drag-n-drop>" . my-agent-shell-dnd-send-files)
