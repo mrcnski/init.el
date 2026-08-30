@@ -234,8 +234,6 @@
 
 (use-package eshell
   :ensure nil
-  ;; Save all buffers before running a command.
-  :hook (eshell-pre-command . save-all)
 
   :init
 

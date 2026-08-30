@@ -210,6 +210,21 @@ variable, so nothing else changes."
 ;; Shouldn't run too quickly as it is a bit distracting.
 (run-with-idle-timer 60 t 'save-all)
 
+;; Automatically save all buffers when an agent or terminal buffer gains focus.
+(defvar save-buffers-on-focus-window nil
+  "The window that was selected when the last command finished.")
+(defun save-buffers-on-focus ()
+  "Save all buffers when switching to an agent or terminal buffer's window."
+  (when (not (eq (selected-window) save-buffers-on-focus-window))
+    (setq save-buffers-on-focus-window (selected-window))
+    (when (derived-mode-p '(agent-shell-mode eshell-mode ghostel-mode))
+      ;; An error here would silently remove this from `post-command-hook'.
+      (with-demoted-errors "save-buffers-on-focus: %S"
+        ;; Don't echo "Wrote ..." for a save the user didn't ask for.
+        (let ((save-silently t))
+          (save-all))))))
+(add-hook 'post-command-hook #'save-buffers-on-focus)
+
 ;; Cleanup whitespace.
 (defun my-delete-trailing-whitespace ()
   "Deletes trailing whitespace, with the possibility for custom logic."
