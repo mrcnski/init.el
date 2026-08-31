@@ -121,7 +121,6 @@ alphabetically."
 ;;
 ;; See also https://robert.kra.hn/posts/2023-02-22-copilot-emacs-setup/.
 (use-package copilot
- :hook ((prog-mode conf-mode) . copilot-mode)
  :bind (
         ("s-/" . copilot-complete)
 
@@ -147,6 +146,12 @@ alphabetically."
   ;; be a problem.
   copilot-max-char (* 1000 1000)
   )
+
+ ;; Enable `copilot-mode' per buffer the first time a completion is requested.
+ (defun my-copilot-mode-on-demand (&rest _)
+   "Enable `copilot-mode' in this buffer if it is off."
+   (unless copilot-mode (copilot-mode 1)))
+ (advice-add 'copilot-complete :before #'my-copilot-mode-on-demand)
  )
 
 (use-package dream-search
