@@ -424,16 +424,24 @@ With prefix ARG, force a new terminal via `ghostel-project'."
   (add-hook 'ghostel-mode-hook
             (lambda () (setq outline-regexp ghostel-prompt-regexp)))
 
-  ;; Name buffers magit-style: "*ghostel: PROJECT*".
+  ;; Name buffers magit-style: "*ghostel: PROJECT*" for project terminals,
+  ;; "*ghostel: ~/some/dir*" for plain ones.
   (defun ghostel-buffer-name-by-identity (_title)
-    "Return \"*ghostel: PROJECT*\" derived from the buffer identity.
-TITLE is ignored (the mode line displays it instead).  PROJECT is the
-basename of the identity's project root, with \"@HOST\" appended for
-remote projects.  Returns nil for non-project buffers."
-    (when-let* ((root (alist-get 'project-root ghostel-identity)))
-      (let ((project (file-name-nondirectory (directory-file-name root)))
-            (host (file-remote-p root 'host)))
-        (concat "*ghostel: " project (and host (concat "@" host)) "*"))))
+    "Return \"*ghostel: WHERE*\" derived from the buffer identity.
+
+TITLE is ignored (the mode line displays it instead).
+
+For project terminals, WHERE is the basename of the identity's project
+root. For plain terminals it is the abbreviated `default-directory'"
+    (let* ((root (alist-get 'project-root ghostel-identity))
+           (dir (or root default-directory))
+           (host (file-remote-p dir 'host))
+           (where (if root
+                      (file-name-nondirectory (directory-file-name root))
+                    (abbreviate-file-name
+                     (directory-file-name
+                      (or (file-remote-p dir 'localname) dir))))))
+      (concat "*ghostel: " where (and host (concat "@" host)) "*")))
   (setopt ghostel-buffer-name-function #'ghostel-buffer-name-by-identity)
 
   ;; My custom mode line ignores `mode-line-buffer-identification', so don't let
