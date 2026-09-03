@@ -76,15 +76,15 @@ the full text in a tooltip."
                                  'help-echo (buffer-name)))
              ;; Ghostel: the terminal title (running command or Claude Code's
              ;; session summary).
-             '(:eval (when (and (boundp 'ghostel--title)
+             '(:eval (when (and (boundp 'ghostel-title)
                                 (derived-mode-p 'ghostel-mode)
-                                ghostel--title
-                                (not (string= ghostel--title "")))
+                                ghostel-title
+                                (not (string= ghostel-title "")))
                        (propertize
                         (format " (%s)" (truncate-string-to-width
-                                         ghostel--title 60 nil nil t))
+                                         ghostel-title 60 nil nil t))
                         'face 'font-lock-keyword-face
-                        'help-echo ghostel--title)))
+                        'help-echo ghostel-title)))
              ))))
       (if (mode-line-window-selected-p)
           line
