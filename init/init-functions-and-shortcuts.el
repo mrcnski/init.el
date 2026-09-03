@@ -103,7 +103,7 @@ If the region is active, unfill all paragraphs in the region instead."
 ;; Make filling normalize sentence spacing (single space -> double).
 (progn
   (defvar repunctuate-paragraph-abbreviations
-    '("e.g." "E.g." "i.e." "I.e." "cf." "vs." "Mr." "Mrs." "Ms." "Dr." "esp.")
+    '("e.g." "E.g." "i.e." "I.e." "cf." "vs." "Mr." "Mrs." "Ms." "Dr." "esp." "St.")
     "Abbreviations that do not end a sentence.
 `repunctuate-paragraph' keeps a single space after these.")
 

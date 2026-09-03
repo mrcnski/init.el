@@ -81,6 +81,8 @@
    dired-auto-revert-buffer t
    ;; Don't confirm various actions.
    dired-no-confirm t
+   ;; Whether Dired should register file renaming in underlying VC system.
+   dired-vc-rename-file t
    )
 
   ;; Set up packages.
