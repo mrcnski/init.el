@@ -902,6 +902,15 @@ root. For plain terminals it is the abbreviated `default-directory'"
   (transient-posframe-mode)
   )
 
+(use-package ultra-scroll
+  :init
+  (setq
+   ;; scroll-conservatively 0
+   )
+  :config
+  (ultra-scroll-mode 1)
+  )
+
 ;; Use a sensible mechanism for making buffer names unique.
 (use-package uniquify
   :ensure nil
@@ -913,6 +922,14 @@ root. For plain terminals it is the abbreviated `default-directory'"
    )
   )
 
+;; Visualize and navigate the undo history as a tree. Drives Emacs'
+;; native undo (no parallel data structure), so it's safe and stateless.
+(use-package vundo
+  :bind ("C-x u" . vundo) ;; orig. undo (still on C-/)
+  :config
+  (setq vundo-glyph-alist vundo-unicode-symbols)
+  )
+
 ;; Display available keys.
 (use-package which-key
   :ensure nil
@@ -922,14 +939,6 @@ root. For plain terminals it is the abbreviated `default-directory'"
    which-key-sort-order 'which-key-key-order-alpha
    which-key-sort-uppercase-first nil
    )
-  )
-
-;; Visualize and navigate the undo history as a tree. Drives Emacs'
-;; native undo (no parallel data structure), so it's safe and stateless.
-(use-package vundo
-  :bind ("C-x u" . vundo) ;; orig. undo (still on C-/)
-  :config
-  (setq vundo-glyph-alist vundo-unicode-symbols)
   )
 
 ;; Switch windows more easily.
