@@ -61,6 +61,17 @@ alphabetically."
       (delete-region (comint-line-beginning-position) (point-max))
       (insert candidate)))
 
+  (defun my-agent-shell-context-indicator-append-cost (indicator)
+    "Append the session's cumulative cost to the header context INDICATOR."
+    (if-let* ((indicator)
+              (usage (map-elt (agent-shell--state) :usage))
+              (amount (map-elt usage :cost-amount))
+              ((> amount 0)))
+        (concat indicator
+                (propertize (format " · $%.2f" amount)
+                            'face 'agent-shell-secondary))
+      indicator))
+
   :bind (
          ("s-A" . agent-shell)
 
@@ -85,6 +96,10 @@ alphabetically."
 
   (advice-add 'shell-maker-search-history
               :override #'my-shell-maker-search-history)
+
+  ;; Show the session cost in the header.
+  (advice-add 'agent-shell--context-usage-indicator
+              :filter-return #'my-agent-shell-context-indicator-append-cost)
 
   ;; Persist agent-shell sessions across restarts, alongside
   ;; `desktop-save-mode'.  Not on MELPA; `:vc' installs from git and also
