@@ -294,18 +294,35 @@ blocking round-trip to the Prettier server."
 
   (setopt tide-jump-to-definition-reuse-window nil)
 
-  ;; tide starts a server for the *current buffer's* project only, and a
-  ;; monorepo is several projects, and a tree with no tsconfig.json at all is
-  ;; one project per directory.  What's wanted is lazy: start a project's server
-  ;; the first time that project needs one.
+  ;; tide starts a server for the current buffer's project only, and a monorepo
+  ;; can be several projects, and a tree with no tsconfig.json at all is one
+  ;; project per directory.  Lazily start a project server the first time the
+  ;; project needs one.
   ;;
   ;; `tide-send-command' is the choke point every tide feature goes through.
-  (defun my-tide-start-server-on-demand (&rest _)
+  (defvar my-tide-server-last-used (make-hash-table :test 'equal))
+  (defun my-tide-touch-server (&rest _)
     "Start this buffer's tsserver if its project hasn't got one yet."
+    (puthash (tide-project-name) (current-time) my-tide-server-last-used)
     (unless (tide-current-server)
       (tide-start-server)))
+  (advice-add 'tide-send-command :before #'my-tide-touch-server)
 
-  (advice-add 'tide-send-command :before #'my-tide-start-server-on-demand)
+  ;; Kill tsserver processes that haven't been used recently.
+  (defvar my-tide-idle-timeout-seconds 3600)
+  (defun my-tide-reap-idle-servers ()
+    (let ((now (current-time)))
+      (maphash
+       (lambda (project-name process)
+         (when (process-live-p process)
+           (let ((last-used (gethash project-name my-tide-server-last-used)))
+             (when (or (null last-used)
+                       (> (float-time (time-subtract now last-used))
+                          my-tide-idle-timeout-seconds))
+               (message "tide: killing idle tsserver for %s" project-name)
+               (delete-process process)))))
+       tide-servers)))
+  (run-with-timer 600 600 #'my-tide-reap-idle-servers)
   )
 
 ;; JSON
