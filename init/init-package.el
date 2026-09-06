@@ -12,6 +12,9 @@
 (setq
  ;; Set the elpa directory.
  package-user-dir user-emacs-elpa-directory
+ ;; The default is computed from `package-user-dir' when package.el loads,
+ ;; i.e. before the setq above.
+ package-gnupghome-dir (expand-file-name "gnupg" user-emacs-elpa-directory)
  ;; Prefer the newest version of a package.
  load-prefer-newer t
  ;; TODO(Emacs 31): enable package-autosuggest-mode (with associated mode-line
