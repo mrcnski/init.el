@@ -29,6 +29,11 @@
 ;;
 ;;; Code:
 
+;; Batch mode (emacs --batch -l init.el) skips early-init.el. Load that file
+;; explicitly to apply the eln-cache redirect.
+(when noninteractive
+  (load (expand-file-name "early-init" user-emacs-directory)))
+
 (require 'server)
 
 ;; Show more error info?

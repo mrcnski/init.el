@@ -21,16 +21,16 @@
 
 ;; Keep directories clean.
 ;; Should be one of the first things loaded.
+
+;; `eval-and-compile' because byte-compilation of this file (e.g. by flycheck)
+;; loads no-littering at compile time via use-package, when top-level setq forms
+;; have not been executed.
+(eval-and-compile
+  (setq no-littering-var-directory user-emacs-var-directory
+        no-littering-etc-directory user-emacs-etc-directory))
+
 (use-package no-littering
   :ensure t
-  :init
-
-  (setq
-   ;; Keep these in the user home directory to prevent constant sync conflicts.
-   no-littering-var-directory user-emacs-var-directory
-   no-littering-etc-directory user-emacs-etc-directory
-   )
-
   :config
 
   ;; Exclude from recentf.

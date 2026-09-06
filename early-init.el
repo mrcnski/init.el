@@ -31,6 +31,21 @@
         (setcar native-comp-eln-load-path eln-cache-dir)
       (setcar comp-eln-load-path eln-cache-dir))
 
+    ;; Keep the default in-config location as a symlink to the real cache.
+    ;;
+    ;; Child Emacs processes (e.g. flycheck byte-compiling an init file) never
+    ;; load this file, fall back to the default location, and would otherwise
+    ;; litter it with .eln files.
+    (make-directory eln-cache-dir t)
+    (let ((default-cache (directory-file-name (locate-user-emacs-file "eln-cache"))))
+      (unless (file-symlink-p default-cache)
+         ;; A real directory here is stale cache from before this symlink
+         ;; existed (or from a crashed child) and is safe to delete.
+        (when (file-directory-p default-cache)
+          (delete-directory default-cache t))
+        (make-symbolic-link (directory-file-name (expand-file-name eln-cache-dir))
+                            default-cache t)))
+
     ;; Quitting emacs while native compilation in progress can leave zero byte
     ;; sized *.eln files behind. Hence delete such files during startup.
     (when find-exec
