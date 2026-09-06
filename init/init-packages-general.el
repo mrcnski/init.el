@@ -532,6 +532,8 @@ root. For plain terminals it is the abbreviated `default-directory'"
          (conf-mode . idle-highlight-mode)
          (text-mode . idle-highlight-mode)
          (eshell-mode . idle-highlight-mode)
+         ;; This hook runs after the shell is fully initialized.
+         (agent-shell-mode . idle-highlight-mode)
          )
 
   :config
@@ -551,6 +553,9 @@ root. For plain terminals it is the abbreviated `default-directory'"
        (setq-local idle-highlight-exceptions '("*" "**" "***" "****" "*****")))
      (when (derived-mode-p 'org-mode)
        (setq-local idle-highlight-exceptions '("-" "*" "**" "***" "****" "*****")))
+     ;; Markdown bullets and rules.
+     (when (derived-mode-p 'agent-shell-mode)
+       (setq-local idle-highlight-exceptions '("-" "*" "**" "---")))
      ))
   )
 
