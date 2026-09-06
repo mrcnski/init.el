@@ -13,13 +13,10 @@
   :bind (
          ;; Insert link with C-c C-l.
          ;; ("C-c C-l" . org-store-link)
-         ("C-c c" . org-capture)
+         ("C-c c" . org-catch)
 
          ;; Jump to last refile or capture.
          ("C-c j" . org-refile-goto-last-stored)
-
-         ;; Jump to today's row in weight.org.
-         ("C-c m" . org-weight-goto-today)
 
          :map org-mode-map
 
@@ -74,6 +71,7 @@
     (add-hook 'before-save-hook 'org-update-cookies-after-save nil 'make-it-local)
     )
 
+  ;; olp = "outline path".
   (defun org-find-or-create-olp (&rest headings)
     "Move point to the last of HEADINGS, creating any that are missing.
 A created heading is placed before its existing siblings, since my dated
@@ -101,18 +99,6 @@ the final heading."
           (setq end (save-excursion (org-end-of-subtree t t) (point))
                 level (1+ level))
           (forward-line 1)))))
-
-  (defun org-capture-journal-month ()
-    "Capture target: current month heading (e.g. \"Jul\"), created if missing."
-    (org-find-or-create-olp (format-time-string "%b")))
-
-  (defun org-capture-journal-year-month ()
-    "Capture target: current year/month path, created if missing."
-    (org-find-or-create-olp (format-time-string "%Y") (format-time-string "%b")))
-
-  (defun org-capture-time-rounded ()
-    "Current time as \"HH:MM\", rounded to the nearest 5 minutes."
-    (format-time-string "%H:%M" (* 300 (round (time-convert nil 'integer) 300))))
 
   (defun org-weight-goto-today ()
     "Open weight.org and move point to today's Weight cell.
@@ -219,108 +205,69 @@ today's row rather than capturing a new one."
    org-fold-show-context-detail '((default . tree))
    )
 
-  ;; org-capture settings
+  ;; org-catch: one menu for catching (not capturing) entries in my org files.
+  ;; No indirect capture buffer, no separate finalize step.
 
-  ;; org-capture template.
-  (setq org-capture-templates
-        '(
-          (
-           "w" "Work task." entry
-           (file+headline "work.org" "Todo")
-           "* TODO %?"
-           :unnarrowed t
-           :empty-lines-before 1
-           :prepend 1
-           )
-          (
-           "j" "Journal entry." entry
-           (file+function "therapy/journal.org" org-capture-journal-month)
-           "* %<%a %-d> - %?\n\n%(org-capture-time-rounded)"
-           :unnarrowed t
-           :empty-lines-before 1
-           :prepend t
-           )
-          (
-           "d" "Dream." entry
-           (file+function "therapy/dreams.org" org-capture-journal-month)
-           "* %<%a %-d> - %?"
-           :unnarrowed t
-           :empty-lines-before 1
-           :prepend t
-           )
-          ))
+  (require 'transient)
 
-  ;; How to show capture buffers in relation to the selected window?
-  (add-to-list 'display-buffer-alist
-               '("\\`CAPTURE-"
-                 (display-buffer-same-window display-buffer-below-selected)
-                 (window-height . 0.5)))
-  ;; Same for the template-selection menu.
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Org Select\\*\\'"
-                 (display-buffer-below-selected)
-                 (window-height . 0.2)))
+  (defun org-catch--visit (file)
+    "Visit FILE (relative to `org-directory') in the current window."
+    (find-file (expand-file-name file org-directory))
+    (widen))
 
-  ;; Warn about unfinalized capture buffers.
-  ;;
-  ;; A capture buffer is an indirect buffer sharing text with the target
-  ;; file's buffer, so typing shows up in that buffer immediately -- but the
-  ;; target is only written to disk (and refiled / post-processed) on
-  ;; `C-c C-c'.
-  (defun org-capture-buffers-open ()
-    "Return the list of live, unfinalized org-capture buffers.
-`org-capture-mode' is defined in org-capture.el, which is autoloaded
-separately from org.el, so use `bound-and-true-p'."
-    (seq-filter (lambda (b)
-                  (with-current-buffer b
-                    (bound-and-true-p org-capture-mode)))
-                (buffer-list)))
-  (defun org-capture-confirm-kill-emacs ()
-    "Confirm before quitting Emacs while capture buffers are open.
-Added to `kill-emacs-query-functions'; returning nil aborts the exit."
-    (or (null (org-capture-buffers-open))
-        (yes-or-no-p "Unfinalized org-capture buffer(s) open -- quit anyway? ")))
-  (add-hook 'kill-emacs-query-functions #'org-capture-confirm-kill-emacs)
+  (defun org-catch--time-rounded ()
+    "Current time as \"HH:MM\", rounded to the nearest 5 minutes."
+    (format-time-string "%H:%M" (* 300 (round (time-convert nil 'integer) 300))))
 
-  ;; Passive indicator: `frame-title-capture-string' (a bare element of
-  ;; `frame-title-format', declared in init-visual-frame) shows the open-capture
-  ;; state in the frame title.  Maintained event-driven here -- like keycoach's
-  ;; indicator -- rather than via an `:eval', so the title is not recomputed on
-  ;; every idle tick.
-  (defun org-capture-update-frame-indicator (&rest _)
-    "Recompute `frame-title-capture-string' from open capture buffers."
-    (let ((n (length (org-capture-buffers-open))))
-      (setq frame-title-capture-string
-            (cond ((zerop n) "")
-                  ((= n 1) (concat frame-title-separator "⏺ CAPTURE"))
-                  (t (concat frame-title-separator
-                             (format "⏺ CAPTURE ×%d" n))))))
-    (when (fboundp 'frame-title-update) (frame-title-update)))
+  (defun org-catch--insert-child (heading &optional body)
+    "Insert HEADING as the first child of the org heading at point.
+BODY, if non-nil, goes below the heading with a blank line in between,
+and a blank line is kept between the new entry and what follows it.
+Leaves point at the end of the new heading line, ready for typing."
+    (let ((stars (make-string (1+ (org-current-level)) ?*))
+          (start (line-end-position)))
+      (end-of-line)
+      (insert "\n\n" stars " " heading)
+      (save-excursion
+        (when body (insert "\n\n" body))
+        (unless (looking-at-p "\n\n\\|\n?\\'")
+          (insert "\n"))
+        ;; The parent's subtree may be folded, and folds are plain character
+        ;; ranges -- show the inserted text explicitly.
+        (org-fold-region start (point) nil 'outline))
+      (org-fold-show-context)))
 
-  ;; Opening a capture activates `org-capture-mode' -> refresh immediately.
-  (add-hook 'org-capture-mode-hook #'org-capture-update-frame-indicator)
+  (defun org-catch-work ()
+    "Start a TODO at the top of work.org's Todo section."
+    (interactive)
+    (org-catch--visit "work.org")
+    (org-find-or-create-olp "Todo")
+    (org-catch--insert-child "TODO "))
 
-  (defun org-capture-frame-indicator-on-kill ()
-    "Refresh the frame indicator when a capture buffer is killed.
-For `kill-buffer-hook'.  Covers `C-c C-c', `C-c C-k' and a manual
-`C-x k'.  Deferred so the dying buffer has left `buffer-list' before the
-count is recomputed (in `kill-buffer-hook' it is still current)."
-    (when (bound-and-true-p org-capture-mode)
-      (run-with-timer 0 nil #'org-capture-update-frame-indicator)))
-  (add-hook 'kill-buffer-hook #'org-capture-frame-indicator-on-kill)
+  (defun org-catch-journal ()
+    "Start a journal entry for today under the current month heading."
+    (interactive)
+    (org-catch--visit "therapy/journal.org")
+    (org-find-or-create-olp (format-time-string "%b"))
+    (org-catch--insert-child (format-time-string "%a %-d - ")
+                             (org-catch--time-rounded)))
+
+  (defun org-catch-dream ()
+    "Start a dream entry for today under the current month heading."
+    (interactive)
+    (org-catch--visit "therapy/dreams.org")
+    (org-find-or-create-olp (format-time-string "%b"))
+    (org-catch--insert-child (format-time-string "%a %-d - ")))
+
+  (transient-define-prefix org-catch ()
+    "Start (or jump to) today's entry in one of my org files."
+    ["org-catch"
+     ("w" "Work todo" org-catch-work)
+     ("j" "Journal entry" org-catch-journal)
+     ("d" "Dream" org-catch-dream)
+     ("m" "Weight (today's row)" org-weight-goto-today)])
 
   ;; Shortcuts/Keybindings
-
-  ;; REMOVED: Not using it for now.
-  ;; ;; org-capture with template as default behavior.
-  ;; (defun org-task-capture ()
-  ;;   "Capture a task with my todo template."
-  ;;   (interactive)
-  ;;   (org-capture nil "t"))
-  ;; (defun org-note-capture ()
-  ;;   "Capture a note with my note template."
-  ;;   (interactive)
-  ;;   (org-capture nil "n"))
 
   (defun mouse-org-cycle (@click)
     (interactive "e")
@@ -435,9 +382,6 @@ lines exist after each headings's drawers."
     ;; (add-hook 'org-trigger-hook 'org-agenda-refresh)
     ;; Refresh org-agenda after rescheduling a task.
     (advice-add 'org-schedule :after (lambda (&rest _) (org-agenda-refresh)))
-
-    ;; Refresh org-agenda after an org-capture.
-    (add-hook 'org-capture-after-finalize-hook 'org-agenda-refresh)
     )
 
   ;; Recurring org-mode tasks.
