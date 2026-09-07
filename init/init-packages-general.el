@@ -223,9 +223,6 @@
   )
 
 ;; Workspaces.
-;;
-;; The fork keeps a separate winner history per workspace; see
-;; `eyebrowse-winner-integration'.
 (use-package eyebrowse
   :load-path "~/.emacs.d/packages/eyebrowse"
   :bind (
@@ -271,8 +268,6 @@
    eyebrowse-save-file (no-littering-expand-var-file-name "eyebrowse-configs.el")
    )
 
-  ;; TODO: move to package or at least readme?
-  ;;
   ;; Load eyebrowse at the end of startup so workspaces are restored and the
   ;; frame title reflects them automatically, without waiting for the first
   ;; eyebrowse command.  Done via `emacs-startup-hook' rather than `:demand t'
@@ -318,12 +313,6 @@
   (frame-title-eyebrowse-update)
 
   (add-hook 'eyebrowse-indicator-change-hook 'frame-title-eyebrowse-update)
-
-  ;; The package already saves on `kill-emacs', but tie the save to
-  ;; `desktop-save-hook' too so workspaces are persisted on desktop's idle
-  ;; auto-save.  That survives an unexpected quit.
-  (with-eval-after-load 'desktop
-    (add-hook 'desktop-save-hook 'eyebrowse--save-window-configs))
   )
 
 ;; Fix the capitalization commands.
