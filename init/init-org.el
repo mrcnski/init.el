@@ -219,6 +219,19 @@ today's row rather than capturing a new one."
     "Current time as \"HH:MM\", rounded to the nearest 5 minutes."
     (format-time-string "%H:%M" (* 300 (round (time-convert nil 'integer) 300))))
 
+  (defun org-catch--goto-heading (heading visit-only)
+    "Go to top-level HEADING, creating it unless VISIT-ONLY is non-nil."
+    (if visit-only
+        (progn
+          (goto-char (point-min))
+          (unless (re-search-forward
+                   (concat "^\\* " (regexp-quote heading) "[ \t]*$") nil t)
+            (user-error "No heading %s in %s" heading (buffer-name)))
+          (goto-char (match-beginning 0))
+          (org-fold-show-context)
+          (org-fold-show-subtree))
+      (org-find-or-create-olp heading)))
+
   (defun org-catch--insert-child (heading &optional body)
     "Insert HEADING as the first child of the org heading at point.
 BODY, if non-nil, goes below the heading with a blank line in between,
@@ -237,30 +250,35 @@ Leaves point at the end of the new heading line, ready for typing."
         (org-fold-region start (point) nil 'outline))
       (org-fold-show-context)))
 
-  (defun org-catch-work ()
-    "Start a TODO at the top of work.org's Todo section."
-    (interactive)
+  (defun org-catch-work (&optional visit-only)
+    "Start a TODO in work.org, or just visit Todo when VISIT-ONLY is non-nil."
+    (interactive (list (member "--visit-only" (transient-args 'org-catch))))
     (org-catch--visit "work.org")
-    (org-find-or-create-olp "Todo")
-    (org-catch--insert-child "TODO "))
+    (org-catch--goto-heading "Todo" visit-only)
+    (unless visit-only
+      (org-catch--insert-child "TODO ")))
 
-  (defun org-catch-journal ()
-    "Start a journal entry for today under the current month heading."
-    (interactive)
+  (defun org-catch-journal (&optional visit-only)
+    "Start today's journal entry, or visit the month when VISIT-ONLY is non-nil."
+    (interactive (list (member "--visit-only" (transient-args 'org-catch))))
     (org-catch--visit "therapy/journal.org")
-    (org-find-or-create-olp (format-time-string "%b"))
-    (org-catch--insert-child (format-time-string "%a %-d - ")
-                             (org-catch--time-rounded)))
+    (org-catch--goto-heading (format-time-string "%b") visit-only)
+    (unless visit-only
+      (org-catch--insert-child (format-time-string "%a %-d - ")
+                             (org-catch--time-rounded))))
 
-  (defun org-catch-dream ()
-    "Start a dream entry for today under the current month heading."
-    (interactive)
+  (defun org-catch-dream (&optional visit-only)
+    "Start today's dream entry, or visit the month when VISIT-ONLY is non-nil."
+    (interactive (list (member "--visit-only" (transient-args 'org-catch))))
     (org-catch--visit "therapy/dreams.org")
-    (org-find-or-create-olp (format-time-string "%b"))
-    (org-catch--insert-child (format-time-string "%a %-d - ")))
+    (org-catch--goto-heading (format-time-string "%b") visit-only)
+    (unless visit-only
+      (org-catch--insert-child (format-time-string "%a %-d - "))))
 
   (transient-define-prefix org-catch ()
     "Start (or jump to) today's entry in one of my org files."
+    ["Options"
+     ("v" "Visit only" "--visit-only")]
     ["org-catch"
      ("w" "Work todo" org-catch-work)
      ("j" "Journal entry" org-catch-journal)
