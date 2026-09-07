@@ -18,6 +18,42 @@
    )
 
   :preface
+  ;; Copies from agent-shell buffers yield the agent's original markdown rather
+  ;; than the rendered text.
+  ;;
+  ;; `filter-buffer-substring-function' covers everything built on the kill
+  ;; machinery (M-w, C-l, M-W); `copy-as-format' (s-w) extracts text with
+  ;; `buffer-substring-no-properties', so it needs the advice below.
+  (defun my-agent-shell-filter-buffer-substring (beg end &optional delete)
+    "Reconstruct the original markdown between BEG and END when copying.
+
+Exception: a selection lying entirely within a single inline construct
+copies as the visible plain text (grabbing a filename or symbol to
+navigate somewhere shouldn't drag its markers along).
+
+Delegate to the default filter when DELETE is non-nil."
+    (if delete
+        (buffer-substring--filter beg end delete)
+      (let ((source (get-text-property beg 'agent-shell-markdown-source)))
+        (if (and source
+                 (not (equal source ""))
+                 (not (string-search "\n" source))
+                 (>= (next-single-property-change
+                      beg 'agent-shell-markdown-source nil (point-max))
+                     end))
+            (buffer-substring-no-properties beg end)
+          (agent-shell-markdown-reconstruct beg end)))))
+
+  (defun my-agent-shell-setup-markdown-copy ()
+    "Make copy commands in this buffer yield the original markdown."
+    (setq-local filter-buffer-substring-function
+                #'my-agent-shell-filter-buffer-substring))
+
+  (defun my-copy-as-format-agent-shell-markdown (orig-fun)
+    "Give `copy-as-format' the reconstructed markdown in agent-shell buffers."
+    (if (and (bound-and-true-p agent-shell-ui-mode) (use-region-p))
+        (my-agent-shell-filter-buffer-substring (region-beginning) (region-end))
+      (funcall orig-fun)))
 
   (defun my-agent-shell-dnd-send-files (event)
     "Send files dropped with EVENT into an `agent-shell' buffer as context."
@@ -78,7 +114,7 @@ alphabetically."
          ;; OpenCode. Pick the model with `C-c C-v' in the shell.
          ("s-O" . agent-shell-opencode-start-agent)
 
-         :map agent-shell-mode-map
+         :map agent-shell-ui-mode-map
          ("M-<return>" . newline)
          ("M-p" . agent-shell-previous-item)
          ("M-n" . agent-shell-next-item)
@@ -99,6 +135,10 @@ alphabetically."
 
   (advice-add 'shell-maker-search-history
               :override #'my-shell-maker-search-history)
+  ;; See the markdown-copy functions in :preface.
+  (add-hook 'agent-shell-ui-mode-hook #'my-agent-shell-setup-markdown-copy)
+  (advice-add 'copy-as-format--extract-text
+              :around #'my-copy-as-format-agent-shell-markdown)
 
   ;; Show the session cost in the header.
   (advice-add 'agent-shell--context-usage-indicator
