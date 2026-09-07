@@ -545,11 +545,15 @@ Position cursor at the end of the prompt."
   )
 
 ;; Undo/redo window configurations.
+;;
+;; The history is kept per eyebrowse workspace.
 (use-package winner
   :ensure nil
+  ;; Load eagerly so recording starts at startup.
+  :demand t
   :bind (
-         ("C-c C-," . winner-undo)
-         ("C-c C-." . winner-redo)
+         ("C-s-," . winner-undo)
+         ("C-s-." . winner-redo)
          )
   :config (winner-mode t))
 
