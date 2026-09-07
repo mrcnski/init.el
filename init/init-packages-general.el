@@ -25,9 +25,6 @@
   :bind (
          ("C-," . avy-goto-end-of-line)
          ("C-." . avy-goto-char)
-
-         ("s-C-," . avy-save-remote-line-and-yank)
-         ("s-C-." . avy-save-remote-symbol-and-yank)
          )
 
   :config
@@ -227,11 +224,9 @@
 
 ;; Workspaces.
 ;;
-;; TODO: per-tab winner history
+;; The fork keeps a separate winner history per workspace; see
+;; `eyebrowse-winner-integration'.
 (use-package eyebrowse
-  ;; TODO: Needed?
-  ;; To prevent mode-line display errors.
-  ;; :demand t
   :load-path "~/.emacs.d/packages/eyebrowse"
   :bind (
          ("s-," . eyebrowse-prev-window-config)
@@ -276,6 +271,8 @@
    eyebrowse-save-file (no-littering-expand-var-file-name "eyebrowse-configs.el")
    )
 
+  ;; TODO: move to package or at least readme?
+  ;;
   ;; Load eyebrowse at the end of startup so workspaces are restored and the
   ;; frame title reflects them automatically, without waiting for the first
   ;; eyebrowse command.  Done via `emacs-startup-hook' rather than `:demand t'
@@ -309,6 +306,7 @@
   ;;; Show workspaces in title bar.
 
   ;; Only recalculate the workspaces string when it actually changes.
+  ;; TODO: move this to package (following keycoach mechanisms)?
   (defun frame-title-eyebrowse-update ()
     "Updates eyebrowse indicator in the frame title."
     (let ((indicator (substring-no-properties (eyebrowse-mode-line-indicator))))
