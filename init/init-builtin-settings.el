@@ -142,8 +142,9 @@
 (setq
  ;; Move point to beginning or end of buffer when scrolling?
  scroll-error-top-bottom t
- mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control)))
  )
+;; Rebuild wheel bindings so Control-scroll scrolls instead of zooming.
+(setopt mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control))))
 ;; How far to scroll windows upward.
 (setq-default scroll-up-aggressively nil)
 
