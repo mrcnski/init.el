@@ -522,6 +522,32 @@ Position cursor at the end of the prompt."
    desktop-restore-frames nil
    )
   (desktop-save-mode t)
+
+  ;; `desktop-create-buffer' guards creating each buffer but not turning its
+  ;; saved minor modes back on, so one minor mode whose library fails to load
+  ;; aborts the whole desktop restore and leaves desktop's auto-save disabled.
+  (defun desktop-create-buffer-safely (orig-fun file-version filename name
+                                                major minors &rest rest)
+    "Restore one buffer like ORIG-FUN, turning errors into warnings."
+    (let ((minors
+           (seq-remove
+            (lambda (mode)
+              (condition-case err
+                  (progn (desktop-load-file mode) nil)
+                (error
+                 (display-warning
+                  'desktop (format "Skipping %s in buffer %s: %s"
+                                   mode name (error-message-string err)))
+                 t)))
+            minors)))
+      (condition-case err
+          (apply orig-fun file-version filename name major minors rest)
+        (error
+         (display-warning
+          'desktop (format "Could not fully restore buffer %s: %s"
+                           name (error-message-string err)))
+         nil))))
+  (advice-add 'desktop-create-buffer :around #'desktop-create-buffer-safely)
   )
 
 (use-package midnight
