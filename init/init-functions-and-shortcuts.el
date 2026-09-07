@@ -211,18 +211,24 @@ variable, so nothing else changes."
 (run-with-idle-timer 60 t 'save-all)
 
 ;; Automatically save all buffers when an agent or terminal buffer gains focus.
-(defvar save-buffers-on-focus-window nil
-  "The window that was selected when the last command finished.")
+(defvar save-buffers-on-focus-last nil
+  "The (WINDOW . BUFFER) that was current when the last command finished.")
 (defun save-buffers-on-focus ()
-  "Save all buffers when switching to an agent or terminal buffer's window."
-  (when (not (eq (selected-window) save-buffers-on-focus-window))
-    (setq save-buffers-on-focus-window (selected-window))
-    (when (derived-mode-p '(agent-shell-mode eshell-mode ghostel-mode))
-      ;; An error here would silently remove this from `post-command-hook'.
-      (with-demoted-errors "save-buffers-on-focus: %S"
-        ;; Don't echo "Wrote ..." for a save the user didn't ask for.
-        (let ((save-silently t))
-          (save-all))))))
+  "Save all buffers when switching to an agent or terminal buffer.
+Fires when the selected window changes and when the buffer shown in it
+changes, so same-window switches (e.g. `switch-to-buffer') count too."
+  (let ((current (cons (selected-window) (current-buffer))))
+    (unless (equal current save-buffers-on-focus-last)
+      (setq save-buffers-on-focus-last current)
+      (when (derived-mode-p '(agent-shell-mode eshell-mode ghostel-mode))
+        ;; Any signal escaping here makes Emacs silently drop this function
+        ;; from `post-command-hook'.
+        (condition-case err
+            ;; Don't echo "Wrote ..." for a save the user didn't ask for.
+            (let ((save-silently t))
+              (save-all))
+          ((debug error quit)
+           (message "save-buffers-on-focus: %S" err)))))))
 (add-hook 'post-command-hook #'save-buffers-on-focus)
 
 ;; Cleanup whitespace.
