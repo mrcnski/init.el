@@ -8,12 +8,9 @@
 
 ;; Set window name/title.
 ;;
-;; `keycoach-indicator-string' is maintained by keycoach itself, and is void
-;; until it loads (a void symbol in a mode line construct is simply skipped).
-(defvar frame-title-eyebrowse)
+;; Keycoach and Eyebrowse append their indicators when enabled.
 (defvar frame-title-separator "  —  ")
-(setq frame-title-format
-      '("Emacs" frame-title-eyebrowse keycoach-indicator-string))
+(setq frame-title-format "Emacs")
 (defun frame-title-update ()
   "Update the frame title."
   (set-frame-parameter nil 'title (format-mode-line frame-title-format)))
