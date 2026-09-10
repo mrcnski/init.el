@@ -74,13 +74,17 @@ Delegate to the default filter when DELETE is non-nil."
   ;; See https://github.com/xenodium/shell-maker/pull/44.
   (defun my-shell-maker-search-history ()
     "Search input history (M-r), most recent input first.
+
 Like `shell-maker-search-history', but hands `completing-read' a
 table whose metadata preserves the input ring's newest-first
 order, which vertico would otherwise re-sort by length and
-alphabetically."
+alphabetically.
+
+Moves to the prompt first, so it works from anywhere in the buffer."
     (interactive)
     (unless (eq major-mode (shell-maker-major-mode shell-maker--config))
       (user-error "Not in a shell"))
+    (goto-char (point-max))
     (let* ((items (delete-dups
                    (seq-filter
                     (lambda (item)
@@ -97,16 +101,19 @@ alphabetically."
       (delete-region (comint-line-beginning-position) (point-max))
       (insert candidate)))
 
-  ;; Typing/yanking over read-only text goes to the prompt first, like eshell.
+  ;; Typing, yanking, or recalling history over read-only text goes to the
+  ;; prompt first, like eshell.
   ;;
   ;; `comint-scroll-to-bottom-on-input' doesn't work: agent-shell's headings and
-  ;; buttons carry keymaps that remap `self-insert-command' to `ignore'.
+  ;; buttons carry keymaps that remap `self-insert-command' to `ignore'.  And
+  ;; comint's history commands refuse to run away from the prompt.
   (defun my-agent-shell-preinput-goto-prompt ()
     "Move to the prompt before a key that would insert or yank there."
     (when-let* ((process (get-buffer-process (current-buffer)))
                 ((< (point) (process-mark process)))
                 (command (key-binding (this-command-keys-vector) t t (point-max)))
-                ((memq command '(self-insert-command yank))))
+                ((memq command '(self-insert-command yank
+                                 comint-previous-input comint-next-input))))
       (setq this-command (or (command-remapping command (point-max)) command))
       (goto-char (point-max))))
 
@@ -128,10 +135,12 @@ alphabetically."
   :bind (
          ("s-A" . agent-shell)
 
+         :map agent-shell-mode-map
+         ("M-{" . comint-previous-prompt)
+         ("M-}" . comint-next-prompt)
+
          :map agent-shell-ui-mode-map
          ("M-<return>" . newline)
-         ("M-p" . agent-shell-previous-item)
-         ("M-n" . agent-shell-next-item)
          ("<drag-n-drop>" . my-agent-shell-dnd-send-files)
          )
 
