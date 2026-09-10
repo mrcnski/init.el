@@ -97,6 +97,23 @@ alphabetically."
       (delete-region (comint-line-beginning-position) (point-max))
       (insert candidate)))
 
+  ;; Typing/yanking over read-only text goes to the prompt first, like eshell.
+  ;;
+  ;; `comint-scroll-to-bottom-on-input' doesn't work: agent-shell's headings and
+  ;; buttons carry keymaps that remap `self-insert-command' to `ignore'.
+  (defun my-agent-shell-preinput-goto-prompt ()
+    "Move to the prompt before a key that would insert or yank there."
+    (when-let* ((process (get-buffer-process (current-buffer)))
+                ((< (point) (process-mark process)))
+                (command (key-binding (this-command-keys-vector) t t (point-max)))
+                ((memq command '(self-insert-command yank))))
+      (setq this-command (or (command-remapping command (point-max)) command))
+      (goto-char (point-max))))
+
+  (defun my-agent-shell-setup-preinput-goto-prompt ()
+    "Install `my-agent-shell-preinput-goto-prompt' in this buffer."
+    (add-hook 'pre-command-hook #'my-agent-shell-preinput-goto-prompt nil t))
+
   (defun my-agent-shell-context-indicator-append-cost (indicator)
     "Append the session's cumulative cost to the header context INDICATOR."
     (if-let* ((indicator)
@@ -140,6 +157,9 @@ alphabetically."
   ;; Show the session cost in the header.
   (advice-add 'agent-shell--context-usage-indicator
               :filter-return #'my-agent-shell-context-indicator-append-cost)
+
+  ;; See `my-agent-shell-preinput-goto-prompt' in :preface.
+  (add-hook 'agent-shell-mode-hook #'my-agent-shell-setup-preinput-goto-prompt)
 
   ;; Persist agent-shell sessions across restarts, alongside
   ;; `desktop-save-mode'.  Not on MELPA; `:vc' installs from git and also
