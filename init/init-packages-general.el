@@ -278,8 +278,6 @@
 
   :config
 
-  (eyebrowse-mode t)
-
   (setq
    eyebrowse-wrap-around t
    eyebrowse-switch-back-and-forth nil
@@ -294,25 +292,14 @@
    eyebrowse-mode-line-right-delimiter ""
    eyebrowse-mode-line-current-left-delimiter "["
    eyebrowse-mode-line-current-right-delimiter "]"
+   eyebrowse-indicator-target 'frame-title
+   eyebrowse-indicator-format (concat frame-title-separator "%s")
    )
 
   (set-face-attribute 'eyebrowse-mode-line-active nil :underline t :weight 'bold)
 
-  ;;; Show workspaces in title bar.
-
-  ;; Only recalculate the workspaces string when it actually changes.
-  ;; TODO: move this to package (following keycoach mechanisms)?
-  (defun frame-title-eyebrowse-update ()
-    "Updates eyebrowse indicator in the frame title."
-    (let ((indicator (substring-no-properties (eyebrowse-mode-line-indicator))))
-      (setq frame-title-eyebrowse
-            (when (not (string-empty-p indicator))
-              (format "%s%s" frame-title-separator indicator)))
-      (frame-title-update)
-      ))
-  (frame-title-eyebrowse-update)
-
-  (add-hook 'eyebrowse-indicator-change-hook 'frame-title-eyebrowse-update)
+  (add-hook 'eyebrowse-indicator-change-hook #'frame-title-update)
+  (eyebrowse-mode t)
   )
 
 ;; Fix the capitalization commands.
@@ -572,9 +559,7 @@ root. For plain terminals it is the abbreviated `default-directory'"
    keycoach-error t ; So if you bind `git-link` to C-c g, you get an error when
                     ; invoking `M-x git-link` with this configuration set.
 
-   ;; Leave `keycoach-indicator-target' nil: the title is rendered by hand in
-   ;; `init-visual-frame', which already lists `keycoach-indicator-string'
-   ;; alongside the eyebrowse indicator.  Just pad it the same way.
+   keycoach-indicator-target 'frame-title
    keycoach-indicator-format (concat frame-title-separator "%s")
    )
 
