@@ -55,23 +55,6 @@ Delegate to the default filter when DELETE is non-nil."
         (my-agent-shell-filter-buffer-substring (region-beginning) (region-end))
       (funcall orig-fun)))
 
-  (defun my-agent-shell-dnd-send-files (event)
-    "Send files dropped with EVENT into an `agent-shell' buffer as context."
-    (interactive "e")
-    (let* ((arg (nth 2 event))
-           (buffer (window-buffer (posn-window (nth 1 event))))
-           (files (when (eq (car-safe arg) 'file)
-                    (seq-filter #'file-exists-p (cddr arg)))))
-      (if (and files
-               (provided-mode-derived-p (buffer-local-value 'major-mode buffer)
-                                        'agent-shell-mode))
-          (with-current-buffer buffer
-            (agent-shell-insert
-             :text (agent-shell--get-files-context :files files)))
-        ;; Drops not handled here (text, or files that no longer exist) fall
-        ;; through to `ns-drag-n-drop'.
-        (ns-drag-n-drop event))))
-
   ;; See https://github.com/xenodium/shell-maker/pull/44.
   (defun my-shell-maker-search-history ()
     "Search input history (M-r), most recent input first.
@@ -144,7 +127,6 @@ Moves to the prompt first, so it works from anywhere in the buffer."
 
          :map agent-shell-ui-mode-map
          ("M-<return>" . newline)
-         ("<drag-n-drop>" . my-agent-shell-dnd-send-files)
          )
 
   :config
