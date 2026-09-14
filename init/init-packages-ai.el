@@ -236,7 +236,7 @@ Moves to the prompt first, so it works from anywhere in the buffer."
   (setq
    promptu-history-file (no-littering-expand-var-file-name "promptu-history.el")
    ;; Shared with the promptu menubar app.
-   promptu-blocks (promptu-blocks-from-json "~/.config/promptu/blocks.json")
+   promptu-blocks "~/.config/promptu/blocks.json"
    )
   )
 
