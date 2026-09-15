@@ -116,6 +116,24 @@ Moves to the prompt first, so it works from anywhere in the buffer."
                             'face 'agent-shell-secondary))
       indicator))
 
+  (defun my-agent-shell-kill-stale-buffers ()
+    "Kill unused agent shells.
+The threshold is the one `clean-buffer-list' uses."
+    (interactive)
+    (dolist (buffer (buffer-list))
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (when (and (derived-mode-p 'agent-shell-mode)
+                     (not (get-buffer-window buffer 'visible))
+                     buffer-display-time
+                     (> (float-time (time-since buffer-display-time))
+                        (clean-buffer-list-delay (buffer-name))))
+            ;; shell-maker would otherwise ask to save its own transcript.
+            (let ((shell-maker-prompt-before-killing-buffer nil))
+              (message "[%s] killing stale shell `%s'"
+                       (format-time-string "%F %T") (buffer-name))
+              (kill-buffer buffer)))))))
+
   :bind (
          ("s-A" . agent-shell)
          ;; OpenCode. Pick the model with `C-c C-v' in the shell.
@@ -154,6 +172,10 @@ Moves to the prompt first, so it works from anywhere in the buffer."
 
   ;; See `my-agent-shell-preinput-goto-prompt' in :preface.
   (add-hook 'agent-shell-mode-hook #'my-agent-shell-setup-preinput-goto-prompt)
+
+  ;; See `my-agent-shell-kill-stale-buffers' in :preface. Appended, so an error
+  ;; won't stop `clean-buffer-list' from running.
+  (add-hook 'midnight-hook #'my-agent-shell-kill-stale-buffers t)
 
   ;; Persist agent-shell sessions across restarts, alongside
   ;; `desktop-save-mode'.  Not on MELPA; `:vc' installs from git and also
