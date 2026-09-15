@@ -144,7 +144,7 @@
   )
 
 (use-package context-clues
-  :load-path "~/.emacs.d/packages/context-clues" ; Coming to MELPA soon I hope
+  :load-path "~/.emacs.d/packages/context-clues"
   :bind ("s-'" . context-clues)
   :config
   (setq context-clues-message-format "Copied {description}: {text}")
@@ -545,12 +545,12 @@ root. For plain terminals it is the abbreviated `default-directory'"
   )
 
 (use-package keycoach
-  :load-path "~/.emacs.d/packages/keycoach" ; Coming to MELPA soon I hope
+  :load-path "~/.emacs.d/packages/keycoach"
   :config
 
   ;; Customize some settings
   (setq
-   keycoach-keys '("s-R")
+   keycoach-keys '("")
    keycoach-display-amount 2 ; How many keys to show at once
    keycoach-indicator-separator " | " ; Customize the indicator!
    keycoach-random t ; By default, keys are shown in a random order
