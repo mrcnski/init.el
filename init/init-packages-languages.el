@@ -336,7 +336,9 @@ blocking round-trip to the Prettier server."
          ("M-n" . markdown-next-visible-heading)
          ("C-c C-c" . markdown-do)
          )
+
   :config
+
   ;; The export command (`markdown-command') is set by the nested
   ;; markdown-file-links block at the end of this :config.
   (setq markdown-xhtml-header-content
@@ -396,6 +398,11 @@ code span.va { color: #598bc1; } /* Variable */
 code span.vs { color: #6aaf50; } /* VerbatimString */
 code span.wa { color: #baba36; font-style: italic; } /* Warning */
 </style>")
+
+  (setq markdown-fontify-code-blocks-natively t)
+
+  (add-to-list 'markdown-code-lang-modes '("ts" . typescript-ts-mode))
+  (add-to-list 'markdown-code-lang-modes '("tsx" . tsx-ts-mode))
 
   ;; This mode overrides the return key! Stop!
   (define-key markdown-mode-map (kbd "<return>") nil)

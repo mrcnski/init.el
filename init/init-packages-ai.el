@@ -159,6 +159,9 @@ The threshold is the one `clean-buffer-list' uses."
    agent-shell-context-sources '(files region)
    )
 
+  (add-to-list 'agent-shell-markdown-language-mapping '("ts" . "typescript-ts"))
+  (add-to-list 'agent-shell-markdown-language-mapping '("tsx" . "tsx-ts"))
+
   (advice-add 'shell-maker-search-history
               :override #'my-shell-maker-search-history)
   ;; See the markdown-copy functions in :preface.
