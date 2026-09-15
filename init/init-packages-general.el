@@ -575,8 +575,9 @@ root. For plain terminals it is the abbreviated `default-directory'"
   ;;
   ;; TODO: can this be a nested use-package block?
   (require 'midnight)
-  (midnight-delay-set 'midnight-delay "1:00am")
-  (remove-hook 'midnight-hook 'clean-buffer-list)
+  ;; Seconds after midnight, i.e. 1:00am.  Not a time-of-day string, which
+  ;; midnight fires at every startup after 1am.
+  (midnight-delay-set 'midnight-delay 3600)
   (add-hook 'midnight-hook 'keycoach-reset)
   )
 
