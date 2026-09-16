@@ -259,6 +259,7 @@ The threshold is the one `clean-buffer-list' uses."
   :bind ("s-\"" . promptu)
   :config
   (setq
+   promptu-finish-function #'promptu-agent-shell-submit
    promptu-history-file (no-littering-expand-var-file-name "promptu-history.el")
    ;; Shared with the promptu menubar app.
    promptu-blocks "~/.config/promptu/blocks.json"
