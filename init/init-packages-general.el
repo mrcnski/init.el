@@ -41,6 +41,13 @@
    avy-single-candidate-jump nil
    )
 
+  ;; avy treats every char as visible when `buffer-invisibility-spec' is t (the
+  ;; default), so it considers candidates inside collapsed text. In agent-shell
+  ;; buffers with collapsed sections, that made `avy-goto-char' take seconds.
+  ;; See https://github.com/abo-abo/avy/pull/371.
+  (define-advice avy--visible-p (:override (s) respect-invisibility-spec)
+    (not (invisible-p s)))
+
   (defun avy-action-kill-whole-line (pt)
     (save-mark-and-excursion
       (goto-char pt)
