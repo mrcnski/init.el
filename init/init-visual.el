@@ -155,7 +155,8 @@ match the file extension instead."
                     agent-shell-markdown-source-block-language
                     agent-shell-markdown-table-header
                     agent-shell-markdown-table-border
-                    agent-shell-markdown-table-zebra))
+                    agent-shell-markdown-table-zebra
+                    agent-shell-markdown-table-row))
       (add-to-list 'mixed-pitch-fixed-pitch-faces face))
     )
   )

@@ -91,13 +91,26 @@ Moves to the prompt first, so it works from anywhere in the buffer."
   ;; `comint-scroll-to-bottom-on-input' doesn't work: agent-shell's headings and
   ;; buttons carry keymaps that remap `self-insert-command' to `ignore'.  And
   ;; comint's history commands refuse to run away from the prompt.
+  ;;
+  ;; agent-shell also binds a few printable keys (`n', `p', etc.) to commands
+  ;; that e.g. navigate, when typed away from the prompt.
+  (defun my-agent-shell-printable-key-p (keys)
+    "Return non-nil when the key sequence KEYS is one printable character."
+    (and (= (length keys) 1)
+         (let ((key (aref keys 0)))
+           (and (characterp key) (<= ?\s key) (/= key ?\C-?)))))
   (defun my-agent-shell-preinput-goto-prompt ()
     "Move to the prompt before a key that would insert or yank there."
     (when-let* ((process (get-buffer-process (current-buffer)))
                 ((< (point) (process-mark process)))
-                (command (key-binding (this-command-keys-vector) t t (point-max)))
-                ((memq command '(self-insert-command yank
-                                 comint-previous-input comint-next-input))))
+                (keys (this-command-keys-vector))
+                (command (key-binding keys t t (point-max)))
+                ((or (memq command '(self-insert-command yank
+                                     comint-previous-input comint-next-input))
+                     (and (not (shell-maker-busy))
+                          (not (region-active-p))
+                          (my-agent-shell-printable-key-p keys)
+                          (eq (lookup-key agent-shell-mode-map keys) command)))))
       (setq this-command (or (command-remapping command (point-max)) command))
       (goto-char (point-max))))
 
