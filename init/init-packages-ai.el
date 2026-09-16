@@ -262,6 +262,7 @@ The threshold is the one `clean-buffer-list' uses."
    promptu-history-file (no-littering-expand-var-file-name "promptu-history.el")
    ;; Shared with the promptu menubar app.
    promptu-blocks "~/.config/promptu/blocks.json"
+   promptu-history-max 10000
    )
   )
 
