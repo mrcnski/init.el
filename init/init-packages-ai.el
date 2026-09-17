@@ -168,6 +168,8 @@ The threshold is the one `clean-buffer-list' uses."
    ;; Don't auto-send point-derived context (current line, error at point)
    ;; when opening a shell. Keep only the explicit sources.
    agent-shell-context-sources '(files region)
+   ;; Interrupt on C-c C-c without the "Interrupt?" prompt.
+   agent-shell-confirm-interrupt nil
    )
 
   (add-to-list 'agent-shell-markdown-language-mapping '("ts" . "typescript-ts"))
