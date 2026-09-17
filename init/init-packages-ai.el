@@ -157,6 +157,7 @@ The threshold is the one `clean-buffer-list' uses."
          ("M-}" . comint-next-prompt)
 
          :map agent-shell-ui-mode-map
+         ;; Matches the claude and codex CLIs.
          ("M-<return>" . newline)
          )
 
@@ -192,6 +193,22 @@ The threshold is the one `clean-buffer-list' uses."
   ;; See `my-agent-shell-kill-stale-buffers' in :preface. Appended, so an error
   ;; won't stop `clean-buffer-list' from running.
   (add-hook 'midnight-hook #'my-agent-shell-kill-stale-buffers t)
+
+  (use-package agent-shell-queue-transient
+    :ensure nil
+    :load-path "~/.emacs.d/packages/agent-shell-queue-transient"
+    :demand t
+    :bind (
+           :map agent-shell-mode-map
+           ("C-<return>" . agent-shell-queue-transient)
+           :map agent-shell-viewport-view-mode-map
+           ("C-<return>" . agent-shell-queue-transient)
+           :map agent-shell-viewport-edit-mode-map
+           ("C-<return>" . agent-shell-queue-transient)
+           )
+    :config
+    (agent-shell-queue-transient-mode 1)
+    )
 
   ;; Persist agent-shell sessions across restarts, alongside
   ;; `desktop-save-mode'.  Not on MELPA; `:vc' installs from git and also
