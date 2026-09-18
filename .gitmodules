@@ -16,9 +16,6 @@
 [submodule "packages/promptu"]
 	path = packages/promptu.el
 	url = https://github.com/mrcnski/promptu.el.git
-[submodule "packages/org-remark-transient"]
-	path = packages/org-remark-transient
-	url = https://github.com/mrcnski/org-remark-transient
 [submodule "packages/markdown-file-links"]
 	path = packages/markdown-file-links
 	url = https://github.com/mrcnski/markdown-file-links
