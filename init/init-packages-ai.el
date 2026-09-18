@@ -6,6 +6,9 @@
 
 (use-package agent-shell
   :ensure t
+  ;; Get the C-s fix - hopefully temporary.
+  ;; See https://github.com/xenodium/agent-shell/pull/832.
+  :load-path "~/Sync/Repos/github.com/mrcnski/agent-shell"
   ;; Loaded eagerly rather than on first command: `agent-shell-desktop' below
   ;; requires agent-shell at load time, and has to enable its mode before
   ;; `desktop-read' runs on `after-init-hook'.
