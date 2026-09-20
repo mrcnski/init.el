@@ -26,8 +26,8 @@
 
 ;; Stub `use-package' so an init module loads under -Q, where package.el
 ;; was never set up.  Note that this discards the body of every
-;; `use-package' form, so a test for code living inside one needs its own
-;; approach rather than this file.
+;; `use-package' form, so a test for code living inside one reaches it
+;; with `init-test-use-package-config' instead of loading the module.
 (defmacro use-package (&rest _)
   "Stub for batch testing."
   nil)
@@ -41,6 +41,42 @@ again on a second call and its load-time side effects -- advice,
 hooks -- are re-applied."
   (load (expand-file-name (concat "init/" name ".el") init-test-root)
         nil t))
+
+(defun init-test-use-package-config (module package)
+  "Evaluate the `:config' body of (use-package PACKAGE) in MODULE.
+
+MODULE names an init file, like \"init-builtin-modes\".  PACKAGE is
+the symbol after `use-package' in that file, like `ibuffer'.
+
+The stub above throws away the body of every `use-package' form, so
+loading a module does not define anything written inside one.  This
+function instead reads the form straight from the file and evaluates
+its `:config' forms, after requiring PACKAGE the way use-package would.
+
+Any `use-package' nested in that body still hits the stub.  If the
+test needs a package that such a nested form would have loaded, it
+has to load that package itself.
+
+Signals an error if MODULE has no `use-package' form for PACKAGE."
+  (require package)
+  (let (form found)
+    (with-temp-buffer
+      (insert-file-contents
+       (expand-file-name (concat "init/" module ".el") init-test-root))
+      (condition-case nil
+          (while (not found)
+            (setq form (read (current-buffer)))
+            (when (and (eq (car-safe form) 'use-package)
+                       (eq (cadr form) package))
+              (setq found form)))
+        (end-of-file nil)))
+    (unless found
+      (error "No (use-package %s) in %s" package module))
+    (let ((rest (cdr (memq :config found)))
+          (body nil))
+      (while (and rest (not (keywordp (car rest))))
+        (push (pop rest) body))
+      (eval `(progn ,@(nreverse body)) t))))
 
 (defun init-test-add-elpa-package (name)
   "Put the newest installed elpa package matching NAME on the `load-path'.
