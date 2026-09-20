@@ -23,14 +23,14 @@
 
 (defvar info-delay .25)
 
-;; Open .emacs init.
-(defun open-init-file ()
-  "Open the init file."
+(defun open-init-magit ()
+  "Open init in magit."
   (interactive)
-  (find-file user-init-file))
-(global-set-key (kbd "C-c i") 'open-init-file)
+  (find-file user-init-file)
+  (magit-status)
+  )
+(global-set-key (kbd "C-c i") 'open-init-magit)
 
-;; Open scratchpad.txt.
 (defun open-scratchpad-file ()
   "Open scratchpad file."
   (interactive)
