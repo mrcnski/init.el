@@ -143,11 +143,29 @@
             ((> bs 1e3) (format "%7.1fk" (/ bs 1e3)))
             (t          (format "%7d" bs)))))
 
+  ;; Idle age based on buffer-display-time (same clock midnight uses).
+  (define-ibuffer-column age
+    (:name "Age" :inline t)
+    (let ((dt (buffer-local-value 'buffer-display-time (current-buffer))))
+      (if (null dt)
+          ""
+        (let* ((secs (float-time (time-subtract nil dt)))
+               (mins (floor secs 60))
+               (hrs  (floor secs 3600))
+               (days (floor secs 86400)))
+          (cond ((< mins 1)  "<1m")
+                ((< hrs 1)   (format "%dm" mins))
+                ((< days 1)  (format "%dh" hrs))
+                ((< days 7)  (format "%dd" days))
+                (t           (format "%dw" (floor days 7))))))))
+
   (setf ibuffer-formats
         '((mark modified read-only vc-status-mini " "
                 (name 24 24 :left :elide)
                 " "
                 (size-h 8 -1 :right)
+                " "
+                (age 4 -1 :right)
                 " "
                 (mode 16 16 :left :elide)
                 " "
