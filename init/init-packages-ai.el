@@ -6,9 +6,6 @@
 
 (use-package agent-shell
   :ensure t
-  ;; Get the C-s fix - hopefully temporary.
-  ;; See https://github.com/xenodium/agent-shell/pull/832.
-  :load-path "~/Sync/Repos/github.com/mrcnski/agent-shell"
   ;; Loaded eagerly rather than on first command: `agent-shell-desktop' below
   ;; requires agent-shell at load time, and has to enable its mode before
   ;; `desktop-read' runs on `after-init-hook'.
@@ -46,11 +43,6 @@ Delegate to the default filter when DELETE is non-nil."
                      end))
             (buffer-substring-no-properties beg end)
           (agent-shell-markdown-reconstruct beg end)))))
-
-  (defun my-agent-shell-setup-markdown-copy ()
-    "Make copy commands in this buffer yield the original markdown."
-    (setq-local filter-buffer-substring-function
-                #'my-agent-shell-filter-buffer-substring))
 
   (defun my-copy-as-format-agent-shell-markdown (orig-fun)
     "Give `copy-as-format' the reconstructed markdown in agent-shell buffers."
@@ -117,10 +109,6 @@ Moves to the prompt first, so it works from anywhere in the buffer."
       (setq this-command (or (command-remapping command (point-max)) command))
       (goto-char (point-max))))
 
-  (defun my-agent-shell-setup-preinput-goto-prompt ()
-    "Install `my-agent-shell-preinput-goto-prompt' in this buffer."
-    (add-hook 'pre-command-hook #'my-agent-shell-preinput-goto-prompt nil t))
-
   (defun my-agent-shell-context-indicator-append-cost (indicator)
     "Append the session's cumulative cost to the header context INDICATOR."
     (if-let* ((indicator)
@@ -183,8 +171,11 @@ The threshold is the one `clean-buffer-list' uses."
 
   (advice-add 'shell-maker-search-history
               :override #'my-shell-maker-search-history)
-  ;; See the markdown-copy functions in :preface.
-  (add-hook 'agent-shell-ui-mode-hook #'my-agent-shell-setup-markdown-copy)
+  ;; See `my-agent-shell-filter-buffer-substring' in :preface.
+  (add-hook 'agent-shell-ui-mode-hook
+            (lambda ()
+              (setq-local filter-buffer-substring-function
+                          #'my-agent-shell-filter-buffer-substring)))
   (advice-add 'copy-as-format--extract-text
               :around #'my-copy-as-format-agent-shell-markdown)
 
@@ -193,7 +184,16 @@ The threshold is the one `clean-buffer-list' uses."
               :filter-return #'my-agent-shell-context-indicator-append-cost)
 
   ;; See `my-agent-shell-preinput-goto-prompt' in :preface.
-  (add-hook 'agent-shell-mode-hook #'my-agent-shell-setup-preinput-goto-prompt)
+  (add-hook 'agent-shell-mode-hook
+            (lambda ()
+              (add-hook 'pre-command-hook
+                        #'my-agent-shell-preinput-goto-prompt nil t)))
+
+  ;; C-s matches visible text only, so collapsed sections stay folded. `M-s i'
+  ;; during a search toggles this back off.
+  (add-hook 'agent-shell-mode-hook
+            (lambda ()
+              (setq-local search-invisible nil)))
 
   ;; See `my-agent-shell-kill-stale-buffers' in :preface. Appended, so an error
   ;; won't stop `clean-buffer-list' from running.
