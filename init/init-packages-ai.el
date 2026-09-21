@@ -14,6 +14,8 @@
   (
    (claude . "npm install -g @anthropic-ai/claude-code")
    (claude-agent-acp . "npm install -g @agentclientprotocol/claude-agent-acp")
+   ;; Bundles its own codex engine, so the brew `codex' is only for the TUI.
+   (codex-acp . "npm install -g @agentclientprotocol/codex-acp")
    (opencode . "brew install opencode")
    )
 
@@ -127,6 +129,16 @@ The threshold is the one `clean-buffer-list' uses."
                        (format-time-string "%F %T") (buffer-name))
               (kill-buffer buffer)))))))
 
+  ;; Codex with GPT-6 Astra. `agent-shell-openai' has no default-config-options
+  ;; knob like OpenCode's module, so inject one.
+  (defun my-agent-shell-codex-config ()
+    "Return the Codex agent config, defaulting to GPT-6 Astra at high effort."
+    (let ((config (agent-shell-openai-make-codex-config)))
+      (setf (alist-get :default-config-options config)
+            (lambda () '(("model" . "gpt-6-astra")
+                         ("reasoning_effort" . "high"))))
+      config))
+
   :bind (
          ("s-A" . agent-shell)
          ;; OpenCode. Pick the model with `C-c C-v' in the shell.
@@ -144,7 +156,13 @@ The threshold is the one `clean-buffer-list' uses."
   :config
 
   (setq
-   agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)
+   ;; Only the installed agents show up in the picker. See
+   ;; `my-agent-shell-codex-config' in :preface.
+   agent-shell-agent-configs (list #'agent-shell-anthropic-make-claude-code-config
+                                   #'my-agent-shell-codex-config
+                                   #'agent-shell-opencode-make-agent-config)
+   ;; New shells prompt for the agent, with Claude preselected (RET keeps it).
+   agent-shell-preferred-agent-config '(preselect . claude-code)
    agent-shell-header-style 'text
    ;; Fix a bug. See https://github.com/xenodium/agent-shell/issues/793.
    agent-shell-chat-mode-enabled nil
