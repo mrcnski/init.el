@@ -109,17 +109,6 @@ Moves to the prompt first, so it works from anywhere in the buffer."
       (setq this-command (or (command-remapping command (point-max)) command))
       (goto-char (point-max))))
 
-  (defun my-agent-shell-context-indicator-append-cost (indicator)
-    "Append the session's cumulative cost to the header context INDICATOR."
-    (if-let* ((indicator)
-              (usage (map-elt (agent-shell--state) :usage))
-              (amount (map-elt usage :cost-amount))
-              ((> amount 0)))
-        (concat indicator
-                (propertize (format " · $%.2f" amount)
-                            'face 'agent-shell-secondary))
-      indicator))
-
   (defun my-agent-shell-kill-stale-buffers ()
     "Kill unused agent shells.
 The threshold is the one `clean-buffer-list' uses."
@@ -164,6 +153,8 @@ The threshold is the one `clean-buffer-list' uses."
    agent-shell-context-sources '(files region)
    ;; Interrupt on C-c C-c without the "Interrupt?" prompt.
    agent-shell-confirm-interrupt nil
+   ;; Show cost in the header?
+   agent-shell-show-cost-indicator t
    )
 
   (add-to-list 'agent-shell-markdown-language-mapping '("ts" . "typescript-ts"))
@@ -178,10 +169,6 @@ The threshold is the one `clean-buffer-list' uses."
                           #'my-agent-shell-filter-buffer-substring)))
   (advice-add 'copy-as-format--extract-text
               :around #'my-copy-as-format-agent-shell-markdown)
-
-  ;; Show the session cost in the header.
-  (advice-add 'agent-shell--context-usage-indicator
-              :filter-return #'my-agent-shell-context-indicator-append-cost)
 
   ;; See `my-agent-shell-preinput-goto-prompt' in :preface.
   (add-hook 'agent-shell-mode-hook
