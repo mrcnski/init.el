@@ -20,6 +20,7 @@
    )
 
   :preface
+
   ;; Copies from agent-shell buffers yield the agent's original markdown rather
   ;; than the rendered text.
   ;;
@@ -87,10 +88,10 @@ Moves to the prompt first, so it works from anywhere in the buffer."
   ;;
   ;; `comint-scroll-to-bottom-on-input' doesn't work: agent-shell's headings and
   ;; buttons carry keymaps that remap `self-insert-command' to `ignore'.  And
-  ;; comint's history commands refuse to run away from the prompt.
+  ;; comint's history commands refuse to run while not on the prompt.
   ;;
   ;; agent-shell also binds a few printable keys (`n', `p', etc.) to commands
-  ;; that e.g. navigate, when typed away from the prompt.
+  ;; that e.g. navigate, when typed while not on the prompt.
   (defun my-agent-shell-printable-key-p (keys)
     "Return non-nil when the key sequence KEYS is one printable character."
     (and (= (length keys) 1)
@@ -129,6 +130,18 @@ The threshold is the one `clean-buffer-list' uses."
                        (format-time-string "%F %T") (buffer-name))
               (kill-buffer buffer)))))))
 
+  ;; Log session IDs to *Messages* to facilitate resuming sessions.
+  (defun my-agent-shell-log-session-on-kill ()
+    "Log the current shell's session ID when its buffer is killed."
+    (agent-shell-subscribe-to
+     :shell-buffer (current-buffer)
+     :event 'clean-up
+     :on-event (lambda (_event)
+                 (when-let* ((session-id (agent-shell-session-id)))
+                   (message "[%s] closed `%s'; resume with session ID %s"
+                            (format-time-string "%F %T") (buffer-name)
+                            session-id)))))
+
   ;; Codex with GPT-6 Astra. `agent-shell-openai' has no default-config-options
   ;; knob like OpenCode's module, so inject one.
   (defun my-agent-shell-codex-config ()
@@ -163,12 +176,12 @@ The threshold is the one `clean-buffer-list' uses."
                                    #'agent-shell-opencode-make-agent-config)
    ;; New shells prompt for the agent, with Claude preselected (RET keeps it).
    agent-shell-preferred-agent-config '(preselect . claude-code)
+   ;; Narrower, more functional header style.
    agent-shell-header-style 'text
-   ;; Fix a bug. See https://github.com/xenodium/agent-shell/issues/793.
+   ;; The chat mode badges are a bit buggy.
    agent-shell-chat-mode-enabled nil
-   ;; Don't auto-send point-derived context (current line, error at point)
-   ;; when opening a shell. Keep only the explicit sources.
-   agent-shell-context-sources '(files region)
+   ;; Don't auto-send context (current line, error at point) when opening.
+   agent-shell-context-sources '(region)
    ;; Interrupt on C-c C-c without the "Interrupt?" prompt.
    agent-shell-confirm-interrupt nil
    ;; Show cost in the header?
@@ -200,6 +213,9 @@ The threshold is the one `clean-buffer-list' uses."
             (lambda ()
               (setq-local search-invisible nil)))
 
+  ;; See `my-agent-shell-log-session-on-kill' in :preface.
+  (add-hook 'agent-shell-mode-hook #'my-agent-shell-log-session-on-kill)
+
   ;; See `my-agent-shell-kill-stale-buffers' in :preface. Appended, so an error
   ;; won't stop `clean-buffer-list' from running.
   (add-hook 'midnight-hook #'my-agent-shell-kill-stale-buffers t)
@@ -221,10 +237,7 @@ The threshold is the one `clean-buffer-list' uses."
     )
 
   ;; Persist agent-shell sessions across restarts, alongside
-  ;; `desktop-save-mode'.  Not on MELPA; `:vc' installs from git and also
-  ;; suppresses `use-package-always-ensure'.
-  ;;
-  ;; Reaches into agent-shell internals, and carries a local fix.
+  ;; `desktop-save-mode'.
   (use-package agent-shell-desktop
     :vc (:url "https://github.com/timfel/agent-shell-desktop.el")
     :demand t
