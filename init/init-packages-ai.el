@@ -112,24 +112,6 @@ Moves to the prompt first, so it works from anywhere in the buffer."
       (setq this-command (or (command-remapping command (point-max)) command))
       (goto-char (point-max))))
 
-  (defun my-agent-shell-kill-stale-buffers ()
-    "Kill unused agent shells.
-The threshold is the one `clean-buffer-list' uses."
-    (interactive)
-    (dolist (buffer (buffer-list))
-      (when (buffer-live-p buffer)
-        (with-current-buffer buffer
-          (when (and (derived-mode-p 'agent-shell-mode)
-                     (not (get-buffer-window buffer 'visible))
-                     buffer-display-time
-                     (> (float-time (time-since buffer-display-time))
-                        (clean-buffer-list-delay (buffer-name))))
-            ;; shell-maker would otherwise ask to save its own transcript.
-            (let ((shell-maker-prompt-before-killing-buffer nil))
-              (message "[%s] killing stale shell `%s'"
-                       (format-time-string "%F %T") (buffer-name))
-              (kill-buffer buffer)))))))
-
   ;; Log session IDs to *Messages* to facilitate resuming sessions.
   (defun my-agent-shell-log-session-on-kill ()
     "Log the current shell's session ID when its buffer is killed."
@@ -151,6 +133,77 @@ The threshold is the one `clean-buffer-list' uses."
             (lambda () '(("model" . "gpt-6-astra")
                          ("reasoning_effort" . "high"))))
       config))
+
+  ;; Shell cleanup.
+  ;;
+  ;; `buffer-display-time' is a poor idle clock for shells: eyebrowse resets it
+  ;; for every buffer in a workspace on each switch. agent-shell's own
+  ;; last-activity time is used instead. "Orphaned" means no live window and no
+  ;; eyebrowse workspace shows the shell any more.
+
+  (defun my-agent-shell-last-activity (buffer)
+    "Time of the last prompt or agent message in shell BUFFER, or nil.
+Reads agent-shell's internal state; there is no public accessor."
+    (map-elt (buffer-local-value 'agent-shell--state buffer)
+             :last-activity-time))
+
+  (defun my-agent-shell-workspace-slots (buffer)
+    "Eyebrowse slots, on any frame, whose saved layout shows BUFFER."
+    (let ((name (buffer-name buffer))
+          slots)
+      (when (featurep 'eyebrowse)
+        (dolist (frame (frame-list))
+          (dolist (window-config (eyebrowse--get 'window-configs frame))
+            (eyebrowse--walk-window-config
+             window-config
+             (lambda (item)
+               (when (and (eq (car item) 'buffer)
+                          (equal (cadr item) name))
+                 (cl-pushnew (car window-config) slots)))))))
+      (sort slots #'<)))
+
+  (defun my-agent-shell-orphaned-p (buffer)
+    "Non-nil if BUFFER is an idle agent shell no window or workspace shows."
+    (with-current-buffer buffer
+      (and (derived-mode-p 'agent-shell-mode)
+           (not (shell-maker-busy))
+           (not (get-buffer-window buffer t))
+           (null (my-agent-shell-workspace-slots buffer)))))
+
+  (defun my-agent-shell-list ()
+    "List agent shells in ibuffer, with orphans marked for deletion.
+The Idle column is time since the shell last changed. WS lists the
+eyebrowse workspaces that show it."
+    (interactive)
+    (let* ((shells (seq-filter (lambda (b)
+                                 (with-current-buffer b
+                                   (derived-mode-p 'agent-shell-mode)))
+                               (buffer-list)))
+           (width (apply #'max 16 (mapcar (lambda (b) (length (buffer-name b)))
+                                          shells))))
+      (ibuffer nil "*Agent Shells*" '((derived-mode . agent-shell-mode))
+               nil nil nil
+               `((mark modified " "
+                       (name ,width ,width :left)
+                       " " (size-h 8 -1 :right)
+                       " " (agent-shell-idle 4 -1 :right)
+                       " " (agent-shell-workspaces 5 -1 :left)
+                       " " filename-and-process)))
+      (ibuffer-mark-on-buffer #'my-agent-shell-orphaned-p ibuffer-deletion-char)))
+
+  (defun my-agent-shell-kill-stale-buffers ()
+    "Kill orphaned agent shells that have been idle for a day."
+    (interactive)
+    (dolist (buffer (buffer-list))
+      (when (and (buffer-live-p buffer)
+                 (my-agent-shell-orphaned-p buffer)
+                 (> (float-time (time-since (my-agent-shell-last-activity buffer)))
+                    (* 24 60 60)))
+        ;; shell-maker would otherwise ask to save its own transcript.
+        (let ((shell-maker-prompt-before-killing-buffer nil))
+          (message "[%s] killing stale shell `%s'"
+                   (format-time-string "%F %T") (buffer-name buffer))
+          (kill-buffer buffer)))))
 
   :bind (
          ("s-A" . agent-shell)
@@ -216,9 +269,19 @@ The threshold is the one `clean-buffer-list' uses."
   ;; See `my-agent-shell-log-session-on-kill' in :preface.
   (add-hook 'agent-shell-mode-hook #'my-agent-shell-log-session-on-kill)
 
-  ;; See `my-agent-shell-kill-stale-buffers' in :preface. Appended, so an error
-  ;; won't stop `clean-buffer-list' from running.
+  ;; Shell cleanup; see `my-agent-shell-list' in :preface. The midnight hook is
+  ;; appended, so an error won't stop `clean-buffer-list' from running.
   (add-hook 'midnight-hook #'my-agent-shell-kill-stale-buffers t)
+
+  (with-eval-after-load 'ibuffer
+    (define-ibuffer-column agent-shell-idle
+      (:name "Idle" :inline t)
+      (ibuffer-age-string (my-agent-shell-last-activity buffer)))
+
+    (define-ibuffer-column agent-shell-workspaces
+      (:name "WS" :inline t)
+      (mapconcat #'number-to-string
+                 (my-agent-shell-workspace-slots buffer) ",")))
 
   (use-package agent-shell-queue-transient
     :ensure nil
