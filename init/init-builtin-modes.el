@@ -186,9 +186,13 @@ hours and days to weeks, truncating to the largest whole unit."
     :config
     (add-hook 'ibuffer-hook
               (lambda ()
-                (ibuffer-vc-set-filter-groups-by-vc-root)
+                ;; Not `ibuffer-vc-set-filter-groups-by-vc-root': that pops to
+                ;; `*Ibuffer*' when it exists.
+                (setq ibuffer-filter-groups
+                      (ibuffer-vc-generate-filter-groups-by-vc-root))
                 (unless (eq ibuffer-sorting-mode 'alphabetic)
-                  (ibuffer-do-sort-by-alphabetic))))
+                  (ibuffer-do-sort-by-alphabetic))
+                (ibuffer-update nil t)))
     )
   )
 
