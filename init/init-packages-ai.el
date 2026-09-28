@@ -19,7 +19,53 @@
    (opencode . "brew install opencode")
    )
 
-  :preface
+  :bind (
+         ("s-A" . agent-shell)
+         ;; OpenCode. Pick the model with `C-c C-v' in the shell.
+         ("s-O" . agent-shell-opencode-start-agent)
+
+         :map agent-shell-mode-map
+         ("M-{" . comint-previous-prompt)
+         ("M-}" . comint-next-prompt)
+
+         :map agent-shell-ui-mode-map
+         ;; Matches the claude and codex CLIs.
+         ("M-<return>" . newline)
+         )
+
+  :config
+
+  ;; Codex with GPT-6 Astra. `agent-shell-openai' has no default-config-options
+  ;; knob like OpenCode's module, so inject one.
+  (defun my-agent-shell-codex-config ()
+    "Return the Codex agent config, defaulting to GPT-6 Astra at high effort."
+    (let ((config (agent-shell-openai-make-codex-config)))
+      (setf (alist-get :default-config-options config)
+            (lambda () '(("model" . "gpt-6-astra")
+                         ("reasoning_effort" . "high"))))
+      config))
+
+  (setq
+   ;; Only the installed agents show up in the picker.
+   agent-shell-agent-configs (list #'agent-shell-anthropic-make-claude-code-config
+                                   #'my-agent-shell-codex-config
+                                   #'agent-shell-opencode-make-agent-config)
+   ;; New shells prompt for the agent, with Claude preselected (RET keeps it).
+   agent-shell-preferred-agent-config '(preselect . claude-code)
+   ;; Narrower, more functional header style.
+   agent-shell-header-style 'text
+   ;; The chat mode badges are a bit buggy.
+   agent-shell-chat-mode-enabled nil
+   ;; Don't auto-send context (current line, error at point) when opening.
+   agent-shell-context-sources '(region)
+   ;; Interrupt on C-c C-c without the "Interrupt?" prompt.
+   agent-shell-confirm-interrupt nil
+   ;; Show cost in the header?
+   agent-shell-show-cost-indicator t
+   )
+
+  (add-to-list 'agent-shell-markdown-language-mapping '("ts" . "typescript-ts"))
+  (add-to-list 'agent-shell-markdown-language-mapping '("tsx" . "tsx-ts"))
 
   ;; Copies from agent-shell buffers yield the agent's original markdown rather
   ;; than the rendered text.
@@ -46,12 +92,18 @@ Delegate to the default filter when DELETE is non-nil."
                      end))
             (buffer-substring-no-properties beg end)
           (agent-shell-markdown-reconstruct beg end)))))
+  (add-hook 'agent-shell-ui-mode-hook
+            (lambda ()
+              (setq-local filter-buffer-substring-function
+                          #'my-agent-shell-filter-buffer-substring)))
 
   (defun my-copy-as-format-agent-shell-markdown (orig-fun)
     "Give `copy-as-format' the reconstructed markdown in agent-shell buffers."
     (if (and (bound-and-true-p agent-shell-ui-mode) (use-region-p))
         (my-agent-shell-filter-buffer-substring (region-beginning) (region-end))
       (funcall orig-fun)))
+  (advice-add 'copy-as-format--extract-text
+              :around #'my-copy-as-format-agent-shell-markdown)
 
   ;; See https://github.com/xenodium/shell-maker/pull/44.
   (defun my-shell-maker-search-history ()
@@ -82,6 +134,8 @@ Moves to the prompt first, so it works from anywhere in the buffer."
                        nil t)))
       (delete-region (comint-line-beginning-position) (point-max))
       (insert candidate)))
+  (advice-add 'shell-maker-search-history
+              :override #'my-shell-maker-search-history)
 
   ;; Typing, yanking, or recalling history over read-only text goes to the
   ;; prompt first, like eshell.
@@ -111,6 +165,16 @@ Moves to the prompt first, so it works from anywhere in the buffer."
                           (eq (lookup-key agent-shell-mode-map keys) command)))))
       (setq this-command (or (command-remapping command (point-max)) command))
       (goto-char (point-max))))
+  (add-hook 'agent-shell-mode-hook
+            (lambda ()
+              (add-hook 'pre-command-hook
+                        #'my-agent-shell-preinput-goto-prompt nil t)))
+
+  ;; C-s matches visible text only, so collapsed sections stay folded. `M-s i'
+  ;; during a search toggles this back off.
+  (add-hook 'agent-shell-mode-hook
+            (lambda ()
+              (setq-local search-invisible nil)))
 
   ;; Log session IDs to *Messages* to facilitate resuming sessions.
   (defun my-agent-shell-log-session-on-kill ()
@@ -123,165 +187,7 @@ Moves to the prompt first, so it works from anywhere in the buffer."
                    (message "[%s] closed `%s'; resume with session ID %s"
                             (format-time-string "%F %T") (buffer-name)
                             session-id)))))
-
-  ;; Codex with GPT-6 Astra. `agent-shell-openai' has no default-config-options
-  ;; knob like OpenCode's module, so inject one.
-  (defun my-agent-shell-codex-config ()
-    "Return the Codex agent config, defaulting to GPT-6 Astra at high effort."
-    (let ((config (agent-shell-openai-make-codex-config)))
-      (setf (alist-get :default-config-options config)
-            (lambda () '(("model" . "gpt-6-astra")
-                         ("reasoning_effort" . "high"))))
-      config))
-
-  ;; Shell cleanup.
-  ;;
-  ;; `buffer-display-time' is a poor idle clock for shells: eyebrowse resets it
-  ;; for every buffer in a workspace on each switch. agent-shell's own
-  ;; last-activity time is used instead. "Orphaned" means no live window and no
-  ;; eyebrowse workspace shows the shell any more.
-
-  (defun my-agent-shell-last-activity (buffer)
-    "Time of the last prompt or agent message in shell BUFFER, or nil.
-Reads agent-shell's internal state; there is no public accessor."
-    (map-elt (buffer-local-value 'agent-shell--state buffer)
-             :last-activity-time))
-
-  (defun my-agent-shell-workspace-slots (buffer)
-    "Eyebrowse slots, on any frame, whose saved layout shows BUFFER."
-    (let ((name (buffer-name buffer))
-          slots)
-      (when (featurep 'eyebrowse)
-        (dolist (frame (frame-list))
-          (dolist (window-config (eyebrowse--get 'window-configs frame))
-            (eyebrowse--walk-window-config
-             window-config
-             (lambda (item)
-               (when (and (eq (car item) 'buffer)
-                          (equal (cadr item) name))
-                 (cl-pushnew (car window-config) slots)))))))
-      (sort slots #'<)))
-
-  (defun my-agent-shell-orphaned-p (buffer)
-    "Non-nil if BUFFER is an idle agent shell no window or workspace shows."
-    (with-current-buffer buffer
-      (and (derived-mode-p 'agent-shell-mode)
-           (not (shell-maker-busy))
-           (not (get-buffer-window buffer t))
-           (null (my-agent-shell-workspace-slots buffer)))))
-
-  (defun my-agent-shell-list ()
-    "List agent shells in ibuffer, with orphans marked for deletion.
-The Idle column is time since the shell last changed. WS lists the
-eyebrowse workspaces that show it."
-    (interactive)
-    (let* ((shells (seq-filter (lambda (b)
-                                 (with-current-buffer b
-                                   (derived-mode-p 'agent-shell-mode)))
-                               (buffer-list)))
-           (width (apply #'max 16 (mapcar (lambda (b) (length (buffer-name b)))
-                                          shells))))
-      (ibuffer nil "*Agent Shells*" '((derived-mode . agent-shell-mode))
-               nil nil nil
-               `((mark modified " "
-                       (name ,width ,width :left)
-                       " " (size-h 8 -1 :right)
-                       " " (agent-shell-idle 4 -1 :right)
-                       " " (agent-shell-workspaces 5 -1 :left)
-                       " " filename-and-process)))
-      (ibuffer-mark-on-buffer #'my-agent-shell-orphaned-p ibuffer-deletion-char)))
-
-  (defun my-agent-shell-kill-stale-buffers ()
-    "Kill orphaned agent shells that have been idle for a day."
-    (interactive)
-    (dolist (buffer (buffer-list))
-      (when (and (buffer-live-p buffer)
-                 (my-agent-shell-orphaned-p buffer)
-                 (> (float-time (time-since (my-agent-shell-last-activity buffer)))
-                    (* 24 60 60)))
-        ;; shell-maker would otherwise ask to save its own transcript.
-        (let ((shell-maker-prompt-before-killing-buffer nil))
-          (message "[%s] killing stale shell `%s'"
-                   (format-time-string "%F %T") (buffer-name buffer))
-          (kill-buffer buffer)))))
-
-  :bind (
-         ("s-A" . agent-shell)
-         ;; OpenCode. Pick the model with `C-c C-v' in the shell.
-         ("s-O" . agent-shell-opencode-start-agent)
-
-         :map agent-shell-mode-map
-         ("M-{" . comint-previous-prompt)
-         ("M-}" . comint-next-prompt)
-
-         :map agent-shell-ui-mode-map
-         ;; Matches the claude and codex CLIs.
-         ("M-<return>" . newline)
-         )
-
-  :config
-
-  (setq
-   ;; Only the installed agents show up in the picker. See
-   ;; `my-agent-shell-codex-config' in :preface.
-   agent-shell-agent-configs (list #'agent-shell-anthropic-make-claude-code-config
-                                   #'my-agent-shell-codex-config
-                                   #'agent-shell-opencode-make-agent-config)
-   ;; New shells prompt for the agent, with Claude preselected (RET keeps it).
-   agent-shell-preferred-agent-config '(preselect . claude-code)
-   ;; Narrower, more functional header style.
-   agent-shell-header-style 'text
-   ;; The chat mode badges are a bit buggy.
-   agent-shell-chat-mode-enabled nil
-   ;; Don't auto-send context (current line, error at point) when opening.
-   agent-shell-context-sources '(region)
-   ;; Interrupt on C-c C-c without the "Interrupt?" prompt.
-   agent-shell-confirm-interrupt nil
-   ;; Show cost in the header?
-   agent-shell-show-cost-indicator t
-   )
-
-  (add-to-list 'agent-shell-markdown-language-mapping '("ts" . "typescript-ts"))
-  (add-to-list 'agent-shell-markdown-language-mapping '("tsx" . "tsx-ts"))
-
-  (advice-add 'shell-maker-search-history
-              :override #'my-shell-maker-search-history)
-  ;; See `my-agent-shell-filter-buffer-substring' in :preface.
-  (add-hook 'agent-shell-ui-mode-hook
-            (lambda ()
-              (setq-local filter-buffer-substring-function
-                          #'my-agent-shell-filter-buffer-substring)))
-  (advice-add 'copy-as-format--extract-text
-              :around #'my-copy-as-format-agent-shell-markdown)
-
-  ;; See `my-agent-shell-preinput-goto-prompt' in :preface.
-  (add-hook 'agent-shell-mode-hook
-            (lambda ()
-              (add-hook 'pre-command-hook
-                        #'my-agent-shell-preinput-goto-prompt nil t)))
-
-  ;; C-s matches visible text only, so collapsed sections stay folded. `M-s i'
-  ;; during a search toggles this back off.
-  (add-hook 'agent-shell-mode-hook
-            (lambda ()
-              (setq-local search-invisible nil)))
-
-  ;; See `my-agent-shell-log-session-on-kill' in :preface.
   (add-hook 'agent-shell-mode-hook #'my-agent-shell-log-session-on-kill)
-
-  ;; Shell cleanup; see `my-agent-shell-list' in :preface. The midnight hook is
-  ;; appended, so an error won't stop `clean-buffer-list' from running.
-  (add-hook 'midnight-hook #'my-agent-shell-kill-stale-buffers t)
-
-  (with-eval-after-load 'ibuffer
-    (define-ibuffer-column agent-shell-idle
-      (:name "Idle" :inline t)
-      (ibuffer-age-string (my-agent-shell-last-activity buffer)))
-
-    (define-ibuffer-column agent-shell-workspaces
-      (:name "WS" :inline t)
-      (mapconcat #'number-to-string
-                 (my-agent-shell-workspace-slots buffer) ",")))
 
   (use-package agent-shell-queue-transient
     :ensure nil
@@ -297,6 +203,20 @@ eyebrowse workspaces that show it."
            )
     :config
     (agent-shell-queue-transient-mode 1)
+    )
+
+  ;; List idle shells (`agent-shell-janitor-list') and kill stale ones daily.
+  (use-package agent-shell-janitor
+    :ensure nil
+    :load-path "~/.emacs.d/packages/agent-shell-janitor"
+    :commands (agent-shell-janitor-list agent-shell-janitor-kill-stale)
+    :init
+    ;; Appended, so an error won't stop `clean-buffer-list' from running.
+    (add-hook 'midnight-hook #'agent-shell-janitor-kill-stale t)
+    :config
+    ;; Use the human-readable Size column from init-builtin-modes.
+    (setq agent-shell-janitor-ibuffer-format
+          (cl-subst 'size-h 'size agent-shell-janitor-ibuffer-format))
     )
 
   ;; Persist agent-shell sessions across restarts, alongside
