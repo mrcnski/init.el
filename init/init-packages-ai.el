@@ -16,182 +16,6 @@
    (claude-agent-acp . "npm install -g @agentclientprotocol/claude-agent-acp")
    )
 
-  :preface
-
-  ;; Copies from agent-shell buffers yield the agent's original markdown rather
-  ;; than the rendered text.
-  ;;
-  ;; `filter-buffer-substring-function' covers everything built on the kill
-  ;; machinery (M-w, C-l, M-W); `copy-as-format' (s-w) extracts text with
-  ;; `buffer-substring-no-properties', so it needs the advice below.
-  (defun my-agent-shell-filter-buffer-substring (beg end &optional delete)
-    "Reconstruct the original markdown between BEG and END when copying.
-
-Exception: a selection lying entirely within a single inline construct
-copies as the visible plain text (grabbing a filename or symbol to
-navigate somewhere shouldn't drag its markers along).
-
-Delegate to the default filter when DELETE is non-nil."
-    (if delete
-        (buffer-substring--filter beg end delete)
-      (let ((source (get-text-property beg 'agent-shell-markdown-source)))
-        (if (and source
-                 (not (equal source ""))
-                 (not (string-search "\n" source))
-                 (>= (next-single-property-change
-                      beg 'agent-shell-markdown-source nil (point-max))
-                     end))
-            (buffer-substring-no-properties beg end)
-          (agent-shell-markdown-reconstruct beg end)))))
-
-  (defun my-copy-as-format-agent-shell-markdown (orig-fun)
-    "Give `copy-as-format' the reconstructed markdown in agent-shell buffers."
-    (if (and (bound-and-true-p agent-shell-ui-mode) (use-region-p))
-        (my-agent-shell-filter-buffer-substring (region-beginning) (region-end))
-      (funcall orig-fun)))
-
-  ;; See https://github.com/xenodium/shell-maker/pull/44.
-  (defun my-shell-maker-search-history ()
-    "Search input history (M-r), most recent input first.
-
-Like `shell-maker-search-history', but hands `completing-read' a
-table whose metadata preserves the input ring's newest-first
-order, which vertico would otherwise re-sort by length and
-alphabetically.
-
-Moves to the prompt first, so it works from anywhere in the buffer."
-    (interactive)
-    (unless (eq major-mode (shell-maker-major-mode shell-maker--config))
-      (user-error "Not in a shell"))
-    (goto-char (point-max))
-    (let* ((items (delete-dups
-                   (seq-filter
-                    (lambda (item)
-                      (not (string-empty-p item)))
-                    (ring-elements comint-input-ring))))
-           (candidate (completing-read
-                       "History: "
-                       (lambda (string pred action)
-                         (if (eq action 'metadata)
-                             '(metadata (display-sort-function . identity)
-                                        (cycle-sort-function . identity))
-                           (complete-with-action action items string pred)))
-                       nil t)))
-      (delete-region (comint-line-beginning-position) (point-max))
-      (insert candidate)))
-
-  ;; Typing, yanking, or recalling history over read-only text goes to the
-  ;; prompt first, like eshell.
-  ;;
-  ;; `comint-scroll-to-bottom-on-input' doesn't work: agent-shell's headings and
-  ;; buttons carry keymaps that remap `self-insert-command' to `ignore'.  And
-  ;; comint's history commands refuse to run while not on the prompt.
-  ;;
-  ;; agent-shell also binds a few printable keys (`n', `p', etc.) to commands
-  ;; that e.g. navigate, when typed while not on the prompt.
-  (defun my-agent-shell-printable-key-p (keys)
-    "Return non-nil when the key sequence KEYS is one printable character."
-    (and (= (length keys) 1)
-         (let ((key (aref keys 0)))
-           (and (characterp key) (<= ?\s key) (/= key ?\C-?)))))
-  (defun my-agent-shell-preinput-goto-prompt ()
-    "Move to the prompt before a key that would insert or yank there."
-    (when-let* ((process (get-buffer-process (current-buffer)))
-                ((< (point) (process-mark process)))
-                (keys (this-command-keys-vector))
-                (command (key-binding keys t t (point-max)))
-                ((or (memq command '(self-insert-command yank
-                                     comint-previous-input comint-next-input))
-                     (and (not (shell-maker-busy))
-                          (not (region-active-p))
-                          (my-agent-shell-printable-key-p keys)
-                          (eq (lookup-key agent-shell-mode-map keys) command)))))
-      (setq this-command (or (command-remapping command (point-max)) command))
-      (goto-char (point-max))))
-
-  ;; Log session IDs to *Messages* to facilitate resuming sessions.
-  (defun my-agent-shell-log-session-on-kill ()
-    "Log the current shell's session ID when its buffer is killed."
-    (agent-shell-subscribe-to
-     :shell-buffer (current-buffer)
-     :event 'clean-up
-     :on-event (lambda (_event)
-                 (when-let* ((session-id (agent-shell-session-id)))
-                   (message "[%s] closed `%s'; resume with session ID %s"
-                            (format-time-string "%F %T") (buffer-name)
-                            session-id)))))
-
-  ;; Shell cleanup.
-  ;;
-  ;; `buffer-display-time' is a poor idle clock for shells: eyebrowse resets it
-  ;; for every buffer in a workspace on each switch. agent-shell's own
-  ;; last-activity time is used instead. "Orphaned" means no live window and no
-  ;; eyebrowse workspace shows the shell any more.
-
-  (defun my-agent-shell-last-activity (buffer)
-    "Time of the last prompt or agent message in shell BUFFER, or nil.
-Reads agent-shell's internal state; there is no public accessor."
-    (map-elt (buffer-local-value 'agent-shell--state buffer)
-             :last-activity-time))
-
-  (defun my-agent-shell-workspace-slots (buffer)
-    "Eyebrowse slots, on any frame, whose saved layout shows BUFFER."
-    (let ((name (buffer-name buffer))
-          slots)
-      (when (featurep 'eyebrowse)
-        (dolist (frame (frame-list))
-          (dolist (window-config (eyebrowse--get 'window-configs frame))
-            (eyebrowse--walk-window-config
-             window-config
-             (lambda (item)
-               (when (and (eq (car item) 'buffer)
-                          (equal (cadr item) name))
-                 (cl-pushnew (car window-config) slots)))))))
-      (sort slots #'<)))
-
-  (defun my-agent-shell-orphaned-p (buffer)
-    "Non-nil if BUFFER is an idle agent shell no window or workspace shows."
-    (with-current-buffer buffer
-      (and (derived-mode-p 'agent-shell-mode)
-           (not (shell-maker-busy))
-           (not (get-buffer-window buffer t))
-           (null (my-agent-shell-workspace-slots buffer)))))
-
-  (defun my-agent-shell-list ()
-    "List agent shells in ibuffer, with orphans marked for deletion.
-The Idle column is time since the shell last changed. WS lists the
-eyebrowse workspaces that show it."
-    (interactive)
-    (let* ((shells (seq-filter (lambda (b)
-                                 (with-current-buffer b
-                                   (derived-mode-p 'agent-shell-mode)))
-                               (buffer-list)))
-           (width (apply #'max 16 (mapcar (lambda (b) (length (buffer-name b)))
-                                          shells))))
-      (ibuffer nil "*Agent Shells*" '((derived-mode . agent-shell-mode))
-               nil nil nil
-               `((mark modified " "
-                       (name ,width ,width :left)
-                       " " (size-h 8 -1 :right)
-                       " " (agent-shell-idle 4 -1 :right)
-                       " " (agent-shell-workspaces 5 -1 :left)
-                       " " filename-and-process)))
-      (ibuffer-mark-on-buffer #'my-agent-shell-orphaned-p ibuffer-deletion-char)))
-
-  (defun my-agent-shell-kill-stale-buffers ()
-    "Kill orphaned agent shells that have been idle for a day."
-    (interactive)
-    (dolist (buffer (buffer-list))
-      (when (and (buffer-live-p buffer)
-                 (my-agent-shell-orphaned-p buffer)
-                 (> (float-time (time-since (my-agent-shell-last-activity buffer)))
-                    (* 24 60 60)))
-        ;; shell-maker would otherwise ask to save its own transcript.
-        (let ((shell-maker-prompt-before-killing-buffer nil))
-          (message "[%s] killing stale shell `%s'"
-                   (format-time-string "%F %T") (buffer-name buffer))
-          (kill-buffer buffer)))))
-
   :bind (
          ("s-A" . agent-shell)
 
@@ -223,17 +47,104 @@ eyebrowse workspaces that show it."
   (add-to-list 'agent-shell-markdown-language-mapping '("ts" . "typescript-ts"))
   (add-to-list 'agent-shell-markdown-language-mapping '("tsx" . "tsx-ts"))
 
-  (advice-add 'shell-maker-search-history
-              :override #'my-shell-maker-search-history)
-  ;; See `my-agent-shell-filter-buffer-substring' in :preface.
+  ;; Copies from agent-shell buffers yield the agent's original markdown rather
+  ;; than the rendered text.
+  ;;
+  ;; `filter-buffer-substring-function' covers everything built on the kill
+  ;; machinery (M-w, C-l, M-W); `copy-as-format' (s-w) extracts text with
+  ;; `buffer-substring-no-properties', so it needs the advice below.
+  (defun my-agent-shell-filter-buffer-substring (beg end &optional delete)
+    "Reconstruct the original markdown between BEG and END when copying.
+
+Exception: a selection lying entirely within a single inline construct
+copies as the visible plain text (grabbing a filename or symbol to
+navigate somewhere shouldn't drag its markers along).
+
+Delegate to the default filter when DELETE is non-nil."
+    (if delete
+        (buffer-substring--filter beg end delete)
+      (let ((source (get-text-property beg 'agent-shell-markdown-source)))
+        (if (and source
+                 (not (equal source ""))
+                 (not (string-search "\n" source))
+                 (>= (next-single-property-change
+                      beg 'agent-shell-markdown-source nil (point-max))
+                     end))
+            (buffer-substring-no-properties beg end)
+          (agent-shell-markdown-reconstruct beg end)))))
   (add-hook 'agent-shell-ui-mode-hook
             (lambda ()
               (setq-local filter-buffer-substring-function
                           #'my-agent-shell-filter-buffer-substring)))
+
+  (defun my-copy-as-format-agent-shell-markdown (orig-fun)
+    "Give `copy-as-format' the reconstructed markdown in agent-shell buffers."
+    (if (and (bound-and-true-p agent-shell-ui-mode) (use-region-p))
+        (my-agent-shell-filter-buffer-substring (region-beginning) (region-end))
+      (funcall orig-fun)))
   (advice-add 'copy-as-format--extract-text
               :around #'my-copy-as-format-agent-shell-markdown)
 
-  ;; See `my-agent-shell-preinput-goto-prompt' in :preface.
+  ;; See https://github.com/xenodium/shell-maker/pull/44.
+  (defun my-shell-maker-search-history ()
+    "Search input history (M-r), most recent input first.
+
+Like `shell-maker-search-history', but hands `completing-read' a
+table whose metadata preserves the input ring's newest-first
+order, which vertico would otherwise re-sort by length and
+alphabetically.
+
+Moves to the prompt first, so it works from anywhere in the buffer."
+    (interactive)
+    (unless (eq major-mode (shell-maker-major-mode shell-maker--config))
+      (user-error "Not in a shell"))
+    (goto-char (point-max))
+    (let* ((items (delete-dups
+                   (seq-filter
+                    (lambda (item)
+                      (not (string-empty-p item)))
+                    (ring-elements comint-input-ring))))
+           (candidate (completing-read
+                       "History: "
+                       (lambda (string pred action)
+                         (if (eq action 'metadata)
+                             '(metadata (display-sort-function . identity)
+                                        (cycle-sort-function . identity))
+                           (complete-with-action action items string pred)))
+                       nil t)))
+      (delete-region (comint-line-beginning-position) (point-max))
+      (insert candidate)))
+  (advice-add 'shell-maker-search-history
+              :override #'my-shell-maker-search-history)
+
+  ;; Typing, yanking, or recalling history over read-only text goes to the
+  ;; prompt first, like eshell.
+  ;;
+  ;; `comint-scroll-to-bottom-on-input' doesn't work: agent-shell's headings and
+  ;; buttons carry keymaps that remap `self-insert-command' to `ignore'.  And
+  ;; comint's history commands refuse to run while not on the prompt.
+  ;;
+  ;; agent-shell also binds a few printable keys (`n', `p', etc.) to commands
+  ;; that e.g. navigate, when typed while not on the prompt.
+  (defun my-agent-shell-printable-key-p (keys)
+    "Return non-nil when the key sequence KEYS is one printable character."
+    (and (= (length keys) 1)
+         (let ((key (aref keys 0)))
+           (and (characterp key) (<= ?\s key) (/= key ?\C-?)))))
+  (defun my-agent-shell-preinput-goto-prompt ()
+    "Move to the prompt before a key that would insert or yank there."
+    (when-let* ((process (get-buffer-process (current-buffer)))
+                ((< (point) (process-mark process)))
+                (keys (this-command-keys-vector))
+                (command (key-binding keys t t (point-max)))
+                ((or (memq command '(self-insert-command yank
+                                     comint-previous-input comint-next-input))
+                     (and (not (shell-maker-busy))
+                          (not (region-active-p))
+                          (my-agent-shell-printable-key-p keys)
+                          (eq (lookup-key agent-shell-mode-map keys) command)))))
+      (setq this-command (or (command-remapping command (point-max)) command))
+      (goto-char (point-max))))
   (add-hook 'agent-shell-mode-hook
             (lambda ()
               (add-hook 'pre-command-hook
@@ -245,22 +156,18 @@ eyebrowse workspaces that show it."
             (lambda ()
               (setq-local search-invisible nil)))
 
-  ;; See `my-agent-shell-log-session-on-kill' in :preface.
+  ;; Log session IDs to *Messages* to facilitate resuming sessions.
+  (defun my-agent-shell-log-session-on-kill ()
+    "Log the current shell's session ID when its buffer is killed."
+    (agent-shell-subscribe-to
+     :shell-buffer (current-buffer)
+     :event 'clean-up
+     :on-event (lambda (_event)
+                 (when-let* ((session-id (agent-shell-session-id)))
+                   (message "[%s] closed `%s'; resume with session ID %s"
+                            (format-time-string "%F %T") (buffer-name)
+                            session-id)))))
   (add-hook 'agent-shell-mode-hook #'my-agent-shell-log-session-on-kill)
-
-  ;; Shell cleanup; see `my-agent-shell-list' in :preface. The midnight hook is
-  ;; appended, so an error won't stop `clean-buffer-list' from running.
-  (add-hook 'midnight-hook #'my-agent-shell-kill-stale-buffers t)
-
-  (with-eval-after-load 'ibuffer
-    (define-ibuffer-column agent-shell-idle
-      (:name "Idle" :inline t)
-      (ibuffer-age-string (my-agent-shell-last-activity buffer)))
-
-    (define-ibuffer-column agent-shell-workspaces
-      (:name "WS" :inline t)
-      (mapconcat #'number-to-string
-                 (my-agent-shell-workspace-slots buffer) ",")))
 
   (use-package agent-shell-queue-transient
     :ensure nil
@@ -276,6 +183,20 @@ eyebrowse workspaces that show it."
            )
     :config
     (agent-shell-queue-transient-mode 1)
+    )
+
+  ;; List idle shells (`agent-shell-janitor-list') and kill stale ones daily.
+  (use-package agent-shell-janitor
+    :ensure nil
+    :load-path "~/.emacs.d/packages/agent-shell-janitor"
+    :commands (agent-shell-janitor-list agent-shell-janitor-kill-stale)
+    :init
+    ;; Appended, so an error won't stop `clean-buffer-list' from running.
+    (add-hook 'midnight-hook #'agent-shell-janitor-kill-stale t)
+    :config
+    ;; Use the human-readable Size column from init-builtin-modes.
+    (setq agent-shell-janitor-ibuffer-format
+          (cl-subst 'size-h 'size agent-shell-janitor-ibuffer-format))
     )
 
   ;; Persist agent-shell sessions across restarts, alongside
