@@ -245,6 +245,14 @@
 ;; Turn on subword-mode everywhere.
 (global-subword-mode t)
 
+;; `symbol-at-point' interns the text at point with its text properties, and a
+;; new symbol keeps them in its name for the rest of the session. Packages
+;; installed later in that session then get unreadable `#("…" …)' docstrings in
+;; their autoloads, since `loaddefs-generate' formats the symbol into them.
+(define-advice symbol-at-point (:override () no-properties)
+  (let ((thing (thing-at-point 'symbol t)))
+    (if thing (intern thing))))
+
 ;;; Mouse settings
 
 (setq
