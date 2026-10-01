@@ -150,13 +150,15 @@ match the file extension instead."
     (setq mixed-pitch-variable-pitch-cursor nil)
 
     ;; Add agent-shell support.
-    (dolist (face '(agent-shell-markdown-inline-code
+    (dolist (face '(
+                    agent-shell-markdown-inline-code
                     agent-shell-markdown-source-block
                     agent-shell-markdown-source-block-language
                     agent-shell-markdown-table-header
                     agent-shell-markdown-table-border
                     agent-shell-markdown-table-zebra
-                    agent-shell-markdown-table-row))
+                    agent-shell-markdown-table
+                    ))
       (add-to-list 'mixed-pitch-fixed-pitch-faces face))
     )
   )
