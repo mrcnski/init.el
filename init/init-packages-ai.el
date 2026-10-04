@@ -62,6 +62,8 @@
    agent-shell-confirm-interrupt nil
    ;; Show cost in the header?
    agent-shell-show-cost-indicator t
+   ;; Send queued prompts one turn each; merge on demand from the queue menu.
+   agent-shell-prompt-queue-merge nil
    )
 
   (add-to-list 'agent-shell-markdown-language-mapping '("ts" . "typescript-ts"))
