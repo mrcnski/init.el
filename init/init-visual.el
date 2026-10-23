@@ -155,6 +155,8 @@ match the file extension instead."
                     agent-shell-markdown-source-block
                     agent-shell-markdown-source-block-language
                     agent-shell-markdown-table
+                    ;; So agent-shell's spinner doesn't shift the prompt.
+                    comint-highlight-prompt
                     ))
       (add-to-list 'mixed-pitch-fixed-pitch-faces face))
     )
